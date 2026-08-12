@@ -1,1 +1,1 @@
-"Thằng Quyền ngu như chó"
+"Thằng Quyền ngu hơn chó"
