@@ -4,6 +4,7 @@ mod e4;
 mod e5;
 mod e6;
 mod e7;
+mod e9;
 #[component]
 pub fn ProgressBar(
     ///The maximum value of the progress bar.
@@ -47,5 +48,10 @@ pub fn App() -> impl IntoView {
         {e4::iteration()}
         {e5::App()}
         {e6::forms()}
+        {e5::App()}
+        <e7::App />
+        <br />
+        <e9::App />
+        <e9::App />
     }
 }
