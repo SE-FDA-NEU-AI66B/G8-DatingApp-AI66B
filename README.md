@@ -1,4 +1,4 @@
-# H-iDB
+# food_web
 
 # Team Project
 
@@ -11,44 +11,3 @@ One-paragraph description of what your team is building goes here.
 | このminh quangだ                 | iambadwithname   | Rustaceans |
 | ![Leonhard](assets/Leonhard.png) | projecteuler.net | math Titan |
 | _add yourself here_              |                  |            |
-
-## Setup
-
-```bash
-git clone <this-repo-url>
-
-```
-
-### Install rust
-
-check https://rust-lang.org/tools/install/
-install nightly toolschain
-and set it as defalut
-
-```bash
-rustup toolchain help
-rustup show active-toolchain|python -c"print(input().split()[0])"
-```
-
-- check that both .cargo/bin and .rustup/<the above result>/bin is in $PATH
-
-### Install tools
-
-```bash
-rustup component add clippy rustc-codegen-cranelift rust-analyzer
-```
-
-```bash
-cargo install cargo-generate cargo-leptos leptosfmt
-```
-
-or
-
-```bash
-cargo install cargo-binstall #for pc with limited space
-cargo binstall cargo-generate cargo-leptos leptosfmt
-```
-
-### Setup Editor
-
-https://book.leptos.dev/getting_started/leptos_dx.html
