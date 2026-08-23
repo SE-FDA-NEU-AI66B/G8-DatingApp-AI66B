@@ -21,7 +21,8 @@ rustup show active-toolchain|python -c"print(input().split()[0])"
 ### Install tools
 
 ```bash
-rustup component add clippy rustc-codegen-cranelift rust-analyzer
+rustup component add clippy rustc-codegen-cranelift rust-analyzer rust-std-wasm32-unknown-unknown
+
 ```
 
 ```bash

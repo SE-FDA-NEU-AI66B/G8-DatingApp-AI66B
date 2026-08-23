@@ -1,6 +1,6 @@
-use leptos::prelude::*;
-
+#[allow(unused_imports)]
 use itertools::Itertools;
+use leptos::prelude::*;
 pub fn iteration() -> impl IntoView {
     let values = vec![0, 1, 2];
     // let (count,set_count)=signal(0);

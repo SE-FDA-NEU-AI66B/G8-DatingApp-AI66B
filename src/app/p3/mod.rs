@@ -1,3 +1,4 @@
+#[allow(unused_imports)]
 use itertools::Itertools;
 use leptos::prelude::*;
 mod e4;
@@ -51,6 +52,7 @@ pub fn App() -> impl IntoView {
         {e5::App()}
         <e7::App />
         <br />
+        <e9::App />
         <e9::App />
         <e9::App />
     }

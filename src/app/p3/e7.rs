@@ -1,6 +1,6 @@
-use leptos::prelude::*;
-
+#[allow(unused_imports)]
 use itertools::Itertools;
+use leptos::prelude::*;
 pub fn App() -> impl IntoView {
     use leptos::logging;
     let (value, set_value) = signal(0);
