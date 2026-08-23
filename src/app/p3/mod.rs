@@ -3,6 +3,7 @@ use leptos::prelude::*;
 mod e4;
 mod e5;
 mod e6;
+mod e7;
 #[component]
 pub fn ProgressBar(
     ///The maximum value of the progress bar.
