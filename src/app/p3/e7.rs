@@ -1,7 +1,9 @@
 #[allow(unused_imports)]
 use itertools::Itertools;
 use leptos::prelude::*;
+#[allow(non_snake_case)]
 pub fn App() -> impl IntoView {
+    #[allow(unused_imports)]
     use leptos::logging;
     let (value, set_value) = signal(0);
     let message = move || {
@@ -20,8 +22,8 @@ pub fn App() -> impl IntoView {
     };
 
     view! {
-        <button on:click=move |cx| *set_value.write() += 1>{message}:{value}</button>
-        <button on:click=move |cx| *set_value.write() += 1>
+        <button on:click=move |_| *set_value.write() += 1>{message}:{value}</button>
+        <button on:click=move |_| *set_value.write() += 1>
             <Show when=move || { value.get() > 5 } fallback=small>
                 big
             </Show>

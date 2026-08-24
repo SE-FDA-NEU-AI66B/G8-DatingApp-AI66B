@@ -21,7 +21,7 @@ pub fn iteration() -> impl IntoView {
         id: usize,
         count: RwSignal<i32>,
     }
-    let mut counters2 = (0..4)
+    let counters2 = (0..4)
         .map(|idx| Counter {
             id: idx,
             count: RwSignal::new(0),

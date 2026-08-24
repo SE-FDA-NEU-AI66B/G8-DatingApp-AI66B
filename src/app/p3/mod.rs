@@ -20,6 +20,7 @@ pub fn ProgressBar(
 //
 // }
 #[component]
+#[allow(non_snake_case)]
 pub fn App() -> impl IntoView {
     let html = "<p> This HTML will be injected.</p>";
     let (count, set_count) = signal(0);

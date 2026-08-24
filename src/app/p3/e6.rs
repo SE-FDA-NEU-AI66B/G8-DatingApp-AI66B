@@ -1,6 +1,7 @@
 #[allow(unused_imports)]
 use itertools::Itertools;
 use leptos::prelude::*;
+#[allow(non_snake_case)]
 fn Uncontroll_forms() -> impl IntoView {
     use leptos::html;
     use leptos::tachys::html::event::SubmitEvent;
