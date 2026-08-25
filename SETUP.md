@@ -39,3 +39,17 @@ cargo binstall cargo-generate cargo-leptos leptosfmt
 ### Setup Editor
 
 https://book.leptos.dev/getting_started/leptos_dx.html
+
+### Setup Cloudflare tunnel
+
+## Install cloudflared
+
+    https://dash.cloudflare.com/tunnels
+
+## open tunnle
+
+copy cert/.cloudflared to home
+
+```bash
+cloudflared tunnel run
+```
