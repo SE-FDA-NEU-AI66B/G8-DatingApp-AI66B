@@ -10,7 +10,6 @@ One-paragraph description of what your team is building goes here.
 | ------------------------------- | ---------------- | ------------- |
 | このminh quangだ                | iambadwithname   | Rustaceans    |
 | [Leonhard](assets/Leonhard.png) | projecteuler.net | math Titan    |
-| [Thành Đạt](assets/TD.png)      |                  | meat sack     |
 | add_your name here              |                  | air breathder |
 | add_your                        |                  | human         |
 
