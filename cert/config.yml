@@ -1,0 +1,8 @@
+tunnel: urmom
+credentials-file: ~/.cloudflared/9a7ceefc-f09b-424a-b1e9-8a387a8dedc4.json
+ingress:
+  - hostname: www.food-web.ipv64.de
+    service: http://localhost:3000
+  # - service: http://localhost:3000
+  # - service: http://localhost:3000
+  - service: http_status:404

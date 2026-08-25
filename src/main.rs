@@ -52,11 +52,15 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(leptos_options.to_owned()))
         //.wrap(middleware::Compress::default())
     });
-    if cfg!(debug_assertions) {
+    let tls_config = if !cfg!(debug_assertions) {
+        Some(ssr::functions::get_tls_config())
+    } else {
+        None
+    };
+    if tls_config.is_none() {
         server.bind(&addr)
     } else {
-        let tls_config = ssr::functions::get_tls_config();
-        server.bind_rustls_0_23(&addr, tls_config)
+        server.bind_rustls_0_23(&addr, tls_config.unwrap())
     }?
     .run()
     .await

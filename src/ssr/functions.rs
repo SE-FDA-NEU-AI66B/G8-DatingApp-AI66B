@@ -3,8 +3,12 @@ pub fn get_tls_config() -> rustls::ServerConfig {
         .install_default()
         .unwrap();
     use std::{fs::File, io::BufReader};
+
     let mut certs_file = BufReader::new(File::open("cert/rsa_4096.crt").unwrap());
     let mut key_file = BufReader::new(File::open("cert/rsa_4096.key").unwrap());
+    let mut certs_file =
+        BufReader::new(File::open("cert/.lego/certificates/rsa_4096.pem").unwrap());
+    let mut key_file = BufReader::new(File::open("cert/.lego/certificates/rsa_4096.pem").unwrap());
     let tls_certs = rustls_pemfile::certs(&mut certs_file)
         .collect::<Result<Vec<_>, _>>()
         .unwrap();

@@ -3,12 +3,12 @@
 #[allow(unused_imports)]
 use itertools::Itertools;
 use leptos::prelude::*;
+mod e04;
+mod e05;
+mod e06;
+mod e07;
+mod e09;
 mod e10;
-mod e4;
-mod e5;
-mod e6;
-mod e7;
-mod e9;
 #[component]
 pub fn ProgressBar(
     ///The maximum value of the progress bar.
@@ -50,13 +50,13 @@ pub fn App() -> impl IntoView {
         <ProgressBar progress=count></ProgressBar>
         <ProgressBar progress=double_count></ProgressBar>
         <div inner_html=html />
-        {e4::iteration()}
-        {e5::App()}
-        {e6::forms()}
-        {e5::App()}
-        <e7::App />
+        {e04::iteration()}
+        {e05::App()}
+        {e06::forms()}
+        {e05::App()}
+        <e07::App />
         <br />
-        <e9::App />
+        <e09::App />
         <e10::App />
     }
 }

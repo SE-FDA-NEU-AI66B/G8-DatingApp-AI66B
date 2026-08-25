@@ -23,7 +23,7 @@ pub fn App() -> impl IntoView {
 
     view! {
         <button on:click=move |_| *set_value.write() += 1>{message}:{value}</button>
-        <button on:click=move |_| *set_value.write() += 1>
+        <button on:click=move |_| *set_value.write() += 9>
             <Show when=move || { value.get() > 5 } fallback=small>
                 big
             </Show>
