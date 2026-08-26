@@ -1,0 +1,10 @@
+challenges:
+  cf:
+    dns:
+      provider: cloudflare
+certificates:
+  rsa_4096:
+    domains:
+      - 30.imsimp.ipv64.de
+      # - .ipv64.de
+      # - "*.example.com"

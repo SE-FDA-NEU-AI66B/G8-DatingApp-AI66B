@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- ĐỔI: tên của bạn -->
+  <title>CV — Nguyễn Văn A</title>
+
+  <!-- CSS đã viết xong ở TUẦN 3 (cộng thêm vài lớp cho tuần 4).
+       Hôm nay bạn KHÔNG sửa CSS, chỉ viết JavaScript. -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <nav class="nav">
+    <a href="#gioi-thieu">Giới thiệu</a>
+    <a href="#ky-nang">Kỹ năng</a>
+    <a href="#hoc-van">Học vấn</a>
+    <a href="#lien-he">Liên hệ</a>
+
+    <!-- Lab 4 (xong sớm): bật/tắt chế độ tối bằng classList.toggle -->
+    <button id="theme-btn" class="btn">Chế độ tối</button>
+  </nav>
+
+  <header id="gioi-thieu">
+    <h1 id="main-header" class="title">Nguyễn Văn A</h1>          <!-- ĐỔI: tên của bạn -->
+    <p>Sinh viên Khoa học Dữ liệu và Trí tuệ Nhân tạo — Đại học Kinh tế Quốc dân</p>
+    <p class="highlight">Mục tiêu: thực tập vị trí Data Analyst, được làm việc
+      với dữ liệu thật và học thêm về mô hình dự báo.</p>
+  </header>
+
+  <main>
+    <h2 id="ky-nang">Kỹ năng</h2>
+
+    <!-- Lab 2 dùng hai nút này; Lab 3 vẽ lại toàn bộ danh sách bên dưới -->
+    <div class="filters">
+      <button id="btn-all" class="btn">Tất cả</button>
+      <button id="btn-exp" class="btn">Từ 2 năm trở lên</button>
+    </div>
+
+    <!-- data-years: số năm kinh nghiệm, Lab 2 sẽ ĐỌC thuộc tính này.
+         Sau Lab 3, bốn thẻ dưới đây được JS vẽ lại từ mảng dữ liệu. -->
+    <div class="skills">
+
+      <div class="skill" data-years="2">
+        <h3>Python</h3>
+        <p class="level">Khá</p>
+        <p class="note">pandas, numpy, matplotlib</p>
+      </div>
+
+      <div class="skill" data-years="2">
+        <h3>SQL</h3>
+        <p class="level">Khá</p>
+        <p class="note">truy vấn nhiều bảng, window function</p>
+      </div>
+
+      <div class="skill" data-years="1">
+        <h3>HTML &amp; CSS</h3>
+        <p class="level">Cơ bản</p>
+        <p class="note">dựng trang tĩnh, responsive</p>
+      </div>
+
+      <div class="skill" data-years="5">
+        <h3>Tiếng Anh</h3>
+        <p class="level">B2</p>
+        <p class="note">đọc tài liệu kỹ thuật</p>
+      </div>
+
+    </div>
+
+    <section class="project">
+      <h2>Kết quả học tập</h2>
+      <img src="chart.svg" alt="Biểu đồ cột GPA theo từng học kỳ">
+    </section>
+
+    <section id="hoc-van">
+      <h2>Học vấn và kinh nghiệm</h2>
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Thời gian</th>
+              <th>Nơi học / làm việc</th>
+              <th>Vai trò</th>
+            </tr>
+          </thead>
+          <!-- ĐỔI: quá trình học và làm của bạn -->
+          <tbody>
+            <tr><td>2022 – nay</td><td>Đại học Kinh tế Quốc dân</td><td>Sinh viên KHDL và AI</td></tr>
+            <tr><td>06/2024 – 08/2024</td><td>Công ty ABC Analytics</td><td>Thực tập sinh dữ liệu</td></tr>
+            <tr><td>2023 – nay</td><td>CLB Dữ liệu NEU</td><td>Thành viên ban học thuật</td></tr>
+            <tr><td>2019 – 2022</td><td>THPT Chuyên Hà Nội</td><td>Học sinh chuyên Toán</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== PHẦN MỚI CỦA TUẦN 4: FORM LIÊN HỆ =====
+         novalidate TẮT phần kiểm tra sẵn có của trình duyệt.
+         Không có nó, trình duyệt tự chặn form khi ô rỗng và sự kiện
+         submit của bạn KHÔNG BAO GIỜ chạy — Lab 4 sẽ trông như hỏng.
+         Đừng xóa novalidate. -->
+    <section id="lien-he">
+      <h2>Liên hệ</h2>
+
+      <form id="contact-form" novalidate>
+        <p>
+          <label for="ten">Họ và tên</label><br>
+          <input id="ten" name="ten" type="text" placeholder="Nguyễn Văn A">
+        </p>
+        <p>
+          <label for="email">Email</label><br>
+          <input id="email" name="email" type="email" placeholder="ban@example.com">
+        </p>
+        <p>
+          <label for="loi-nhan">Lời nhắn</label><br>
+          <textarea id="loi-nhan" name="loi-nhan" rows="4"
+                    placeholder="Ít nhất 10 ký tự"></textarea>
+        </p>
+        <button type="submit" class="btn btn-primary">Gửi lời nhắn</button>
+      </form>
+    </section>
+  </main>
+
+  <!-- ĐỔI: thông tin liên hệ của bạn -->
+  <footer>
+    <p>Email: nguyenvana@st.neu.edu.vn — GitHub: github.com/nguyenvana — Điện thoại: 09xx xxx xxx</p>
+  </footer>
+
+  <!-- Đặt CUỐI body + defer: script chỉ chạy khi cây DOM đã dựng xong.
+       Muốn xem bài giải thì đổi tên file ở đây, ví dụ lab3-render.js -->
+  <script src="app.js" defer></script>
+
+</body>
+</html>
