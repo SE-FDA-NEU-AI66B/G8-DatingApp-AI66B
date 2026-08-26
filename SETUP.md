@@ -44,12 +44,16 @@ https://book.leptos.dev/getting_started/leptos_dx.html
 
 ## Install cloudflared
 
-    https://dash.cloudflare.com/tunnels
+|on windows:| https://dash.cloudflare.com/tunnels|
+| ---------------------------- | ---------------- | ---- |
 
-## open tunnle
+| os       | method                                  |
+| -------- | --------------------------------------- |
+| windows: | https://dash.cloudflare.com/tunnels     |
+| linux:   | use urown package manager "cloudflared" |
 
-copy cert/.cloudflared to home
+## open tunnel
 
 ```bash
-cloudflared tunnel run
+cloudflared tunnel --config ./cert/.cloudflared/config.yml run
 ```

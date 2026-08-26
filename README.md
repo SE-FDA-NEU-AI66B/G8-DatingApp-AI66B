@@ -1,4 +1,4 @@
-# food_web
+# H-iDB
 
 # Team Project
 
@@ -6,14 +6,19 @@ One-paragraph description of what your team is building goes here.
 
 ## Team
 
-| Name                            | GitHub username  | Role          |
-| ------------------------------- | ---------------- | ------------- |
-| このminh quangだ                | iambadwithname   | Rustaceans    |
-| [Leonhard](assets/Leonhard.png) | projecteuler.net | math Titan    |
-| add_your name here              |                  | air breathder |
-| add_your                        |                  | human         |
+| Name                            | GitHub username  | Role       |
+| ------------------------------- | ---------------- | ---------- |
+| このminh quangだ                | iambadwithname   |            |
+| [Leonhard](assets/Leonhard.png) | projecteuler.net | math Titan |
+| ![king of pop](asset/MJ.png)    | Muzan Kibutsuji. | king       |
+| _add yourself here_             |                  |            |
 
-and add your role
+## Setup
+
+```bash
+git clone <this-repo-url>
+cd <repo-name>
+```
 
 ## RUN
 
