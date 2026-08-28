@@ -7,11 +7,11 @@ accounts:
 challenges:
   cf:
     dns:
-      provider: ipv64
+      provider: cloudflare
 certificates:
   rsa_4096:
     domains:
-      - food-web.ipv64.de
+      - '*.dt-fwb.ipv64.de'
     keyType: EC256
     challenge: cf
     account: noemail@example.com

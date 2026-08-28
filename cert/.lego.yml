@@ -5,6 +5,6 @@ challenges:
 certificates:
   rsa_4096:
     domains:
-      - 30.imsimp.ipv64.de
+      - "*.dt-fwb.ipv64.de"
       # - .ipv64.de
       # - "*.example.com"
