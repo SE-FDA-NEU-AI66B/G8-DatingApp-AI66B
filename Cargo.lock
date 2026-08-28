@@ -715,6 +715,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "dateingapp"
+version = "0.1.0"
+dependencies = [
+ "actix-files 0.7.0",
+ "actix-web",
+ "console_error_panic_hook",
+ "http 1.5.0",
+ "itertools 0.15.0",
+ "leptos",
+ "leptos_actix",
+ "leptos_meta",
+ "leptos_router",
+ "rayon",
+ "rustls",
+ "rustls-pemfile",
+ "server_fn",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "deranged"
 version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -892,25 +912,6 @@ name = "foldhash"
 version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77ce24cb58228fbb8aa041425bb1050850ac19177686ea6e0f41a70416f56fdb"
-
-[[package]]
-name = "food_web"
-version = "0.1.0"
-dependencies = [
- "actix-files 0.7.0",
- "actix-web",
- "console_error_panic_hook",
- "http 1.5.0",
- "itertools 0.15.0",
- "leptos",
- "leptos_actix",
- "leptos_meta",
- "leptos_router",
- "rayon",
- "rustls",
- "rustls-pemfile",
- "wasm-bindgen",
-]
 
 [[package]]
 name = "form_urlencoded"

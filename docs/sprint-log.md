@@ -17,24 +17,24 @@ has no goal and you are just doing tasks.>
 
 ### Hai chore issue bắt buộc
 
-| Issue | Người làm | Đã đóng? |
-|-------|-----------|----------|
-| [Chore] Refine backlog cho Sprint N | @ (PO) | |
-| [Chore] Sprint N wrap-up | @ (SM) | |
+| Issue                               | Người làm | Đã đóng? |
+| ----------------------------------- | --------- | -------- |
+| [Chore] Refine backlog cho Sprint N | @ (PO)    |          |
+| [Chore] Sprint N wrap-up            | @ (SM)    |          |
 
 ### Committed
 
 | Issue | Story | Points | Owner |
-|-------|-------|--------|-------|
+| ----- | ----- | ------ | ----- |
 | #     |       |        | @     |
 
 **Total committed: __ points**
 
 ### Result
 
-| Issue | Points | Status | If not done, why |
-|-------|--------|--------|------------------|
-| #     |        | Done / Carried over | |
+| Issue | Points | Status              | If not done, why |
+| ----- | ------ | ------------------- | ---------------- |
+| #     |        | Done / Carried over |                  |
 
 **Completed: __ points. Velocity this sprint: __**
 
@@ -47,7 +47,7 @@ has no goal and you are just doing tasks.>
 ### Retrospective
 
 | Keep doing | Stop doing | Start doing |
-|------------|------------|-------------|
+| ---------- | ---------- | ----------- |
 |            |            |             |
 
 **One concrete action for next sprint (with an owner):**
@@ -58,5 +58,5 @@ has no goal and you are just doing tasks.>
 ### Attendance
 
 | Member | Planning | Review | Retro |
-|--------|----------|--------|-------|
+| ------ | -------- | ------ | ----- |
 | @      |          |        |       |

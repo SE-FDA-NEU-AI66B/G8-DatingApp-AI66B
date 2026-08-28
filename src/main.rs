@@ -1,10 +1,10 @@
-mod ssr;
+mod ss;
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     use actix_files::Files;
     use actix_web::*;
-    use food_web::app::*;
+    use dateingapp::app::*;
     use leptos::config::get_configuration;
     use leptos::prelude::*;
     use leptos_actix::{generate_route_list, LeptosRoutes};
@@ -53,7 +53,7 @@ async fn main() -> std::io::Result<()> {
         //.wrap(middleware::Compress::default())
     });
     let tls_config = if !cfg!(debug_assertions) {
-        Some(ssr::functions::get_tls_config())
+        Some(ss::functions::get_tls_config())
     } else {
         None
     };

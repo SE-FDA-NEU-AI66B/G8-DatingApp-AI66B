@@ -29,10 +29,16 @@ pub fn App() -> impl IntoView {
 
 /// Renders the home page of your application.
 use itertools::Itertools;
+mod p15;
 mod p3;
+mod p4;
 #[component]
 fn HomePage() -> impl IntoView {
-    view! { {p3::App()} }
+    view! {
+        {p3::App()}
+        {p4::App()}
+        {p15::App()}
+    }
 }
 
 /// 404 - Not Found
