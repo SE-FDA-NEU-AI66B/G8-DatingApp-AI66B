@@ -9,8 +9,10 @@ env:
 
 jobs:
   build_and_test:
-    name: Rust project - latest
-    runs-on: quang1234567/cargo-leptos
+    name: build + test - latest
+    runs-on: ubuntu-latest
+    container:
+      image: quang1234567/cargo-leptos
     steps:
       - uses: actions/checkout@v6
       - run: cargo leptos build --verbose

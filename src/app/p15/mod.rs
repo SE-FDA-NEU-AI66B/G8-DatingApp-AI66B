@@ -1,4 +1,5 @@
 use leptos::prelude::*;
+
 mod e1;
 mod e2;
 pub fn App() -> impl IntoView {

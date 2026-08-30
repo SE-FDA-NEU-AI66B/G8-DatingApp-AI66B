@@ -1,6 +1,5 @@
 pub mod app;
-pub mod worker;
-
+pub mod share;
 #[cfg(feature = "hydrate")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn hydrate() {

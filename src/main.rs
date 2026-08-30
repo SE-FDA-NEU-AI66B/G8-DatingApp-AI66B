@@ -1,5 +1,6 @@
 mod ss;
-use dateingapp as lib;
+mod worker;
+pub use dateingapp as lib;
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -14,6 +15,9 @@ async fn main() -> std::io::Result<()> {
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
 
+    std::env::set_var("RUST_LOG", "debug");
+    env_logger::init();
+
     let server = HttpServer::new(move || {
         // Generate the list of routes in your Leptos App
         let routes = generate_route_list(App);
@@ -21,7 +25,7 @@ async fn main() -> std::io::Result<()> {
         let site_root = leptos_options.site_root.clone().to_string();
         println!("listening on http://{}", &addr);
         App::new()
-            .configure(lib::worker::config)
+            .configure(worker::config)
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve other assets from the `assets` directory
