@@ -20,10 +20,9 @@ git clone <this-repo-url>
 cd <repo-name>
 ```
 
-## RUN
-
 [read the SETUP.md](SETUP.md)
-for dev
+
+## RUN
 
 ```bash
 cargo leptos watch
