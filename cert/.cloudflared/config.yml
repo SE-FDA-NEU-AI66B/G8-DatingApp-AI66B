@@ -1,5 +1,5 @@
 tunnel: urmom
-credentials-file: ./cert/.cloudflared/fd0b41d9-88bb-4b1b-a937-9927ea2dd596.json
+credentials-file: ./cert/.cloudflared/secret
 ingress:
   - hostname: www.dt-fwb.ipv64.de
     service: http://localhost:3100

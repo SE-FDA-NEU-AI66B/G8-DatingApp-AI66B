@@ -1,9 +1,15 @@
 mod ss;
+use std::env;
 mod worker;
 pub use dateingapp as lib;
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    if env::var_os("PGPASSPORT").is_none() {
+        env::set_var("PGPASSPORT", "5432");
+    }
+    let a = ss::functions::connect_database().await.unwrap();
+
     use actix_files::Files;
     use actix_web::*;
     use leptos::config::get_configuration;
@@ -15,9 +21,8 @@ async fn main() -> std::io::Result<()> {
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
 
-    std::env::set_var("RUST_LOG", "debug");
-    env_logger::init();
-
+    // std::env::set_var("RUST_LOG", "debug");
+    // env_logger::init();
     let server = HttpServer::new(move || {
         // Generate the list of routes in your Leptos App
         let routes = generate_route_list(App);
@@ -82,22 +87,4 @@ async fn favicon(
     Ok(actix_files::NamedFile::open(format!(
         "{site_root}/favicon.ico"
     ))?)
-}
-//
-#[cfg(not(any(feature = "ssr", feature = "csr")))]
-pub fn main() {
-    // no client-side main function
-    // unless we want this to work with e.g., Trunk for pure client-side testing
-    // see lib.rs for hydration function instead
-    // see optional feature `csr` instead
-}
-
-#[cfg(all(not(feature = "ssr"), feature = "csr"))]
-pub fn main() {
-    // a client-side main function is required for using `trunk serve`
-    // prefer using `cargo leptos serve` instead
-    // to run: `trunk serve --open --features csr`
-    use lib::app::*;
-    console_error_panic_hook::set_once();
-    leptos::mount_to_body(App);
 }

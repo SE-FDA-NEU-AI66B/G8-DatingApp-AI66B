@@ -13,6 +13,6 @@ pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
         global_count: Arc::new(AtomicUsize::new(0)),
     };
     WORKER.fetch_add(1, Ordering::Relaxed);
-    println!("{:?}", data);
+    // println!("{:?}", data);
     cfg.app_data(Data::new(data));
 }

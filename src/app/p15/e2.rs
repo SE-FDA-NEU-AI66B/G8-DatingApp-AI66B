@@ -34,11 +34,9 @@ pub fn App() -> impl IntoView {
     if counter.get().is_none() {
         reset();
     }
-
     let increase = move || {
         set_counter.set(counter.get().map(|c| c + 1));
     };
-
     let (query, query_set) = signal(String::from("Asdf"));
     let f = move |_| {
         spawn_local(async move {
