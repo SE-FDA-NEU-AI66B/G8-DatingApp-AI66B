@@ -1,14 +1,17 @@
+[[workspace.metadata.leptos]]
+bin-target = "datingapp"
+
 [resolver]
 feature-unification = "workspace"
 
 [package]
-name = "dateingapp"
+name = "datingapp"
 version = "0.1.0"
 edition = "2021"
 
 [package.metadata.leptos]
 # The name used by wasm-bindgen/cargo-leptos for the JS/WASM bundle. Defaults to the crate name
-output-name = "dateingapp"
+output-name = "datingapp"
 # The site root folder is where cargo-leptos generate all output. WARNING: all content of this folder will be erased on a rebuild. Use it in your server setup.
 site-root = "target/site"
 # The site-root relative folder where all compiled output (JS, WASM and CSS) is written
@@ -25,7 +28,6 @@ assets-dir = "assets"
 site-addr = "0.0.0.0:3100"
 # site-addr = "0.0.0.0:433"
 # The port to use for automatic reload monitoring
-# reload-port = 3101
 reload-port = 3101
 # [Optional] Command to use when running end2end tests. It will run in the end2end dir.
 #   [Windows] for non-WSL use "npx.cmd playwright test"
@@ -120,3 +122,6 @@ codegen-backend = "cranelift" #dont support webasm
 rustflags = ["--cfg", "erase_components"]
 [target.wasm32-unknown-unknown]
 rustflags = ["--cfg", "erase_components"]
+[[example]]
+name = "cloudflared"
+path = "examples/cloudflared.rs"

@@ -9,7 +9,7 @@ run = 'npm run dev'
 run = 'pytest'
 [tasks]
 hello = "seq 0 142"
-cloudflared = "cargo run --bin cloudflared "
+cloudflared = "cargo run --example cloudflared"
 lego = "cd cert; lego"
 database = "cd database;docker compose up -d"
 database_clean = "cd database;docker compose down --remove-orphans"

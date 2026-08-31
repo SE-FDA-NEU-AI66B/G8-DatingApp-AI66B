@@ -884,7 +884,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "dateingapp"
+name = "datingapp"
 version = "0.1.0"
 dependencies = [
  "actix-files 0.7.0",

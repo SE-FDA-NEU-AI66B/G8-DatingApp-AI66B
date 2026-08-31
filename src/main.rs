@@ -1,7 +1,7 @@
 mod ss;
 use std::env;
 mod worker;
-pub use dateingapp as lib;
+pub use datingapp as lib;
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
