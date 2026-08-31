@@ -1,9 +1,3 @@
-[[workspace.metadata.leptos]]
-bin-target = "datingapp"
-
-[resolver]
-feature-unification = "workspace"
-
 [package]
 name = "datingapp"
 version = "0.1.0"
@@ -122,6 +116,6 @@ codegen-backend = "cranelift" #dont support webasm
 rustflags = ["--cfg", "erase_components"]
 [target.wasm32-unknown-unknown]
 rustflags = ["--cfg", "erase_components"]
-[[example]]
-name = "cloudflared"
-path = "examples/cloudflared.rs"
+# [[example]]
+# name = "cloudflared"
+# path = "examples/cloudflared.rs"
