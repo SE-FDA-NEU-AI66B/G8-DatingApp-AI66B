@@ -4,9 +4,6 @@ use leptos::reactive::spawn_local;
 #[server]
 pub async fn add_todo(title: String) -> Result<(), ServerFnError> {
     println!("fasdfasdf");
-    // let mut conn=db()
-    // {
-    // }
     Ok(())
 }
 // leptos::server::codee::string::codee

@@ -97,7 +97,7 @@ pub fn main() {
     // a client-side main function is required for using `trunk serve`
     // prefer using `cargo leptos serve` instead
     // to run: `trunk serve --open --features csr`
-    use food_web::app::*;
+    use lib::app::*;
     console_error_panic_hook::set_once();
     leptos::mount_to_body(App);
 }
