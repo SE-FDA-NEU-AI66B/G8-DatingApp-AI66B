@@ -1,12 +1,11 @@
 # [tools]
 # node = '24'
-# python = '3.12'
+python = '3.12'
 [env]
 # LEGO_CONFIG = "cert/.lego.yml"
-[tasks.dev]
-run = 'npm run dev'
-[tasks.test]
-run = 'pytest'
+[tools]
+python = "latest"
+uv = "system"
 [tasks]
 hello = "seq 0 142"
 cloudflared = "cargo run --example cloudflared"

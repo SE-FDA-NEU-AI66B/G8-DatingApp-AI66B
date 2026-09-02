@@ -12,7 +12,7 @@ pub async fn actix_extract() -> Result<String, ServerFnError> {
     use actix_web::dev::ConnectionInfo;
     use actix_web::web::Data;
     use leptos_actix::extract;
-    let (connection): ConnectionInfo = extract().await.unwrap_or_else(|i| {
+    let connection: ConnectionInfo = extract().await.unwrap_or_else(|i| {
         println!("{:?}", i);
         panic!("asdf");
     });

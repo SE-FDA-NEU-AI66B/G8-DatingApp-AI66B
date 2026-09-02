@@ -1,3 +1,4 @@
+#![feature(test)]
 mod ss;
 use std::env;
 mod worker;
