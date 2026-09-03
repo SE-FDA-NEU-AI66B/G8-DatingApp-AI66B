@@ -5,4 +5,20 @@ description = "Add your description here"
 readme = "README.md"
 authors = [{ name = "mq", email = "minhquang2006m@gmail.com" }]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "basedpyright>=1.39.10",
+    "connectorx>=0.4.5",
+    "duckdb>=1.5.5",
+    "marimo>=0.24.0",
+    "polars>=1.44.1",
+    "postgres>=4.0",
+    "pyarrow>=25.0.1",
+    "pyrefly>=1.2.0",
+    "pytest>=9.1.1",
+    "python-lsp-server>=1.15.0",
+    "ruff>=0.16.5",
+    "sqlglot>=30.17.0",
+    "ty>=0.0.77",
+    "vegafusion>=2.0.3",
+    "vl-convert-python>=1.9.0.post1",
+]

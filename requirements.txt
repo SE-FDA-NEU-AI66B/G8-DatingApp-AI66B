@@ -1,1 +1,22 @@
+##marimo##
 marimo
+duckdb
+sqlglot
+pytest
+vegafusion
+vl-convert-python
+##lsp##
+basedpyright
+ty
+pyrefly
+python-lsp-server
+ruff
+##data##
+postgres
+##data+caculation##
+polars
+##cupy#no n
+##plot##
+##other##
+pyarrow
+# graphviz

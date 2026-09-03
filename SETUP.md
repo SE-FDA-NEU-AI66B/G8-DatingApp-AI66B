@@ -35,6 +35,10 @@ cargo install cargo-binstall #for pc with limited space
 cargo binstall cargo-generate cargo-leptos leptosfmt mise
 ```
 
+#### other tool
+
+uv
+
 ### Setup Editor
 
 https://book.leptos.dev/getting_started/leptos_dx.html
@@ -55,4 +59,10 @@ https://book.leptos.dev/getting_started/leptos_dx.html
 
 ```bash
 cloudflared tunnel --config ./cert/.cloudflared/config.yml run
+```
+
+## MISC
+### create python env
+```bash
+  uv add -r requirements.txt
 ```
