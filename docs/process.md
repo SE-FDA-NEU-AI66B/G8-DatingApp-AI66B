@@ -24,7 +24,7 @@ If we moved to a fully plan-driven process, the biggest risk would be freezing t
 
 ## 4. Process rules your team commits to
 
-- Sprint length is two week; the GitHub project board is reprioritized at the start of each sprint.
+- Sprint length is two weeks; the GitHub project board is reprioritized at the start of each sprint.
 - Every change reaches `main` through a pull request reviewed by at least one other team member.
 - Each pull request must include either a test result, a screenshot, or a short explanation of why the change is documentation-only.
 - Requirement changes after sprint planning are recorded as GitHub issues before implementation starts.
