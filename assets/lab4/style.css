@@ -1,0 +1,285 @@
+/* =========================================================
+   CV cá nhân — style.css
+   TOÀN BỘ phần dưới đây là kết quả của TUẦN 3 (bản
+   lab4-responsive.css), cộng thêm một khối nhỏ ở CUỐI FILE
+   phục vụ tuần 4.
+
+   TUẦN 4 BẠN KHÔNG SỬA FILE NÀY — hôm nay chỉ viết JavaScript
+   trong app.js. CSS đã sẵn sàng đón các lớp mà JS sẽ gắn vào:
+   .dimmed, .hidden, .error, .error-msg, .ok-msg, body.dark
+   ========================================================= */
+
+
+/* ===== 1. RESET (Lab 2) ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+
+/* ===== 2. NỀN TẢNG — Lab 1 + đơn vị tương đối của Lab 4 =====
+
+   max-width + margin: 0 auto = cặp đôi kinh điển giữ nội dung
+   không kéo dài vô tận trên màn hình 27 inch.
+   rem = nhân với cỡ chữ gốc (16px): người dùng tăng cỡ chữ mặc
+   định của trình duyệt thì mọi thứ tính bằng rem phóng to theo,
+   còn px thì cứng đờ. */
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  color: #333333;
+  line-height: 1.6;
+  padding: 24px;
+  background: #f5f7fa;        /* thêm ở Lab 4 */
+  max-width: 1200px;          /* thêm ở Lab 4 */
+  margin: 0 auto;             /* thêm ở Lab 4 */
+}
+
+h1 { font-size: 2rem; color: #333333; }        /* = 32px */
+.title { color: #0055aa; }                     /* 0,1,0 */
+#main-header { color: #cc3300; }               /* 1,0,0 — thắng */
+h1, h2, h3 { color: #1b2b3a; }
+
+h2 { font-size: 1.3rem; margin-top: 28px; }    /* thêm ở Lab 4 */
+
+
+/* HAI DÒNG "CỨU MẠNG" cho ảnh:
+       max-width: 100% -> ảnh không bao giờ rộng hơn khung chứa
+       height: auto    -> giữ đúng tỉ lệ, không méo
+   Xóa hai dòng này rồi xem ở 375px: biểu đồ 720px làm vỡ bố cục
+   và sinh thanh cuộn ngang cho cả trang. */
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+
+/* ===== 3. LAB 1 — phần selector còn lại ===== */
+.highlight {
+  background-color: #fff3cd;
+  border-left: 4px solid #f0ad4e;
+  padding: 8px 12px;
+  font-weight: bold;
+}
+
+.nav a { color: #0055aa; text-decoration: none; }
+.nav a:hover { color: #cc3300; text-decoration: underline; }
+.skills .skill h3 { color: #667788; }
+
+
+/* ===== 4. LAB 3 — Flexbox (đã gồm box model của Lab 2) ===== */
+.nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 2px solid #e3e9f0;
+  margin-bottom: 20px;
+}
+
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: stretch;
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.skill {
+  flex: 1 1 220px;
+  padding: 16px;
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
+  background: #ffffff;
+}
+
+.skill:hover { background-color: #e8f0fe; }
+
+.skill h3    { font-size: 0.95rem; margin: 0 0 8px 0; }
+.skill .level{ font-size: 1.5rem;  font-weight: bold; color: #0055aa; margin: 0; }
+.skill .note { font-size: 0.85rem; color: #8a94a1; margin: 6px 0 0 0; }
+
+.project {
+  padding: 16px 20px;
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
+  margin: 24px 0;
+  background: #ffffff;
+}
+
+.data-table {
+  width: 100%;                /* thêm ở Lab 4 */
+  min-width: 480px;           /* thêm ở Lab 4 — xem .table-wrap */
+  border-collapse: collapse;
+  margin-top: 12px;
+  background: #ffffff;
+}
+
+.data-table th,
+.data-table td { border: 1px solid #d4d4d4; padding: 8px 14px; text-align: left; }
+.data-table th { background: #eef2f7; }
+
+
+/* Bảng là thứ khó responsive nhất. min-width buộc bảng rộng tối
+   thiểu 480px, còn .table-wrap cho phần BỌC cuộn ngang: trên
+   điện thoại bảng có dải cuộn RIÊNG, cả trang vẫn không có thanh
+   cuộn ngang. An toàn hơn nhiều so với đặt overflow lên chính
+   thẻ <table> (làm hỏng chiều rộng các ô). */
+.table-wrap {
+  overflow-x: auto;
+}
+
+
+/* ===== 5. LAB 4 — MEDIA QUERIES =====
+
+   Đọc @media như một câu lệnh if:
+   "NẾU là màn hình VÀ rộng <= 768px THÌ áp dụng các luật bên trong."
+
+   THỨ TỰ QUAN TRỌNG: khối @media phải nằm SAU các luật mặc định,
+   vì luật trong @media có CÙNG specificity với luật cùng selector
+   ở ngoài — cùng điểm thì dòng viết sau thắng. Đặt @media lên đầu
+   file thì nó bị luật mặc định đè.
+
+   Ba mốc thông dụng: 1024px (laptop nhỏ), 768px (máy tính bảng),
+   480px (điện thoại). */
+
+
+/* --------- MÁY TÍNH BẢNG TRỞ XUỐNG (<= 768px) --------- */
+@media screen and (max-width: 768px) {
+
+  /* Các thẻ kỹ năng xếp thành một cột dọc */
+  .skills {
+    flex-direction: column;
+  }
+
+  /* DÒNG NÀY BẮT BUỘC — bài học tinh tế nhất của Lab 4:
+     flex-basis luôn đo theo TRỤC CHÍNH. Khi trục chính đổi sang
+     dọc, con số 220px của flex: 1 1 220px không còn là CHIỀU RỘNG
+     mà thành CHIỀU CAO -> mỗi thẻ cao 220px, trống hơn nửa.
+     Thử xóa dòng này và xem ở 768px để thấy rõ. */
+  .skill {
+    flex-basis: auto;
+  }
+
+  body {
+    padding: 16px;
+  }
+
+  h1 {
+    font-size: 1.6rem;
+  }
+}
+
+
+/* --------------- ĐIỆN THOẠI (<= 480px) --------------- */
+@media screen and (max-width: 480px) {
+
+  /* Ở 375px thì CẢ HAI khối @media cùng có hiệu lực (375 <= 480
+     và 375 <= 768). Thuộc tính trùng nhau thì khối viết sau
+     thắng -> body padding là 12px, không phải 16px. */
+
+  .skill {
+    padding: 10px;
+  }
+
+  .skill .level {
+    font-size: 1.2rem;
+  }
+
+  .nav {
+    gap: 12px;
+  }
+
+  body {
+    padding: 12px;
+  }
+}
+
+
+/* =========================================================
+   ===== BỔ SUNG CHO TUẦN 4 — ĐÃ VIẾT SẴN, ĐỪNG SỬA =====
+
+   Đây chính là điểm nối giữa hai buổi: tuần 3 bạn viết các lớp
+   CSS, tuần 4 JavaScript chỉ việc GẮN hoặc GỠ tên lớp đó bằng
+   classList. JS lo logic, CSS lo hình thức.
+   ========================================================= */
+
+/* --- Nút bấm --- */
+.btn {
+  font: inherit;
+  padding: 8px 14px;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0055aa;
+  cursor: pointer;
+}
+
+.btn:hover { background: #e8f0fe; }
+
+.btn-primary {
+  background: #0055aa;
+  border-color: #0055aa;
+  color: #ffffff;
+}
+
+.btn-primary:hover { background: #004080; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+
+#theme-btn { margin-left: auto; }
+
+
+/* --- Lớp JS gắn vào ở Lab 2 và Lab 3 --- */
+.skill.dimmed { opacity: 0.35; }      /* Lab 2: làm mờ thẻ chưa đạt */
+.hidden { display: none; }            /* Lab 3: ẩn hẳn một phần tử  */
+
+
+/* --- Form liên hệ (Lab 4) --- */
+form p { margin: 0 0 14px 0; }
+
+label { font-size: 0.9rem; color: #667788; }
+
+input, textarea {
+  font: inherit;
+  width: 100%;
+  max-width: 420px;
+  padding: 8px 10px;
+  border: 1px solid #d4d4d4;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+/* JS gắn class "error" vào ô sai, gỡ ra khi người dùng sửa */
+input.error, textarea.error {
+  border-color: #cc3300;
+  background: #fff6f4;
+}
+
+.error-msg { color: #cc3300; font-size: 0.85rem; margin: 4px 0 0 0; }
+.ok-msg { color: #0a7c4a; font-weight: bold; margin-top: 12px; }
+
+
+/* --- Chế độ tối (Lab 4, phần xong sớm: body.classList.toggle) --- */
+body.dark { background: #12181f; color: #dfe6ee; }
+body.dark h1, body.dark h2, body.dark h3 { color: #e8f0fe; }
+body.dark .title { color: #7fb3ff; }
+body.dark #main-header { color: #ff7a52; }
+
+body.dark .skill,
+body.dark .project,
+body.dark .data-table,
+body.dark .btn,
+body.dark input,
+body.dark textarea {
+  background: #1b2530;
+  border-color: #33414f;
+  color: #dfe6ee;
+}
+
+body.dark .skill:hover { background: #24313f; }
+body.dark .data-table th { background: #24313f; }
+body.dark .highlight { background: #3a3520; border-left-color: #f0ad4e; }
+body.dark .nav { border-bottom-color: #33414f; }
+body.dark .skill .note, body.dark label { color: #9fb0c2; }

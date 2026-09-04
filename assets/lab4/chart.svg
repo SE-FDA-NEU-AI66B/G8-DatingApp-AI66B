@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300" width="720" height="300" role="img" aria-label="Biểu đồ cột GPA theo học kỳ">
+  <rect width="720" height="300" fill="#ffffff"/>
+
+  <!-- Trục -->
+  <line x1="60" y1="250" x2="690" y2="250" stroke="#c9d2dd" stroke-width="2"/>
+  <line x1="60" y1="30"  x2="60"  y2="250" stroke="#c9d2dd" stroke-width="2"/>
+
+  <!-- Lưới ngang: 1.0 / 2.0 / 3.0 -->
+  <line x1="60" y1="195" x2="690" y2="195" stroke="#eef2f7" stroke-width="1"/>
+  <line x1="60" y1="140" x2="690" y2="140" stroke="#eef2f7" stroke-width="1"/>
+  <line x1="60" y1="85"  x2="690" y2="85"  stroke="#eef2f7" stroke-width="1"/>
+
+  <!-- Cột GPA từng học kỳ (thang 4.0) -->
+  <g fill="#0055aa">
+    <rect x="90"  y="85" width="52" height="165"/>
+    <rect x="175" y="74" width="52" height="176"/>
+    <rect x="260" y="80" width="52" height="170"/>
+    <rect x="345" y="63" width="52" height="187"/>
+    <rect x="430" y="58" width="52" height="192"/>
+    <rect x="515" y="52" width="52" height="198"/>
+    <rect x="600" y="47" width="52" height="203"/>
+  </g>
+
+  <!-- Nhãn trục ngang -->
+  <g font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#5a6675" text-anchor="middle">
+    <text x="116" y="270">HK1</text>
+    <text x="201" y="270">HK2</text>
+    <text x="286" y="270">HK3</text>
+    <text x="371" y="270">HK4</text>
+    <text x="456" y="270">HK5</text>
+    <text x="541" y="270">HK6</text>
+    <text x="626" y="270">HK7</text>
+  </g>
+
+  <!-- Nhãn trục dọc -->
+  <g font-family="Arial, Helvetica, sans-serif" font-size="12" fill="#8a94a1" text-anchor="end">
+    <text x="50" y="255">0</text>
+    <text x="50" y="200">1</text>
+    <text x="50" y="145">2</text>
+    <text x="50" y="90">3</text>
+  </g>
+
+  <text x="60" y="20" font-family="Arial, Helvetica, sans-serif" font-size="13" fill="#1b2b3a">GPA theo học kỳ (thang 4.0)</text>
+</svg>

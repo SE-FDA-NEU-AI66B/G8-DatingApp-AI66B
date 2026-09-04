@@ -1,0 +1,9 @@
+challenges:
+  cf:
+    dns:
+      provider: ipv64
+certificates:
+  rsa_4096:
+    domains:
+      - food-web.ipv64.de
+      # - "*.example.com"

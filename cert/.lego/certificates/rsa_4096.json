@@ -1,0 +1,10 @@
+{
+	"id": "rsa_4096",
+	"domains": [
+		"food-web.ipv64.de"
+	],
+	"keyType": "EC256",
+	"certUrl": "https://acme-v02.api.letsencrypt.org/acme/cert/067c592feb5c8f6bbebd2fb1325b51280e8c",
+	"certStableUrl": "https://acme-v02.api.letsencrypt.org/acme/cert/067c592feb5c8f6bbebd2fb1325b51280e8c",
+	"origin": "configuration"
+}
