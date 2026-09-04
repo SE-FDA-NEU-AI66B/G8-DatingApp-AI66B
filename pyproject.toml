@@ -3,7 +3,6 @@ name = "h-idb"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-authors = [{ name = "mq", email = "minhquang2006m@gmail.com" }]
 requires-python = ">=3.13"
 dependencies = [
     "basedpyright>=1.39.10",
@@ -22,3 +21,10 @@ dependencies = [
     "vegafusion>=2.0.3",
     "vl-convert-python>=1.9.0.post1",
 ]
+
+[project.scripts]
+h-idb = "h_idb:main"
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"
