@@ -43,6 +43,7 @@ pub async fn connect_database() -> Result<(Client, Connection<Socket, NoTlsStrea
     tokio_postgres::connect(&s, NoTls).await
 }
 #[cfg(test)]
+#[cfg(not(target_arch = "wasm32"))]
 mod tests {
     extern crate test;
     use actix::prelude::*;
