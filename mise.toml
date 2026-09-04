@@ -4,7 +4,7 @@
 [env]
 [tools]
 
-uv = "system"
+# uv = "system"
 
 [tasks]
 hello = "seq 0 142"
