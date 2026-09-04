@@ -4,4 +4,4 @@
 - [18i] Add user authentication
 - [e] Write tests
 - [pi] Update documentation
-- [ ] Add database
+- [20%] Add database
