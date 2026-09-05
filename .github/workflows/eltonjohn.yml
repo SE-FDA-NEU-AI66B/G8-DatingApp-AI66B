@@ -1,0 +1,21 @@
+name: Cargo Build & Test
+
+on:
+  push:
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build_and_test:
+    name: build + test - latest
+    runs-on: ubuntu-latest
+    container:
+      image: quang1234567/cargo-leptos
+    steps:
+      - uses: actions/checkout@v6
+      - run: cargo leptos build -vv
+      - run: cargo leptos build --release -vv
+      # this is abit buggy
+      # - run: cargo leptos test --release -vv

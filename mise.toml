@@ -1,0 +1,18 @@
+# [tools]
+# node = '24'
+# python = '3.12'
+[env]
+[tools]
+
+# uv = "system"
+
+[tasks]
+hello = "seq 0 142"
+cloudflared = "cargo run --example cloudflared"
+lego = "cd cert; lego"
+database = "cd database;docker compose up -d"
+database_clean = "cd database;docker compose down --remove-orphans"
+
+[settings]
+activate_aggressive = true
+python.uv_venv_auto = "source"

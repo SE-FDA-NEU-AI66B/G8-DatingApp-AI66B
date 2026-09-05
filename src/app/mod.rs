@@ -12,7 +12,7 @@ pub fn App() -> impl IntoView {
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
-        <Stylesheet id="leptos" href="/pkg/food_web.css" />
+        <Stylesheet id="leptos" href="/pkg/datingapp.css" />
         // sets the document title
         <Title text="Welcome to Leptos" />
         // content for this welcome page
@@ -29,10 +29,16 @@ pub fn App() -> impl IntoView {
 
 /// Renders the home page of your application.
 use itertools::Itertools;
+mod p15;
 mod p3;
+mod p4;
 #[component]
 fn HomePage() -> impl IntoView {
-    view! { {p3::App()} }
+    view! {
+        {p3::App()}
+        {p4::App()}
+        {p15::App()}
+    }
 }
 
 /// 404 - Not Found
@@ -51,6 +57,5 @@ fn NotFound() -> impl IntoView {
         let resp = expect_context::<leptos_actix::ResponseOptions>();
         resp.set_status(actix_web::http::StatusCode::NOT_FOUND);
     }
-
     view! { <h1>"Not Found"</h1> }
 }

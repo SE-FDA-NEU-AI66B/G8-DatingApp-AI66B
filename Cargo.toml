@@ -1,14 +1,11 @@
-[resolver]
-feature-unification = "workspace"
-
 [package]
-name = "food_web"
+name = "datingapp"
 version = "0.1.0"
 edition = "2021"
 
 [package.metadata.leptos]
 # The name used by wasm-bindgen/cargo-leptos for the JS/WASM bundle. Defaults to the crate name
-output-name = "food_web"
+output-name = "datingapp"
 # The site root folder is where cargo-leptos generate all output. WARNING: all content of this folder will be erased on a rebuild. Use it in your server setup.
 site-root = "target/site"
 # The site-root relative folder where all compiled output (JS, WASM and CSS) is written
@@ -23,6 +20,7 @@ style-file = "style/main.scss"
 assets-dir = "assets"
 # The IP and port (ex: 127.0.0.1:3000) where the server serves the content. Use it in your server setup.
 site-addr = "0.0.0.0:3100"
+# site-addr = "0.0.0.0:433"
 # The port to use for automatic reload monitoring
 reload-port = 3101
 # [Optional] Command to use when running end2end tests. It will run in the end2end dir.
@@ -63,33 +61,33 @@ lib-profile-release = "wasm-release"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+env_logger = "0.11"
 actix-files = { version = "0.7", optional = true }
 console_error_panic_hook = "0.1"
 http = { version = "1.5.0", optional = true }
 itertools = "0.15.0"
 leptos_actix = { version = "0.8.7", optional = true }
 leptos_meta = { version = "0.8.6" }
-
 leptos_router = { version = "0.8.15", features = ["nightly"] }
-
 rayon = "1.12.0"
+serde = "1.0.229"
+server_fn = "0.8.13"
 wasm-bindgen = "0.2.127"
-
-[dependencies.leptos]
-version = "0.8.20"
-features = [
+actix-web = { version = "4", features = [
+  "macros",
+  "rustls-0_23",
+], optional = true }
+leptos = { version = "0.8.20", features = [
   "nightly",
   "delegation",
-] # note delegation make code compiled faster and runfaster but might have bug ./target/doc/leptos/index.htmlactix-files = { version = "0.7.0", optional = true }features = ["delegation", "nightly"]
-
-[dependencies.actix-web]
-version = "4"
-features = ["macros", "rustls-0_23"]
-optional = true
-
+] } # note delegation make code compiled faster and runfaster but might have bug ./target/doc/leptos/index.htmlactix-files = { version = "0.7.0", optional = true }features = ["delegation", "nightly"]
+leptos-use = { version = "0.19.0", features = [] }
+base64 = "0.23.1"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies] # server side only
 rustls = "0.23.43"
 rustls-pemfile = "2.2.0"
+tokio-postgres = "0.7.18"
+actix = "0.13.5"
 
 [features]
 default = ["csr", "hydrate", "ssr"]
@@ -102,6 +100,8 @@ ssr = [
   "leptos_meta/ssr",
   "leptos_router/ssr",
   "leptos/ssr",
+  "leptos-use/ssr",
+  "leptos-use/actix",
 ]
 
 # Defines a size-optimized profile for the WASM bundle in release mode
@@ -112,9 +112,11 @@ lto = true
 panic = "abort"
 codegen-units = 1
 [profile.dev.'cfg(not(target_arch = "wasm32"))']
-# codegen-backend = "cranelift" #dont support webasm
+codegen-backend = "cranelift" #dont support webasm
 [target.aarch64-apple-darwin]
 rustflags = ["--cfg", "erase_components"]
-
 [target.wasm32-unknown-unknown]
 rustflags = ["--cfg", "erase_components"]
+# [[example]]
+# name = "cloudflared"
+# path = "examples/cloudflared.rs"

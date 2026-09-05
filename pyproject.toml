@@ -1,0 +1,36 @@
+[project]
+name = "h-idb"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "basedpyright>=1.39.10",
+    "connectorx>=0.4.5",
+    "duckdb>=1.5.5",
+    "marimo>=0.24.0",
+    "polars>=1.44.1",
+    "postgres>=4.0",
+    "pyarrow>=25.0.1",
+    "pyrefly>=1.2.0",
+    "pytest>=9.1.1",
+    "pytest-cov>=7.1.0",
+    "python-lsp-server>=1.15.0",
+    "ruff>=0.16.5",
+    "sqlglot>=30.17.0",
+    "ty>=0.0.77",
+    "vegafusion>=2.0.3",
+    "vl-convert-python>=1.9.0.post1",
+]
+
+# [project.scripts]
+# h-idb = "h_idb:main"
+[tool.pytest.ini_options]
+testpaths = ["tests", "database"]
+
+# [build-system]
+# requires = ["uv_build>=0.12.9,<0.13.0"]
+# build-backend = "uv_build"
+
+# [dependency-groups]
+# dev = ["pytest>=9.1.1", "pytest-cov>=7.1.0"]

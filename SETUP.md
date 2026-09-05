@@ -22,19 +22,22 @@ rustup show active-toolchain|python -c"print(input().split()[0])"
 
 ```bash
 rustup component add clippy rustc-codegen-cranelift rust-analyzer rust-std-wasm32-unknown-unknown
-
 ```
 
 ```bash
-cargo install cargo-generate cargo-leptos leptosfmt
+cargo install cargo-generate cargo-leptos leptosfmt mise
 ```
 
 or
 
 ```bash
 cargo install cargo-binstall #for pc with limited space
-cargo binstall cargo-generate cargo-leptos leptosfmt
+cargo binstall cargo-generate cargo-leptos leptosfmt mise
 ```
+
+#### other tool
+
+uv
 
 ### Setup Editor
 
@@ -56,4 +59,10 @@ https://book.leptos.dev/getting_started/leptos_dx.html
 
 ```bash
 cloudflared tunnel --config ./cert/.cloudflared/config.yml run
+```
+
+## MISC
+### create python env
+```bash
+  uv add -r requirements.txt
 ```
