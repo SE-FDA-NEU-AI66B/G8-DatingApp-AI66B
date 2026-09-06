@@ -1,10 +1,5 @@
 use leptos::prelude::*;
 use leptos::reactive::spawn_local;
-use serde::Deserialize;
-#[derive(Deserialize, Debug)]
-struct MyQuery {
-    name: String,
-}
 // use server_fn::server_fn_error
 #[server(endpoint = "urmom_is_fat")]
 pub async fn actix_extract() -> Result<String, ServerFnError> {
@@ -26,7 +21,8 @@ pub async fn actix_extract() -> Result<String, ServerFnError> {
 }
 // leptos::server::codee::string::codee
 #[component]
-pub fn App() -> impl IntoView {
+#[allow(unused_imports)]
+pub fn app() -> impl IntoView {
     use codee::string::FromToStringCodec;
     use leptos_use::{use_cookie, use_cookie_with_options, SameSite, UseCookieOptions};
     let (counter, set_counter) = use_cookie::<u32, FromToStringCodec>("counter");

@@ -31,14 +31,14 @@ Then open <http://localhost:3000>.
 
 We run Scrum on this repository. Five two-week sprints, plus a setup week.
 
-| Sprint | Weeks | Opens with | Milestone |
-|--------|-------|------------|-----------|
-| Sprint 0 | 4 | Scrum & XP | — |
-| Sprint 1 | 5–6 | Requirements | **M1** Sun before wk 7 |
-| Sprint 2 | 7–8 | Architecture & REST API | **M2** Sun before wk 9 |
-| Sprint 3 | 9–10 | UI design | **M3** Sun before wk 11 |
-| Sprint 4 | 11–12 | Testing & TDD | **M4** Sun before wk 13 |
-| Sprint 5 | 13–14 | DevOps & CI/CD | **M5** week 15 demo |
+| Sprint   | Weeks | Opens with              | Milestone               |
+| -------- | ----- | ----------------------- | ----------------------- |
+| Sprint 0 | 4     | Scrum & XP              | —                       |
+| Sprint 1 | 5–6   | Requirements            | **M1** Sun before wk 7  |
+| Sprint 2 | 7–8   | Architecture & REST API | **M2** Sun before wk 9  |
+| Sprint 3 | 9–10  | UI design               | **M3** Sun before wk 11 |
+| Sprint 4 | 11–12 | Testing & TDD           | **M4** Sun before wk 13 |
+| Sprint 5 | 13–14 | DevOps & CI/CD          | **M5** week 15 demo     |
 
 **Board:** <link to the team's view of the course Project>
 **Definition of Done:** [`docs/definition-of-done.md`](docs/definition-of-done.md)

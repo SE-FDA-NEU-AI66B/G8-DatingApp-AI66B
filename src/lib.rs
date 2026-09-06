@@ -1,3 +1,4 @@
+#![allow(unused_crate_dependencies)]
 pub mod app;
 pub mod share;
 #[cfg(feature = "hydrate")]

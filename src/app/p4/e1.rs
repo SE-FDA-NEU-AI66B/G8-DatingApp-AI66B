@@ -1,7 +1,9 @@
 #[allow(unused_imports)]
 use itertools::Itertools;
 use leptos::prelude::*;
-pub fn App() -> impl IntoView {
+#[allow(unused_variables)]
+#[component]
+pub fn app() -> impl IntoView {
     let (names, set_names) = signal(Vec::new());
     if names.get().is_empty() {
         set_names(vec!["alice".to_string()]);
@@ -18,7 +20,7 @@ pub fn App() -> impl IntoView {
     // B
     let (last_name, set_last_name) = signal("Jones".to_string());
     // C is a function of A and B
-    let full_name = move || format!("{} {}", &*first_name.read(), &*last_name.read());
+    let full_name = move || format!("{} {}", first_name.read(), last_name.read());
     // A
     let (age, set_age) = signal(32);
     // B

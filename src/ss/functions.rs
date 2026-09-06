@@ -1,5 +1,3 @@
-use std::ffi::OsString;
-
 pub fn get_tls_config() -> rustls::ServerConfig {
     rustls::crypto::aws_lc_rs::default_provider()
         .install_default()
@@ -23,6 +21,7 @@ pub fn get_tls_config() -> rustls::ServerConfig {
         .unwrap()
 }
 use tokio_postgres::{tls::NoTlsStream, Client, Connection, Error, Socket};
+#[allow(dead_code)]
 pub async fn connect_database() -> Result<(Client, Connection<Socket, NoTlsStream>), Error> {
     use std::env;
     use tokio_postgres::{connect, NoTls};
@@ -40,14 +39,15 @@ pub async fn connect_database() -> Result<(Client, Connection<Socket, NoTlsStrea
     // println!("{:?}", connection);
     // // println!("{:?}", );
     // Ok(())
-    tokio_postgres::connect(&s, NoTls).await
+    connect(&s, NoTls).await
 }
+extern crate test;
 #[cfg(test)]
-#[cfg(not(target_arch = "wasm32"))]
+#[allow(unused_imports)]
 mod tests {
-    extern crate test;
     use actix::prelude::*;
-    // use test::Bencher;
+    extern crate test;
+    use test::Bencher;
     struct MySyncActor;
     impl Actor for MySyncActor {
         type Context = SyncContext<Self>;
@@ -76,15 +76,11 @@ mod tests {
         }
     }
 
-    // #[bench]
-    #[test]
-    fn database_speed() {
-        database_speed2();
-    }
+    #[bench]
     #[actix::main]
-    async fn database_speed2() {
+    async fn database_speed2(b: &mut Bencher) {
         use super::*;
-        // b: &mut Bencher
+        // b:
         let addr = SyncArbiter::start(2, || MySyncActor);
         println!("{:?}", addr.send(Job(String::from("afds"))).await);
         let (client, connection) = connect_database().await.unwrap();
