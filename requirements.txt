@@ -1,5 +1,6 @@
 ##marimo##
-marimo
+marimo[sql,sandbox,recommended,lsp]
+sqlparse
 duckdb
 sqlglot
 pytest
@@ -20,6 +21,7 @@ polars
 ##other##
 pyarrow
 # graphviz
-##other##
+##test##
 pytest-cov
 pytest
+##other##

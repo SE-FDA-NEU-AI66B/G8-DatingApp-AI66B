@@ -21,12 +21,22 @@ pub fn get_tls_config() -> rustls::ServerConfig {
         .unwrap()
 }
 use tokio_postgres::{tls::NoTlsStream, Client, Connection, Error, Socket};
+pub fn get_db_uri() -> String {
+    use std::env;
+    format!(
+        "postgres://postgres:{}@localhost/userdb",
+        env::var_os("PGPASS")
+            .map(|i| i.into_string().unwrap())
+            .unwrap_or("".to_string())
+    )
+}
 #[allow(dead_code)]
 pub async fn connect_database() -> Result<(Client, Connection<Socket, NoTlsStream>), Error> {
     use std::env;
     use tokio_postgres::{connect, NoTls};
+    // tokio_postgres::;
     let s = format!(
-        "host={} user=postgres password={}",
+        "host={} user=postgres password={} dbname=userdb",
         "localhost",
         env::var_os("PGPASS")
             .map(|i| i.into_string().unwrap())
@@ -41,53 +51,90 @@ pub async fn connect_database() -> Result<(Client, Connection<Socket, NoTlsStrea
     // Ok(())
     connect(&s, NoTls).await
 }
+#[allow(dead_code)]
+pub async fn connect_database2() {}
 extern crate test;
 #[cfg(test)]
 #[allow(unused_imports)]
 mod tests {
-    use actix::prelude::*;
+    use super::*;
+    use itertools::Itertools;
     extern crate test;
     use test::Bencher;
-    struct MySyncActor;
-    impl Actor for MySyncActor {
-        type Context = SyncContext<Self>;
-    }
-    use actix::dev::MessageResponse;
-    use std::time::{self, Duration, Instant};
-    #[derive(Message)]
-    #[rtype(result = "Instant")]
-    struct Job(String);
-    impl MessageResponse<MySyncActor, Job> for Instant {
-        fn handle(
-            self,
-            ctx: &mut <MySyncActor as Actor>::Context,
-            tx: Option<dev::OneshotSender<<Job as Message>::Result>>,
-        ) {
-            if let Some(tx) = tx {
-                tx.send(self).unwrap();
-            }
-        }
-    }
-    impl Handler<Job> for MySyncActor {
-        type Result = Instant;
-
-        fn handle(&mut self, msg: Job, ctx: &mut Self::Context) -> Self::Result {
-            Instant::now()
-        }
-    }
-
+    use tokio::runtime;
     #[bench]
-    #[actix::main]
-    async fn database_speed2(b: &mut Bencher) {
-        use super::*;
-        // b:
-        let addr = SyncArbiter::start(2, || MySyncActor);
-        println!("{:?}", addr.send(Job(String::from("afds"))).await);
-        let (client, connection) = connect_database().await.unwrap();
-        println!(
-            "{:?}",
-            client.query("SELECT $1::TEXT", &[&"whatsapp"]).await
-        );
-        // let n = test::black_box(1000);
+    fn database_speed(b: &mut Bencher) {
+        // 583,250,930.10 dev
+        // 403,411,090.60 release
+        let (n, m) = (10, 1000);
+        println!("{:?}", (n * m));
+        b.iter(|| {
+            let rt = runtime::Builder::new_current_thread()
+                .enable_all()
+                .build_local(runtime::LocalOptions::default())
+                .unwrap();
+            rt.block_on(async {
+                let mut v = Vec::new();
+                let mut v2 = Vec::new();
+                for _ in (0..n) {
+                    let (client, connection) = connect_database().await.unwrap();
+                    v2.push(rt.spawn_local(async move { if let Err(e) = connection.await {} }));
+                    v.push(rt.spawn_local(async move {
+                        for _ in 0..m {
+                            let a = client.query("SELECT * FROM public.cookielogin", &[]).await;
+                        }
+                        std::time::Instant::now()
+                    }));
+                }
+                for i in v {
+                    let r = i.await;
+                }
+                for i in v2 {
+                    i.await.unwrap();
+                }
+            });
+        });
+    }
+    use sqlx::Row;
+    use std::rc::Rc;
+    #[bench]
+    fn database_speed2(b: &mut Bencher) {
+        // 627,045,562.00 dev
+        // 489,410,657.00 release
+        let (n, m) = (1, 1);
+        println!("{:?}", (n * m));
+        b.iter(|| {
+            let rt = runtime::Builder::new_current_thread()
+                .enable_all()
+                .build_local(runtime::LocalOptions::default())
+                .unwrap();
+            rt.block_on(async {
+                use sqlx::postgres::PgPoolOptions;
+                let pool = Rc::new(
+                    PgPoolOptions::new()
+                        .max_connections(n)
+                        .connect(&get_db_uri())
+                        .await
+                        .unwrap(),
+                );
+                let row = (0..n * m)
+                    .map(|_| {
+                        let pool = pool.clone();
+                        rt.spawn_local(async move {
+                            sqlx::query("SELECT * FROM public.cookielogin")
+                                .fetch_all(&*pool)
+                                .await
+                                .unwrap()
+                        })
+                    })
+                    .collect_vec();
+                for i in row {
+                    // , std::time::Instant
+                    // let r: Vec<(Vec<u8>, String, String)> = i.await.unwrap();
+                    let r = &i.await.unwrap()[0];
+                    println!("{:?}", r[0]);
+                }
+            });
+        });
     }
 }
