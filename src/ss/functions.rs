@@ -54,46 +54,49 @@ pub async fn connect_database() -> Result<(Client, Connection<Socket, NoTlsStrea
 #[allow(dead_code)]
 pub async fn connect_database2() {}
 extern crate test;
-#[cfg(test)]
+// #[cfg(test)]
 #[allow(unused_imports)]
-mod tests {
+pub mod tests {
     use super::*;
     use itertools::Itertools;
     extern crate test;
     use test::Bencher;
     use tokio::runtime;
+    pub fn database_speed(n: usize, m: usize) {
+        // 583,250,930.10 dev
+        // 403,411,090.60 release
+        let rt = runtime::Builder::new_current_thread()
+            .enable_all()
+            .build_local(runtime::LocalOptions::default())
+            .unwrap();
+        rt.block_on(async {
+            let mut v = Vec::new();
+            let mut v2 = Vec::new();
+            for _ in (0..n) {
+                let (client, connection) = connect_database().await.unwrap();
+                v2.push(rt.spawn_local(async move { if let Err(e) = connection.await {} }));
+                v.push(rt.spawn_local(async move {
+                    for _ in 0..m {
+                        let a = client.query("SELECT * FROM public.cookielogin", &[]).await;
+                    }
+                    std::time::Instant::now()
+                }));
+            }
+            for i in v {
+                let r = i.await;
+            }
+            for i in v2 {
+                i.await.unwrap();
+            }
+        });
+    }
     #[bench]
-    fn database_speed(b: &mut Bencher) {
+    pub fn bench_database_speed(b: &mut Bencher) {
         // 583,250,930.10 dev
         // 403,411,090.60 release
         let (n, m) = (10, 1000);
         println!("{:?}", (n * m));
-        b.iter(|| {
-            let rt = runtime::Builder::new_current_thread()
-                .enable_all()
-                .build_local(runtime::LocalOptions::default())
-                .unwrap();
-            rt.block_on(async {
-                let mut v = Vec::new();
-                let mut v2 = Vec::new();
-                for _ in (0..n) {
-                    let (client, connection) = connect_database().await.unwrap();
-                    v2.push(rt.spawn_local(async move { if let Err(e) = connection.await {} }));
-                    v.push(rt.spawn_local(async move {
-                        for _ in 0..m {
-                            let a = client.query("SELECT * FROM public.cookielogin", &[]).await;
-                        }
-                        std::time::Instant::now()
-                    }));
-                }
-                for i in v {
-                    let r = i.await;
-                }
-                for i in v2 {
-                    i.await.unwrap();
-                }
-            });
-        });
+        b.iter(|| database_speed(n, m));
     }
     use sqlx::Row;
     use std::rc::Rc;
@@ -101,7 +104,7 @@ mod tests {
     fn database_speed2(b: &mut Bencher) {
         // 627,045,562.00 dev
         // 489,410,657.00 release
-        let (n, m) = (1, 1);
+        let (n, m) = (2, 5000);
         println!("{:?}", (n * m));
         b.iter(|| {
             let rt = runtime::Builder::new_current_thread()
@@ -121,7 +124,7 @@ mod tests {
                     .map(|_| {
                         let pool = pool.clone();
                         rt.spawn_local(async move {
-                            sqlx::query("SELECT * FROM public.cookielogin")
+                            sqlx::query_as("SELECT * FROM public.cookielogin")
                                 .fetch_all(&*pool)
                                 .await
                                 .unwrap()
@@ -129,12 +132,36 @@ mod tests {
                     })
                     .collect_vec();
                 for i in row {
-                    // , std::time::Instant
-                    // let r: Vec<(Vec<u8>, String, String)> = i.await.unwrap();
-                    let r = &i.await.unwrap()[0];
-                    println!("{:?}", r[0]);
+                    let r: Vec<(Vec<u8>, String, Option<time::PlainDateTime>)> = i.await.unwrap();
+                    // let r = &i.await.unwrap()[0];
+                    // println!("{:?}", r[0]);
                 }
             });
         });
+    }
+    // #[tokio::main]
+    pub async fn database_speed3(n: usize, m: usize) {
+        // 583,250,930.10 dev
+        // 403,411,090.60 release
+        let mut v = Vec::new();
+        let mut v2 = Vec::new();
+        for _ in (0..n) {
+            let (client, connection) = connect_database().await.unwrap();
+            v2.push(actix::spawn(
+                async move { if let Err(e) = connection.await {} },
+            ));
+            v.push(actix::spawn(async move {
+                for _ in 0..m {
+                    let a = client.query("SELECT * FROM public.cookielogin", &[]).await;
+                }
+                std::time::Instant::now()
+            }));
+        }
+        for i in v {
+            let r = i.await;
+        }
+        for i in v2 {
+            i.await.unwrap();
+        }
     }
 }
