@@ -48,7 +48,8 @@ def _(os, psycopg2):
 def _():
     import clickhouse_connect
 
-    conn2 = clickhouse_connect.create_client(host="localhost", username="username", password="password", port="8123", database="default")
+    _a="password"
+    conn2 = clickhouse_connect.create_client(host="localhost", username="username", password=_a, port="8123", database="default")
     return clickhouse_connect, conn2
 
 
