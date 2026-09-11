@@ -1,5 +1,4 @@
 use itertools::Itertools;
-use server_fn::codec::FromReq;
 
 fn main() {
     use base64::engine::general_purpose;
@@ -9,7 +8,8 @@ fn main() {
     let mut not_a_secret = String::new();
     File::open("cert/.cloudflared/not_a_secret")
         .unwrap()
-        .read_to_string(&mut not_a_secret);
+        .read_to_string(&mut not_a_secret)
+        .unwrap();
     let not_a_secret = not_a_secret.split_whitespace().join("");
     let not_a_secret = std::io::Cursor::new(not_a_secret);
     let mut secret = File::create("cert/.cloudflared/secret").unwrap();
