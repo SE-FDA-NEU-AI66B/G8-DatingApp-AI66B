@@ -77,7 +77,9 @@ pub mod tests {
                 v2.push(rt.spawn_local(async move { if let Err(e) = connection.await {} }));
                 v.push(rt.spawn_local(async move {
                     for _ in 0..m {
-                        let a = client.query("SELECT * FROM public.cookielogin", &[]).await;
+                        let a = client
+                            .query("SELECT * FROM public.cookielogin Limit 5", &[])
+                            .await;
                     }
                     std::time::Instant::now()
                 }));
@@ -124,7 +126,7 @@ pub mod tests {
                     .map(|_| {
                         let pool = pool.clone();
                         rt.spawn_local(async move {
-                            sqlx::query_as("SELECT * FROM public.cookielogin")
+                            sqlx::query_as("SELECT * FROM public.cookielogin Limit 5")
                                 .fetch_all(&*pool)
                                 .await
                                 .unwrap()
@@ -152,7 +154,9 @@ pub mod tests {
             ));
             v.push(actix::spawn(async move {
                 for _ in 0..m {
-                    let a = client.query("SELECT * FROM public.cookielogin", &[]).await;
+                    let a = client
+                        .query("SELECT * FROM public.cookielogin Limit 5", &[])
+                        .await;
                 }
                 std::time::Instant::now()
             }));
@@ -162,6 +166,48 @@ pub mod tests {
         }
         for i in v2 {
             i.await.unwrap();
+        }
+    }
+    pub async fn database_speed4(n: usize, m: usize) {
+        // 583,250,930.10 dev
+        // 403,411,090.60 release
+        let mut v = Vec::new();
+        for _ in (0..n) {
+            use clickhouse::Client;
+
+            let client = Client::default()
+                .with_url("http://localhost:8123")
+                .with_user("username")
+                .with_password("password")
+                .with_database("default");
+            v.push(actix::spawn(async move {
+                for _ in 0..m {
+                    use clickhouse::Row;
+                    use serde::{Deserialize, Serialize};
+                    use time::OffsetDateTime;
+
+                    #[derive(Row, Serialize, Deserialize, Debug)]
+                    struct MyRow {
+                        #[serde(with = "serde_bytes")]
+                        cookie: Vec<u8>,
+                        userid: u64,
+                        //
+                        #[serde(with = "clickhouse::serde::time::datetime64::nanos")]
+                        start: OffsetDateTime,
+                    }
+                    // cookie,
+                    let a: Vec<MyRow> = client
+                        .query("SELECT  cookie,userid,start  FROM cookielogin2 Limit 5")
+                        .fetch_all()
+                        .await
+                        .unwrap();
+                    // println!("{:?}", a);
+                }
+                std::time::Instant::now()
+            }));
+        }
+        for i in v {
+            let r = i.await;
         }
     }
 }

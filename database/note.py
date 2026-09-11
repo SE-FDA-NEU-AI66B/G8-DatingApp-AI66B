@@ -16,9 +16,11 @@ def _(mo):
 def _():
     import os
     import marimo as mo
+
     # note if ur new to marimo dont worry about duckdb marimo auto useit if available;since both duckdb and and polars use arrow data format duckdb intergration with marimo can read all polars object and so is the otherway round
     import psycopg2
     import polars as pl  # arrow conpatable
+
     from psycopg2 import sql
 
     return mo, os, pl, psycopg2
@@ -43,10 +45,41 @@ def _(os, psycopg2):
 
 
 @app.cell
+def _():
+    import clickhouse_connect
+
+    conn2 = clickhouse_connect.create_client(host="localhost", username="username", password="password", port="8123", database="default")
+    return clickhouse_connect, conn2
+
+
+@app.cell
+def _(clickhouse_connect):
+    [i for i in clickhouse_connect.__dir__() if "create_" in i]
+    return
+
+
+@app.cell
+def _():
+    uri2 = f"clickhouse://username:password@localhost:9001/my_database"
+    # --- export CLICKHOUSE_URL="tcp://username:password@localhost:9001/?secure=true&skip_verify=true"
+    return (uri2,)
+
+
+@app.cell
 def _(mo, uri):
     _df = mo.sql(
         f"""
         ATTACH '{uri}' AS userdb (TYPE postgres);
+        """
+    )
+    return
+
+
+@app.cell
+def _(mo, uri2):
+    _df = mo.sql(
+        f"""
+        ATTACH '{uri2}' AS userdb2 (TYPE		);
         """
     )
     return
@@ -66,7 +99,7 @@ def _(conn, mo):
         f"""
         Select * from public.cookielogin
         """,
-        engine=conn
+        engine=conn,
     )
     return
 
@@ -77,13 +110,13 @@ def _(conn, mo):
         f"""
         EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
         """,
-        engine=conn
+        engine=conn,
     )
     return
 
 
 @app.cell
-def _(mo):
+def _(conn, mo):
     _df = mo.sql(
         f"""
         --DROP TABLE if  exists userdb.public.cookielogin;
@@ -92,7 +125,58 @@ def _(mo):
             userid UHUGEINT,
             start DATETIME,
         );
-        """
+        """,
+        engine=conn,
+    )
+    return
+
+
+@app.cell
+def _(conn2, mo):
+    _df = mo.sql(
+        f"""
+        --DROP TABLE if  exists cookielogin2;
+        CREATE TABLE if Not exists cookielogin2 (
+            cookie  String,
+            userid UInt64,
+            start DATETIME64,
+        );
+        """,
+        engine=conn2
+    )
+    return
+
+
+@app.cell
+def _(conn2, cookielogin2, mo):
+    _df = mo.sql(
+        f"""
+        INSERT INTO cookielogin2 (cookie,userid,start)
+        VALUES (unhex('AA'),3,now64(8))
+        """,
+        engine=conn2,
+    )
+    return
+
+
+@app.cell
+def _(conn2, cookielogin2, mo):
+    _df = mo.sql(
+        f"""
+        Select cookie  from cookielogin2;
+        """,
+        engine=conn2
+    )
+    return
+
+
+@app.cell
+def _(conn2, mo):
+    _df = mo.sql(
+        f"""
+        SELECT now64(9);
+        """,
+        engine=conn2,
     )
     return
 
@@ -130,7 +214,7 @@ def _(mo):
 
 @app.cell
 def _(pl, uri):
-    pl.read_database_uri("select * from cookielogin",uri=uri)
+    pl.read_database_uri("select * from cookielogin", uri=uri)
     return
 
 
@@ -140,7 +224,7 @@ def _(conn, mo):
         f"""
         select cookie from public.cookielogin Limit 3
         """,
-        engine=conn
+        engine=conn,
     )
     return
 

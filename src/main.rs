@@ -17,17 +17,20 @@ async fn main() -> std::io::Result<()> {
     use leptos_actix::{generate_route_list, LeptosRoutes};
     use leptos_meta::MetaTags;
     use lib::app::*;
-    // use std::time::Instant;
-    // let start = Instant::now();
-    // let (n, m) = (40, 20000);
-    // ss::functions::tests::database_speed3(n, m).await;
-    // let dur = Instant::now() - start;
-    // println!("{} in {:?}", n * m, dur);
-    // println!(
-    //     "{:?} req/s",
-    //     (time::Duration::seconds(1) / dur) * (m * n) as f64
-    // );
-    // return Ok(());
+    use std::time::Instant;
+    if false {
+
+        // let start = Instant::now();
+        // let (n, m) = (40, 40000);
+        // ss::functions::tests::database_speed3(n, m).await;
+        // let dur = Instant::now() - start;
+        // println!("{} in {:?}", n * m, dur);
+        // println!(
+        //     "{:?} req/s",
+        //     (time::Duration::seconds(1) / dur) * (m * n) as f64
+        // );
+        // return Ok(());
+    }
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
 
