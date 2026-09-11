@@ -1,3 +1,5 @@
+cargo-features = ["codegen-backend"]
+
 [package]
 name = "datingapp"
 version = "0.1.0"
@@ -56,6 +58,8 @@ lib-default-features = false
 #
 # Optional. Defaults to "release".
 lib-profile-release = "wasm-release"
+lib-profile-dev = "wasm-dev"
+
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -111,12 +115,8 @@ opt-level = "z"
 lto = true
 panic = "abort"
 codegen-units = 1
-[profile.dev.'cfg(not(target_arch = "wasm32"))']
+[profile.dev]
 codegen-backend = "cranelift" #dont support webasm
-[target.aarch64-apple-darwin]
-rustflags = ["--cfg", "erase_components"]
-[target.wasm32-unknown-unknown]
-rustflags = ["--cfg", "erase_components"]
-# [[example]]
-# name = "cloudflared"
-# path = "examples/cloudflared.rs"
+[profile.wasm-dev]
+inherits = "dev"
+codegen-backend = "llvm"

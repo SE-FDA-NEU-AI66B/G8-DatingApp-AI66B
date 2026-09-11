@@ -16,6 +16,4 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - run: cargo leptos build -vv
-      - run: cargo leptos build --release -vv
-      # this is abit buggy
-      # - run: cargo leptos test --release -vv
+      - run: cargo leptos test -vv

@@ -1,4 +1,5 @@
 #![feature(test)]
+#![allow(unused_crate_dependencies)]
 mod ss;
 use std::env;
 mod worker;
@@ -9,8 +10,6 @@ async fn main() -> std::io::Result<()> {
     if env::var_os("PGPASSPORT").is_none() {
         env::set_var("PGPASSPORT", "5432");
     }
-    let a = ss::functions::connect_database().await.unwrap();
-
     use actix_files::Files;
     use actix_web::*;
     use leptos::config::get_configuration;
