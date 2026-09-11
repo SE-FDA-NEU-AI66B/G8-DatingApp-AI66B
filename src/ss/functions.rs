@@ -92,6 +92,7 @@ pub mod tests {
             }
         });
     }
+    #[ignore]
     #[bench]
     pub fn bench_database_speed(b: &mut Bencher) {
         // 583,250,930.10 dev
@@ -102,6 +103,7 @@ pub mod tests {
     }
     use sqlx::Row;
     use std::rc::Rc;
+    #[ignore]
     #[bench]
     fn database_speed2(b: &mut Bencher) {
         // 627,045,562.00 dev
