@@ -128,7 +128,7 @@ lto = true
 panic = "abort"
 codegen-units = 1
 [profile.dev]
-codegen-backend = "cranelift" #dont support webasm
+# codegen-backend = "cranelift" #dont support webasm
 [profile.wasm-dev]
 inherits = "dev"
 codegen-backend = "llvm"
