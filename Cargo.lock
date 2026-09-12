@@ -738,6 +738,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "cloudflared"
+version = "0.1.0"
+dependencies = [
+ "base64 0.23.1",
+ "itertools 0.15.0",
+]
+
+[[package]]
 name = "cmake"
 version = "0.1.58"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1078,7 +1086,6 @@ dependencies = [
  "actix",
  "actix-files 0.7.0",
  "actix-web",
- "base64 0.23.1",
  "clickhouse",
  "console_error_panic_hook",
  "env_logger",

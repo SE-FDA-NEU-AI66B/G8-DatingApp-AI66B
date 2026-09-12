@@ -1,5 +1,5 @@
 #![feature(test)]
-#![allow(unused_crate_dependencies)]
+// #![allow(unused_crate_dependencies)]
 mod ss;
 use std::env;
 mod worker;
@@ -17,9 +17,8 @@ async fn main() -> std::io::Result<()> {
     use leptos_actix::{generate_route_list, LeptosRoutes};
     use leptos_meta::MetaTags;
     use lib::app::*;
-    use std::time::Instant;
     if false {
-
+        // use std::time::Instant;
         // let start = Instant::now();
         // let (n, m) = (40, 40000);
         // ss::functions::tests::database_speed3(n, m).await;

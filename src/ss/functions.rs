@@ -21,6 +21,8 @@ pub fn get_tls_config() -> rustls::ServerConfig {
         .unwrap()
 }
 use tokio_postgres::{tls::NoTlsStream, Client, Connection, Error, Socket};
+
+#[allow(dead_code)]
 pub fn get_db_uri() -> String {
     use std::env;
     format!(
@@ -62,6 +64,7 @@ pub mod tests {
     extern crate test;
     use test::Bencher;
     use tokio::runtime;
+    #[allow(dead_code)]
     pub fn database_speed(n: usize, m: usize) {
         // 583,250,930.10 dev
         // 403,411,090.60 release
@@ -72,12 +75,12 @@ pub mod tests {
         rt.block_on(async {
             let mut v = Vec::new();
             let mut v2 = Vec::new();
-            for _ in (0..n) {
+            for _ in 0..n {
                 let (client, connection) = connect_database().await.unwrap();
-                v2.push(rt.spawn_local(async move { if let Err(e) = connection.await {} }));
+                v2.push(rt.spawn_local(async move { if let Err(_e) = connection.await {} }));
                 v.push(rt.spawn_local(async move {
                     for _ in 0..m {
-                        let a = client
+                        let _a = client
                             .query("SELECT * FROM public.cookielogin Limit 5", &[])
                             .await;
                     }
@@ -85,7 +88,7 @@ pub mod tests {
                 }));
             }
             for i in v {
-                let r = i.await;
+                let _r = i.await;
             }
             for i in v2 {
                 i.await.unwrap();
@@ -94,6 +97,7 @@ pub mod tests {
     }
     #[ignore]
     #[bench]
+    #[allow(dead_code)]
     pub fn bench_database_speed(b: &mut Bencher) {
         // 583,250,930.10 dev
         // 403,411,090.60 release
@@ -136,27 +140,27 @@ pub mod tests {
                     })
                     .collect_vec();
                 for i in row {
-                    let r: Vec<(Vec<u8>, String, Option<time::PlainDateTime>)> = i.await.unwrap();
+                    let _r: Vec<(Vec<u8>, String, Option<time::PlainDateTime>)> = i.await.unwrap();
                     // let r = &i.await.unwrap()[0];
                     // println!("{:?}", r[0]);
                 }
             });
         });
     }
-    // #[tokio::main]
+    #[allow(dead_code)]
     pub async fn database_speed3(n: usize, m: usize) {
         // 583,250,930.10 dev
         // 403,411,090.60 release
         let mut v = Vec::new();
         let mut v2 = Vec::new();
-        for _ in (0..n) {
+        for _ in 0..n {
             let (client, connection) = connect_database().await.unwrap();
             v2.push(actix::spawn(
-                async move { if let Err(e) = connection.await {} },
+                async move { if let Err(_e) = connection.await {} },
             ));
             v.push(actix::spawn(async move {
                 for _ in 0..m {
-                    let a = client
+                    let _a = client
                         .query("SELECT * FROM public.cookielogin Limit 5", &[])
                         .await;
                 }
@@ -164,19 +168,19 @@ pub mod tests {
             }));
         }
         for i in v {
-            let r = i.await;
+            let _r = i.await;
         }
         for i in v2 {
             i.await.unwrap();
         }
     }
+    #[allow(dead_code)]
     pub async fn database_speed4(n: usize, m: usize) {
         // 583,250,930.10 dev
         // 403,411,090.60 release
         let mut v = Vec::new();
-        for _ in (0..n) {
+        for _ in 0..n {
             use clickhouse::Client;
-
             let client = Client::default()
                 .with_url("http://localhost:8123")
                 .with_user("username")
@@ -198,7 +202,7 @@ pub mod tests {
                         start: OffsetDateTime,
                     }
                     // cookie,
-                    let a: Vec<MyRow> = client
+                    let _a: Vec<MyRow> = client
                         .query("SELECT  cookie,userid,start  FROM cookielogin2 Limit 5")
                         .fetch_all()
                         .await
@@ -209,7 +213,7 @@ pub mod tests {
             }));
         }
         for i in v {
-            let r = i.await;
+            i.await.unwrap();
         }
     }
 }

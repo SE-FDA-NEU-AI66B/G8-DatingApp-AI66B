@@ -1,8 +1,6 @@
 use itertools::Itertools;
 
 fn main() {
-    use base64::engine::general_purpose;
-    use base64::prelude::*;
     use std::process;
     use std::{fs::File, io::Read};
     let mut not_a_secret = String::new();
@@ -30,7 +28,7 @@ fn main() {
     #[cfg(unix)]
     {
         use std::os::unix::process::CommandExt;
-        command.exec();
+        let _ = command.exec();
     }
     #[cfg(not(unix))]
     {
