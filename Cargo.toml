@@ -125,10 +125,9 @@ lto = true
 panic = "abort"
 codegen-units = 1
 [profile.dev]
-
-linker = "clang"
-rustflags = ["-C", "link-arg=-fuse-ld=lld"]
-codegen-backend = "cranelift"               #dont support webasm
+codegen-backend = "cranelift" #dont support webasm
 [profile.wasm-dev]
 inherits = "dev"
 codegen-backend = "llvm"
+[profile.dev.package.aws-lc-rs]
+codegen-backend = "cranelift"
