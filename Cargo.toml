@@ -1,4 +1,4 @@
-cargo-features = ["codegen-backend"]
+cargo-features = ["codegen-backend", "profile-rustflags"]
 
 [package]
 name = "datingapp"
@@ -125,7 +125,10 @@ lto = true
 panic = "abort"
 codegen-units = 1
 [profile.dev]
-codegen-backend = "cranelift" #dont support webasm
+
+linker = "clang"
+rustflags = ["-C", "link-arg=-fuse-ld=lld"]
+codegen-backend = "cranelift"               #dont support webasm
 [profile.wasm-dev]
 inherits = "dev"
 codegen-backend = "llvm"
