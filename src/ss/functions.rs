@@ -149,8 +149,6 @@ pub mod tests {
     }
     #[allow(dead_code)]
     pub async fn database_speed3(n: usize, m: usize) {
-        // 583,250,930.10 dev
-        // 403,411,090.60 release
         let mut v = Vec::new();
         let mut v2 = Vec::new();
         for _ in 0..n {
@@ -176,8 +174,6 @@ pub mod tests {
     }
     #[allow(dead_code)]
     pub async fn database_speed4(n: usize, m: usize) {
-        // 583,250,930.10 dev
-        // 403,411,090.60 release
         let mut v = Vec::new();
         for _ in 0..n {
             use clickhouse::Client;
@@ -214,6 +210,37 @@ pub mod tests {
         }
         for i in v {
             i.await.unwrap();
+        }
+    }
+    #[allow(dead_code)]
+    pub async fn database_speed5(n: usize, m: usize) {
+        use std::sync::Arc;
+        let mut v = Vec::new();
+        use sqlx::mysql::MySqlPoolOptions;
+        let pool = Arc::new(
+            MySqlPoolOptions::new()
+                .max_connections(n as u32)
+                .connect("mariadb://root:password@0.0.0.0:3306/mysql")
+                .await
+                .unwrap(),
+        );
+        // Rc::new(       );
+
+        for _ in 0..n {
+            let pool = pool.clone();
+            v.push(actix::spawn(async move {
+                for _ in 0..m {
+                    let r: Vec<(Vec<u8>, String, Option<time::PlainDateTime>)> =
+                        sqlx::query_as("SELECT * FROM cookielogin3 Limit 5")
+                            .fetch_all(&*pool)
+                            .await
+                            .unwrap();
+                }
+                std::time::Instant::now()
+            }));
+        }
+        for i in v {
+            let _r = i.await;
         }
     }
 }
