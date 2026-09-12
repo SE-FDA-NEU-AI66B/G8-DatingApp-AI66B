@@ -128,9 +128,7 @@ codegen-backend = "cranelift" #dont support webasm
 [profile.wasm-dev]
 inherits = "dev"
 codegen-backend = "llvm"
-[profile.dev.package."aws-lc-rs"]
-codegen-backend = "llvm"
-[profile.dev.build-override]
+[profile.dev.package."*"]
 codegen-backend = "llvm"
 [workspace]
 members = ["util/*/", "util/cloudflared"]
