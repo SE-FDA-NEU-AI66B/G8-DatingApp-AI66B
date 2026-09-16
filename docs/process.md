@@ -1,5 +1,15 @@
 # Process Dossier
 
+<!--toc:start-->
+
+- [Process Dossier](#process-dossier)
+  - [1. Chosen process and its position on the spectrum](#1-chosen-process-and-its-position-on-the-spectrum)
+  - [2. The five diagnostic questions](#2-the-five-diagnostic-questions)
+  - [3. Critical thinking: risks of the opposite choice](#3-critical-thinking-risks-of-the-opposite-choice)
+  - [4. Process rules our team commits to](#4-process-rules-our-team-commits-to)
+
+<!--toc:end-->
+
 ## 1. Chosen process and its position on the spectrum
 
 **(a) The model.** We follow an **Incremental model**, with each increment run under agile practices rather than a plan-driven gate. One cycle: someone picks an open item from [TODO.md](../TODO.md), branches off `main`, implements it, and opens a pull request. At least one other member reviews and leaves a substantive comment; the author addresses it; the reviewer approves; the branch merges. The cycle ends with a working increment on `main` — e.g. the Cloudflare tunnel setup, the Playwright end-to-end scaffold, or a README/SETUP pass — not a design document.

@@ -6,7 +6,7 @@ use leptos_router::{
 };
 #[allow(non_snake_case)]
 #[component]
-pub fn App() -> impl IntoView {
+pub fn app() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
     view! {
@@ -27,10 +27,11 @@ pub fn App() -> impl IntoView {
     }
 }
 
-/// Renders the home page of your application.
-use itertools::Itertools;
+#[allow(non_snake_case)]
 mod p15;
+#[allow(non_snake_case)]
 mod p3;
+#[allow(non_snake_case)]
 mod p4;
 #[component]
 fn HomePage() -> impl IntoView {

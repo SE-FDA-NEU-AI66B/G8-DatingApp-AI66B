@@ -3,11 +3,13 @@
 #[allow(unused_imports)]
 use itertools::Itertools;
 use leptos::prelude::*;
+#[allow(non_snake_case)]
 mod e04;
 mod e05;
 mod e06;
 mod e07;
 mod e09;
+#[allow(non_snake_case)]
 mod e10;
 #[component]
 pub fn ProgressBar(
