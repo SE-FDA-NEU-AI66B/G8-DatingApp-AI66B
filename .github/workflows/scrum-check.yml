@@ -24,38 +24,11 @@ jobs:
           script: |
             const body  = context.payload.pull_request.body || "";
             const title = context.payload.pull_request.title || "";
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const prNumber = context.payload.pull_request.number;
 
-            const closes = [
-              ...body.matchAll(/\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s*:?\s+(?:[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)?#(\d+)\b/gi)
-            ];
+            const closes = body.match(/\b(close[sd]?|fix(e[sd])?|resolve[sd]?)\s+#(\d+)/gi) || [];
             const titleRef = title.match(/^\[#(\d+)\]/);
-            const linkedIssueNumbers = new Set([
-              ...closes.map((m) => Number.parseInt(m[1], 10)),
-              ...(titleRef ? [Number.parseInt(titleRef[1], 10)] : []),
-            ]);
 
-            try {
-              const data = await github.graphql(
-                `query($owner:String!, $repo:String!, $pr:Int!) {
-                  repository(owner:$owner, name:$repo) {
-                    pullRequest(number:$pr) {
-                      closingIssuesReferences(first:20) { nodes { number } }
-                    }
-                  }
-                }`,
-                { owner, repo, pr: prNumber }
-              );
-              for (const issue of data.repository.pullRequest.closingIssuesReferences.nodes) {
-                linkedIssueNumbers.add(issue.number);
-              }
-            } catch (e) {
-              core.warning(`Could not query linked issues: ${e.message}`);
-            }
-
-            if (linkedIssueNumbers.size === 0) {
+            if (closes.length === 0 && !titleRef) {
               core.setFailed(
                 "This pull request is not linked to an issue.\n\n" +
                 "Add a line to the description: Closes #<number>\n" +
@@ -64,7 +37,7 @@ jobs:
               );
               return;
             }
-            core.info(`Linked. Issues found: ${linkedIssueNumbers.size}, closing keywords found: ${closes.length}, title ref: ${!!titleRef}`);
+            core.info(`Linked. Closing keywords found: ${closes.length}, title ref: ${!!titleRef}`);
 
       - name: Check the linked issue is in a sprint
         uses: actions/github-script@v7
@@ -72,39 +45,11 @@ jobs:
         with:
           script: |
             const body = context.payload.pull_request.body || "";
-            const title = context.payload.pull_request.title || "";
-            const owner = context.repo.owner;
-            const repo = context.repo.repo;
-            const prNumber = context.payload.pull_request.number;
-            const linkedIssueNumbers = new Set(
-              [...body.matchAll(/\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s*:?\s+(?:[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+)?#(\d+)\b/gi)]
-                .map((match) => Number.parseInt(match[1], 10))
-            );
-            const titleRef = title.match(/^\[#(\d+)\]/);
-            if (titleRef) {
-              linkedIssueNumbers.add(Number.parseInt(titleRef[1], 10));
-            }
+            const m = [...body.matchAll(/\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s+#(\d+)/gi)];
+            if (m.length === 0) return;
 
-            try {
-              const data = await github.graphql(
-                `query($owner:String!, $repo:String!, $pr:Int!) {
-                  repository(owner:$owner, name:$repo) {
-                    pullRequest(number:$pr) {
-                      closingIssuesReferences(first:20) { nodes { number } }
-                    }
-                  }
-                }`,
-                { owner, repo, pr: prNumber }
-              );
-              for (const issue of data.repository.pullRequest.closingIssuesReferences.nodes) {
-                linkedIssueNumbers.add(issue.number);
-              }
-            } catch (e) {
-              core.warning(`Could not query linked issues for sprint check: ${e.message}`);
-            }
-            if (linkedIssueNumbers.size === 0) return;
-
-            for (const num of linkedIssueNumbers) {
+            for (const match of m) {
+              const num = parseInt(match[1], 10);
               const { data: issue } = await github.rest.issues.get({
                 owner: context.repo.owner, repo: context.repo.repo, issue_number: num
               });
