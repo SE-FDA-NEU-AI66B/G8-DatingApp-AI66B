@@ -1,0 +1,409 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.24.2",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "cddb6b1ada0134ec0b0bf5d02ee8b11f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"setup\">Setup</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "11d44af80d0391ed61a54a36f804b489",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "7ef8c8a7a0fa3530987fc237e2c3f9f5",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "f66bd4d22be30159b0e9edde3c715cf3",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "48ec0adaf7743b066fc68c0494b8c902",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "GFxD",
+      "code_hash": "88150dbb8e083f2f2190bd745f690d0b",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "a0524cb8a6110af0db16164c9a5ad1bc",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "d3b465a81159739f5903f8fff5fe6e6a",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "c005478f36a4a059042ecdb90b921bdc",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "2e231578ede5c88c78c90861255a788e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "b33098854432a2ef24923c743a4b3c7a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"other\">Other</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "84edb797f2db80df9894c40036a2f1aa",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h3 id=\"postgres\">postgres</h3></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "c7484319d50cef90bb2ec1f8db2cb3ce",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "5652af659659353563b1dc8e12d688dc",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "48d6c7890f990de89fce6dca3df03245",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "exception",
+          "evalue": "syntax error at or near \")\"\nLINE 7:     );\n            ^",
+          "traceback": null
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "<span class=\"codehilite\"><div class=\"highlight\"><pre><span></span><span class=\"gt\">Traceback (most recent call last):</span>\n  File <span class=\"nb\">\"/tmp/marimo_555822/__marimo__cell_ZHCJ_.py\"</span>, line <span class=\"m\">1</span>, in <span class=\"n\">&lt;module&gt;</span>\n<span class=\"w\">    </span><span class=\"n\">_df</span> <span class=\"o\">=</span> <span class=\"n\">mo</span><span class=\"o\">.</span><span class=\"n\">sql</span><span class=\"p\">(</span>\n<span class=\"w\">    </span>    <span class=\"sa\">f</span><span class=\"s2\">\"\"\"</span>\n<span class=\"w\">    </span><span class=\"o\">...&lt;</span><span class=\"mi\">7</span> <span class=\"n\">lines</span><span class=\"o\">&gt;...</span>\n<span class=\"w\">    </span>    <span class=\"n\">engine</span><span class=\"o\">=</span><span class=\"n\">conn</span>\n<span class=\"w\">    </span><span class=\"p\">)</span>\n  File <span class=\"nb\">\"/home/mq/rust/H-iDB/.venv/lib/python3.14/site-packages/marimo/_sql/sql.py\"</span>, line <span class=\"m\">132</span>, in <span class=\"n\">sql</span>\n<span class=\"w\">    </span><span class=\"n\">df</span> <span class=\"o\">=</span> <span class=\"n\">sql_engine</span><span class=\"o\">.</span><span class=\"n\">execute</span><span class=\"p\">(</span><span class=\"n\">query</span><span class=\"p\">)</span>\n  File <span class=\"nb\">\"/home/mq/rust/H-iDB/.venv/lib/python3.14/site-packages/marimo/_sql/engines/dbapi.py\"</span>, line <span class=\"m\">49</span>, in <span class=\"n\">execute</span>\n<span class=\"w\">    </span><span class=\"n\">cursor</span><span class=\"o\">.</span><span class=\"n\">execute</span><span class=\"p\">(</span><span class=\"n\">query</span><span class=\"p\">,</span> <span class=\"n\">parameters</span> <span class=\"ow\">or</span> <span class=\"p\">())</span>\n<span class=\"w\">    </span><span class=\"pm\">~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^</span>\n<span class=\"gr\">psycopg2.errors.SyntaxError</span>: <span class=\"n\">syntax error at or near \")\"</span>\n<span class=\"x\">LINE 7:     );</span>\n<span class=\"x\">            ^</span>\n</pre></div>\n</span>",
+          "mimetype": "application/vnd.marimo+traceback"
+        }
+      ]
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "89074c76cd6ecf09f93c8b5e8880604a",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "d81de0f24abae561d950a2549ae4850a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h3 id=\"clickhouse\">clickhouse</h3></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "dfce50a57e594910db02ede25806eb96",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "f79d9d220b47aa178b86b05aa403e1fa",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "f916a3ee7605f4541bfb33debf2f09b5",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ulZA",
+      "code_hash": "ca3c7d282423c7ebbeab0e50b1858e57",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ecfG",
+      "code_hash": "7be2322bd2fb470cc6a0771542b74e01",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Pvdt",
+      "code_hash": "3de44a51d624c5e0a3fece98a587bb6c",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZBYS",
+      "code_hash": "d5eb75afec41e94b9f907523e6e22d90",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h3 id=\"mariadb\">mariadb</h3></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "aLJB",
+      "code_hash": "5652af659659353563b1dc8e12d688dc",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "nHfw",
+      "code_hash": "0fa0950e02abccba57cf5f0d30c8ccef",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "xXTn",
+      "code_hash": "024f7472558f780b879fc1fcbb1a50bb",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "AjVT",
+      "code_hash": "990ab0d8898a1d5ac6b080346093faad",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "pHFh",
+      "code_hash": "505d781e82aa5a304f27f03f6ad0f415",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<marimo-ui-element object-id='pHFh-0' random-id='0c36fd64-ba29-416b-6c05-d67bbf6017cc'><marimo-table data-initial-value='[]' data-label='null' data-data='&quot;[{&#92;&quot;cookie&#92;&quot;:&#92;&quot;&#92;&#92;u00aa&#92;&quot;,&#92;&quot;userid&#92;&quot;:&#92;&quot;3&#92;&quot;,&#92;&quot;start&#92;&quot;:&#92;&quot;2026-09-13 04:08:19&#92;&quot;},{&#92;&quot;cookie&#92;&quot;:&#92;&quot;&#92;&#92;u00aa&#92;&quot;,&#92;&quot;userid&#92;&quot;:&#92;&quot;3&#92;&quot;,&#92;&quot;start&#92;&quot;:&#92;&quot;2026-09-13 04:08:19&#92;&quot;},{&#92;&quot;cookie&#92;&quot;:&#92;&quot;&#92;&#92;u00aa&#92;&quot;,&#92;&quot;userid&#92;&quot;:&#92;&quot;3&#92;&quot;,&#92;&quot;start&#92;&quot;:&#92;&quot;2026-09-13 04:08:19&#92;&quot;},{&#92;&quot;cookie&#92;&quot;:&#92;&quot;&#92;&#92;u00aa&#92;&quot;,&#92;&quot;userid&#92;&quot;:&#92;&quot;3&#92;&quot;,&#92;&quot;start&#92;&quot;:&#92;&quot;2026-09-13 04:08:19&#92;&quot;},{&#92;&quot;cookie&#92;&quot;:&#92;&quot;&#92;&#92;u00aa&#92;&quot;,&#92;&quot;userid&#92;&quot;:&#92;&quot;3&#92;&quot;,&#92;&quot;start&#92;&quot;:&#92;&quot;2026-09-13 04:08:20&#92;&quot;},{&#92;&quot;cookie&#92;&quot;:&#92;&quot;&#92;&#92;u00aa&#92;&quot;,&#92;&quot;userid&#92;&quot;:&#92;&quot;3&#92;&quot;,&#92;&quot;start&#92;&quot;:&#92;&quot;2026-09-13 04:08:20&#92;&quot;},{&#92;&quot;cookie&#92;&quot;:&#92;&quot;&#92;&#92;u00aa&#92;&quot;,&#92;&quot;userid&#92;&quot;:&#92;&quot;3&#92;&quot;,&#92;&quot;start&#92;&quot;:&#92;&quot;2026-09-13 04:08:20&#92;&quot;},{&#92;&quot;cookie&#92;&quot;:&#92;&quot;&#92;&#92;u00aa&#92;&quot;,&#92;&quot;userid&#92;&quot;:&#92;&quot;3&#92;&quot;,&#92;&quot;start&#92;&quot;:&#92;&quot;2026-09-13 04:08:20&#92;&quot;},{&#92;&quot;cookie&#92;&quot;:&#92;&quot;&#92;&#92;u00aa&#92;&quot;,&#92;&quot;userid&#92;&quot;:&#92;&quot;3&#92;&quot;,&#92;&quot;start&#92;&quot;:&#92;&quot;2026-09-13 04:08:20&#92;&quot;},{&#92;&quot;cookie&#92;&quot;:&#92;&quot;&#92;&#92;u00aa&#92;&quot;,&#92;&quot;userid&#92;&quot;:&#92;&quot;3&#92;&quot;,&#92;&quot;start&#92;&quot;:&#92;&quot;2026-09-13 04:08:20&#92;&quot;}]&quot;' data-total-rows='13' data-total-columns='3' data-max-columns='50' data-banner-text='&quot;&quot;' data-pagination='true' data-page-size='10' data-field-types='[[&quot;cookie&quot;,[&quot;unknown&quot;,&quot;binary&quot;]],[&quot;userid&quot;,[&quot;string&quot;,&quot;str&quot;]],[&quot;start&quot;,[&quot;datetime&quot;,&quot;datetime[\u03bcs]&quot;]]]' data-show-filters='true' data-show-download='true' data-show-search='true' data-show-column-summaries='true' data-show-data-types='true' data-show-page-size-selector='true' data-show-column-explorer='true' data-show-chart-builder='true' data-row-headers='[]' data-hidden-columns='[]' data-has-stable-row-id='false' data-lazy='false' data-preload='false'></marimo-table></marimo-ui-element>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "NCOB",
+      "code_hash": "600080f03041e305cd33345e6c5e11e0",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"other-other\">other other</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "aqbW",
+      "code_hash": "c1a6be3027fc913f7159da2f70e0f65e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TRpd",
+      "code_hash": "9efb665bf2c50562fb4d02b18ef52f6e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TXez",
+      "code_hash": "863b19cd6e85d35549fb57c31ed244ef",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"test\">Test</h1></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "dNNg",
+      "code_hash": "4f1a3c750a0e87bf5c9c0e5fdb835a10",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "yCnT",
+      "code_hash": "10fcd8cbbaf141dd1955da68607d8ae0",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "wlCL",
+      "code_hash": "c330a1570de73170f068f5ef1a184a55",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "kqZH",
+      "code_hash": "147e8f21bf72433b031d2843372c9b9b",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "wAgl",
+      "code_hash": "54037268f9a74dc4b5ef575e031ccd17",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "rEll",
+      "code_hash": "a82f07da723f5c539b2c7d984410592c",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "dGlV",
+      "code_hash": "6153c03e8d305b98a197ed5b446feee9",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "SdmI",
+      "code_hash": "077e1baf7a5f936d02d2e45bf3d631b7",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "lgWD",
+      "code_hash": "89198fb1e0e9ae9fd0c6fd914668198e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "yOPj",
+      "code_hash": "eb6c58391ab03360fe9e5889286d9de2",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "fwwy",
+      "code_hash": "b17e2b801b225285c24e701aee178b05",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "LJZf",
+      "code_hash": "29737463020efcff9b39b5e425d11f5f",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "urSm",
+      "code_hash": "2eb175ba88c4d29a37ce237ad7a15df5",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "jxvo",
+      "code_hash": "4ed788cf504742daf294296f7e093536",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "mWxS",
+      "code_hash": "d067183f6f70649c60b981132dc5794b",
+      "outputs": [],
+      "console": []
+    }
+  ]
+}

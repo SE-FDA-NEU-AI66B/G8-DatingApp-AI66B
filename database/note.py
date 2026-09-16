@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.24.0"
+__generated_with = "0.24.2"
 app = marimo.App(width="full", auto_download=["html"])
 
 
@@ -48,15 +48,45 @@ def _(os, psycopg2):
 def _():
     import clickhouse_connect
 
-    _a="password"
+    _a = "password"
     conn2 = clickhouse_connect.create_client(host="localhost", username="username", password=_a, port="8123", database="default")
-    return clickhouse_connect, conn2
+    return (conn2,)
 
 
 @app.cell
-def _(clickhouse_connect):
-    [i for i in clickhouse_connect.__dir__() if "create_" in i]
+def _():
+    import mariadb
+    _a = "password"
+    mariadb_uri = "mariadb://root:password@0.0.0.0:3306/mysql"
+    conn3 = mariadb.connect(mariadb_uri )
+    return (conn3,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    _df = mo.sql(
+        f"""
+        --INSTALL mysql;
+        --LOAD mysql;
+        ATTACH 'host=localhost user=root port=3306 database=mysql password=password' AS userdb3 (TYPE mysql);
+        """
+    )
     return
+
+
+app._unparsable_cell(
+    r"""
+    def run_db_operations():
+        conn = None
+        cursor = None
+        try:
+            # 2. Establish a Connection
+            print("Connecting to MariaDB...")
+            conn = mariadb.connect(DATABASE_URL)
+            print("Connection successful!")
+    """,
+    name="_"
+)
 
 
 @app.cell
@@ -94,13 +124,21 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ###postgres
+    """)
+    return
+
+
 @app.cell
 def _(conn, mo):
     _df = mo.sql(
         f"""
         Select * from public.cookielogin
         """,
-        engine=conn,
+        engine=conn
     )
     return
 
@@ -111,7 +149,7 @@ def _(conn, mo):
         f"""
         EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
         """,
-        engine=conn,
+        engine=conn
     )
     return
 
@@ -127,8 +165,27 @@ def _(conn, mo):
             start DATETIME,
         );
         """,
-        engine=conn,
+        engine=conn
     )
+    return
+
+
+@app.cell
+def _(mo):
+    _df = mo.sql(
+        f"""
+        INSERT INTO userdb.public.cookielogin (cookie,userid,start)
+        VALUES (from_hex('AA'),3,now())
+        """
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ###clickhouse
+    """)
     return
 
 
@@ -155,7 +212,7 @@ def _(conn2, cookielogin2, mo):
         INSERT INTO cookielogin2 (cookie,userid,start)
         VALUES (unhex('AA'),3,now64(8))
         """,
-        engine=conn2,
+        engine=conn2
     )
     return
 
@@ -177,18 +234,7 @@ def _(conn2, mo):
         f"""
         SELECT now64(9);
         """,
-        engine=conn2,
-    )
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    _df = mo.sql(
-        f"""
-        INSERT INTO userdb.public.cookielogin (cookie,userid,start)
-        VALUES (from_hex('AA'),3,now())
-        """
+        engine=conn2
     )
     return
 
@@ -213,6 +259,81 @@ def _(mo):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ###mariadb
+    """)
+    return
+
+
+@app.cell
+def _(conn, mo):
+    _df = mo.sql(
+        f"""
+        EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell
+def _(conn3, mo):
+    _df = mo.sql(
+        f"""
+        EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
+        """,
+        engine=conn3
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    _df = mo.sql(
+        f"""
+        --DROP TABLE if  exists userdb.public.cookielogin;
+        CREATE TABLE if Not exists userdb3.cookielogin3 (
+            cookie  BYTEA,
+            userid UHUGEINT,
+            start DATETIME,
+        );
+        """
+    )
+    return
+
+
+@app.cell
+def _(mo):
+    _df = mo.sql(
+        f"""
+        INSERT INTO userdb3.cookielogin3 (cookie,userid,start)
+        VALUES (from_hex('AA'),3,now())
+        """
+    )
+    return
+
+
+@app.cell
+def _(conn3, cookielogin3, mo):
+    _df = mo.sql(
+        f"""
+        Select * from cookielogin3
+        """,
+        engine=conn3
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    #other other
+    """)
+    return
+
+
 @app.cell
 def _(pl, uri):
     pl.read_database_uri("select * from cookielogin", uri=uri)
@@ -225,7 +346,7 @@ def _(conn, mo):
         f"""
         select cookie from public.cookielogin Limit 3
         """,
-        engine=conn,
+        engine=conn
     )
     return
 

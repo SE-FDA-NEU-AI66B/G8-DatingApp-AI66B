@@ -2,12 +2,13 @@
 marimo[sql,sandbox,recommended,lsp]
 sqlparse
 duckdb
+mariadb[binary,pool]
 sqlglot
 pytest
 vegafusion
 vl-convert-python
 ##lsp##
-basedpyright
+mariadb[binary,pool]>=2.0
 ty
 pyrefly
 python-lsp-server

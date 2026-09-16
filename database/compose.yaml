@@ -1,4 +1,13 @@
 services:
+  db3:
+    image: mariadb
+    restart: always
+    environment:
+      MARIADB_ROOT_PASSWORD: password
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    ports:
+      - 3306:3306
   db2:
     image: clickhouse/clickhouse-server
     restart: always
@@ -76,6 +85,7 @@ volumes:
   dbgate_data:
   clickhouse_data:
   clickhouse_data2:
+  mariadb_data:
 networks:
   network:
     driver: bridge
