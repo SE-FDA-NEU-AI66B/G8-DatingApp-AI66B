@@ -2,7 +2,8 @@ use leptos::prelude::*;
 
 mod e1;
 mod e2;
-pub fn App() -> impl IntoView {
+#[component]
+pub fn app() -> impl IntoView {
     view! {
         {e1::App()}
         <e2::App />

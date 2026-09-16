@@ -1,5 +1,3 @@
-use std::ffi::OsString;
-
 pub fn get_tls_config() -> rustls::ServerConfig {
     rustls::crypto::aws_lc_rs::default_provider()
         .install_default()
@@ -23,11 +21,24 @@ pub fn get_tls_config() -> rustls::ServerConfig {
         .unwrap()
 }
 use tokio_postgres::{tls::NoTlsStream, Client, Connection, Error, Socket};
+
+#[allow(dead_code)]
+pub fn get_db_uri() -> String {
+    use std::env;
+    format!(
+        "postgres://postgres:{}@localhost/userdb",
+        env::var_os("PGPASS")
+            .map(|i| i.into_string().unwrap())
+            .unwrap_or("".to_string())
+    )
+}
+#[allow(dead_code)]
 pub async fn connect_database() -> Result<(Client, Connection<Socket, NoTlsStream>), Error> {
     use std::env;
     use tokio_postgres::{connect, NoTls};
+    // tokio_postgres::;
     let s = format!(
-        "host={} user=postgres password={}",
+        "host={} user=postgres password={} dbname=userdb",
         "localhost",
         env::var_os("PGPASS")
             .map(|i| i.into_string().unwrap())
@@ -40,58 +51,169 @@ pub async fn connect_database() -> Result<(Client, Connection<Socket, NoTlsStrea
     // println!("{:?}", connection);
     // // println!("{:?}", );
     // Ok(())
-    tokio_postgres::connect(&s, NoTls).await
+    connect(&s, NoTls).await
 }
-#[cfg(test)]
-#[cfg(not(target_arch = "wasm32"))]
-mod tests {
+#[allow(dead_code)]
+pub async fn connect_database2() {}
+extern crate test;
+// #[cfg(test)]
+#[allow(unused_imports)]
+pub mod tests {
+    use super::*;
+    use itertools::Itertools;
     extern crate test;
-    use actix::prelude::*;
-    // use test::Bencher;
-    struct MySyncActor;
-    impl Actor for MySyncActor {
-        type Context = SyncContext<Self>;
-    }
-    use actix::dev::MessageResponse;
-    use std::time::{self, Duration, Instant};
-    #[derive(Message)]
-    #[rtype(result = "Instant")]
-    struct Job(String);
-    impl MessageResponse<MySyncActor, Job> for Instant {
-        fn handle(
-            self,
-            ctx: &mut <MySyncActor as Actor>::Context,
-            tx: Option<dev::OneshotSender<<Job as Message>::Result>>,
-        ) {
-            if let Some(tx) = tx {
-                tx.send(self).unwrap();
+    use test::Bencher;
+    use tokio::runtime;
+    #[allow(dead_code)]
+    pub fn database_speed(n: usize, m: usize) {
+        // 583,250,930.10 dev
+        // 403,411,090.60 release
+        let rt = runtime::Builder::new_current_thread()
+            .enable_all()
+            .build_local(runtime::LocalOptions::default())
+            .unwrap();
+        rt.block_on(async {
+            let mut v = Vec::new();
+            let mut v2 = Vec::new();
+            for _ in 0..n {
+                let (client, connection) = connect_database().await.unwrap();
+                v2.push(rt.spawn_local(async move { if let Err(_e) = connection.await {} }));
+                v.push(rt.spawn_local(async move {
+                    for _ in 0..m {
+                        let _a = client
+                            .query("SELECT * FROM public.cookielogin Limit 5", &[])
+                            .await;
+                    }
+                    std::time::Instant::now()
+                }));
             }
+            for i in v {
+                let _r = i.await;
+            }
+            for i in v2 {
+                i.await.unwrap();
+            }
+        });
+    }
+    #[ignore]
+    #[bench]
+    #[allow(dead_code)]
+    pub fn bench_database_speed(b: &mut Bencher) {
+        // 583,250,930.10 dev
+        // 403,411,090.60 release
+        let (n, m) = (10, 1000);
+        println!("{:?}", (n * m));
+        b.iter(|| database_speed(n, m));
+    }
+    use sqlx::Row;
+    use std::rc::Rc;
+    #[ignore]
+    #[bench]
+    fn database_speed2(b: &mut Bencher) {
+        // 627,045,562.00 dev
+        // 489,410,657.00 release
+        let (n, m) = (2, 5000);
+        println!("{:?}", (n * m));
+        b.iter(|| {
+            let rt = runtime::Builder::new_current_thread()
+                .enable_all()
+                .build_local(runtime::LocalOptions::default())
+                .unwrap();
+            rt.block_on(async {
+                use sqlx::postgres::PgPoolOptions;
+                let pool = Rc::new(
+                    PgPoolOptions::new()
+                        .max_connections(n)
+                        .connect(&get_db_uri())
+                        .await
+                        .unwrap(),
+                );
+                let row = (0..n * m)
+                    .map(|_| {
+                        let pool = pool.clone();
+                        rt.spawn_local(async move {
+                            sqlx::query_as("SELECT * FROM public.cookielogin Limit 5")
+                                .fetch_all(&*pool)
+                                .await
+                                .unwrap()
+                        })
+                    })
+                    .collect_vec();
+                for i in row {
+                    let _r: Vec<(Vec<u8>, String, Option<time::PlainDateTime>)> = i.await.unwrap();
+                    // let r = &i.await.unwrap()[0];
+                    // println!("{:?}", r[0]);
+                }
+            });
+        });
+    }
+    #[allow(dead_code)]
+    pub async fn database_speed3(n: usize, m: usize) {
+        // 583,250,930.10 dev
+        // 403,411,090.60 release
+        let mut v = Vec::new();
+        let mut v2 = Vec::new();
+        for _ in 0..n {
+            let (client, connection) = connect_database().await.unwrap();
+            v2.push(actix::spawn(
+                async move { if let Err(_e) = connection.await {} },
+            ));
+            v.push(actix::spawn(async move {
+                for _ in 0..m {
+                    let _a = client
+                        .query("SELECT * FROM public.cookielogin Limit 5", &[])
+                        .await;
+                }
+                std::time::Instant::now()
+            }));
+        }
+        for i in v {
+            let _r = i.await;
+        }
+        for i in v2 {
+            i.await.unwrap();
         }
     }
-    impl Handler<Job> for MySyncActor {
-        type Result = Instant;
+    #[allow(dead_code)]
+    pub async fn database_speed4(n: usize, m: usize) {
+        // 583,250,930.10 dev
+        // 403,411,090.60 release
+        let mut v = Vec::new();
+        for _ in 0..n {
+            use clickhouse::Client;
+            let client = Client::default()
+                .with_url("http://localhost:8123")
+                .with_user("username")
+                .with_password("password")
+                .with_database("default");
+            v.push(actix::spawn(async move {
+                for _ in 0..m {
+                    use clickhouse::Row;
+                    use serde::{Deserialize, Serialize};
+                    use time::OffsetDateTime;
 
-        fn handle(&mut self, msg: Job, ctx: &mut Self::Context) -> Self::Result {
-            Instant::now()
+                    #[derive(Row, Serialize, Deserialize, Debug)]
+                    struct MyRow {
+                        #[serde(with = "serde_bytes")]
+                        cookie: Vec<u8>,
+                        userid: u64,
+                        //
+                        #[serde(with = "clickhouse::serde::time::datetime64::nanos")]
+                        start: OffsetDateTime,
+                    }
+                    // cookie,
+                    let _a: Vec<MyRow> = client
+                        .query("SELECT  cookie,userid,start  FROM cookielogin2 Limit 5")
+                        .fetch_all()
+                        .await
+                        .unwrap();
+                    // println!("{:?}", a);
+                }
+                std::time::Instant::now()
+            }));
         }
-    }
-
-    // #[bench]
-    #[test]
-    fn database_speed() {
-        database_speed2();
-    }
-    #[actix::main]
-    async fn database_speed2() {
-        use super::*;
-        // b: &mut Bencher
-        let addr = SyncArbiter::start(2, || MySyncActor);
-        println!("{:?}", addr.send(Job(String::from("afds"))).await);
-        let (client, connection) = connect_database().await.unwrap();
-        println!(
-            "{:?}",
-            client.query("SELECT $1::TEXT", &[&"whatsapp"]).await
-        );
-        // let n = test::black_box(1000);
+        for i in v {
+            i.await.unwrap();
+        }
     }
 }

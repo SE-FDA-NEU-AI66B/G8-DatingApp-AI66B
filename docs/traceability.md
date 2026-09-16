@@ -22,21 +22,3 @@ Numbered, so issues and tests can cite them.
 | --- | ---- | -------------- | --------- |
 | BR1 |      |                |           |
 | BR2 |      |                |           |
-
-| Route | Purpose      | Access | Priority | Feature | Story issue | PR  | Status |
-| ----- | ------------ | ------ | -------- | ------- | ----------- | --- | ------ |
-| `/`   | Landing page | G      | P0       | F1      | #3          | #14 | Done   |
-|       |              |        |          |         |             |     |        |
-
-**Access codes:** G = guest (not logged in) · U = authenticated user · A = admin
-
-**Status:** Not started / In progress / Done
-
-## Business rules
-
-Numbered, so issues and tests can cite them.
-
-| #   | Rule | Enforced where | Tested by |
-| --- | ---- | -------------- | --------- |
-| BR1 |      |                |           |
-| BR2 |      |                |           |

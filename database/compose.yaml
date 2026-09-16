@@ -1,4 +1,22 @@
 services:
+  db2:
+    image: clickhouse/clickhouse-server
+    restart: always
+    # --cap-add=SYS_NICE --cap-add=NET_ADMIN --cap-add=IPC_LOCK
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse/
+      - clickhouse_data2:/var/log/clickhouse-server/
+    environment:
+      - CLICKHOUSE_DB=my_database
+      - CLICKHOUSE_USER=username
+      - CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT=1
+      - CLICKHOUSE_PASSWORD=password
+    ports:
+      - 8123:8123/tcp
+      - 9001:9000/tcp
+    # docker run -d \
+    #   --name some-clickhouse-server --ulimit nofile=262144:262144 clickhouse/clickhouse-server
+
   db:
     image: postgres
     restart: always
@@ -56,6 +74,8 @@ volumes:
   postgres_data:
   pgadmin_data:
   dbgate_data:
+  clickhouse_data:
+  clickhouse_data2:
 networks:
   network:
     driver: bridge

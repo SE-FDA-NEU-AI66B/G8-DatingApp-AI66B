@@ -1,3 +1,5 @@
+cargo-features = ["codegen-backend", "profile-rustflags"]
+
 [package]
 name = "datingapp"
 version = "0.1.0"
@@ -56,6 +58,8 @@ lib-default-features = false
 #
 # Optional. Defaults to "release".
 lib-profile-release = "wasm-release"
+lib-profile-dev = "wasm-dev"
+
 
 [lib]
 crate-type = ["cdylib", "rlib"]
@@ -64,14 +68,13 @@ crate-type = ["cdylib", "rlib"]
 env_logger = "0.11"
 actix-files = { version = "0.7", optional = true }
 console_error_panic_hook = "0.1"
-http = { version = "1.5.0", optional = true }
+# http = { version = "1.5.0", optional = true }
 itertools = "0.15.0"
 leptos_actix = { version = "0.8.7", optional = true }
 leptos_meta = { version = "0.8.6" }
 leptos_router = { version = "0.8.15", features = ["nightly"] }
 rayon = "1.12.0"
-serde = "1.0.229"
-server_fn = "0.8.13"
+serde = { version = "1.0.229" }
 wasm-bindgen = "0.2.127"
 actix-web = { version = "4", features = [
   "macros",
@@ -82,13 +85,22 @@ leptos = { version = "0.8.20", features = [
   "delegation",
 ] } # note delegation make code compiled faster and runfaster but might have bug ./target/doc/leptos/index.htmlactix-files = { version = "0.7.0", optional = true }features = ["delegation", "nightly"]
 leptos-use = { version = "0.19.0", features = [] }
-base64 = "0.23.1"
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies] # server side only
+tokio = { version = "1.53.1", features = ["full"] }
+time = { version = "0.3.55", features = ["serde"] }
+serde_bytes = "0.11.19"
+clickhouse = { version = "0.15.2", features = ["time"] }
+sqlx = { version = "0.9", features = [
+  "runtime-tokio",
+  "tls-native-tls",
+  "postgres",
+  "time",
+  "derive",
+] }
 rustls = "0.23.43"
 rustls-pemfile = "2.2.0"
 tokio-postgres = "0.7.18"
 actix = "0.13.5"
-
 [features]
 default = ["csr", "hydrate", "ssr"]
 csr = ["leptos/csr"]
@@ -111,12 +123,12 @@ opt-level = "z"
 lto = true
 panic = "abort"
 codegen-units = 1
-[profile.dev.'cfg(not(target_arch = "wasm32"))']
+[profile.dev]
 codegen-backend = "cranelift" #dont support webasm
-[target.aarch64-apple-darwin]
-rustflags = ["--cfg", "erase_components"]
-[target.wasm32-unknown-unknown]
-rustflags = ["--cfg", "erase_components"]
-# [[example]]
-# name = "cloudflared"
-# path = "examples/cloudflared.rs"
+[profile.wasm-dev]
+inherits = "dev"
+codegen-backend = "llvm"
+[profile.dev.package."*"]
+codegen-backend = "llvm"
+[workspace]
+members = ["util/*/", "util/cloudflared"]
