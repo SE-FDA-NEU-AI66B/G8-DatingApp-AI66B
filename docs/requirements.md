@@ -8,10 +8,10 @@ for lonely old guys
 
 2 (teams of 5: 3) Built on conversations with at least 2 real people. Each: role, goal, what blocks them, one quoted sentence. Add an interview note - who you spoke to and when.
 
-| who   | goal  | what block them | quoted |
-| ----- | ----- | --------------- | ------ |
-| Quyen | bitch | no rizz         |        |
-| Hai   | bitch | no rizz         |        |
+| who   | goal             | what block them | quoted |
+| ----- | ---------------- | --------------- | ------ |
+| Quyen | somebody to love | lonely          |        |
+| Hai   | somebody to love | social anxiety  |        |
 
 ## Scenarios
 
@@ -26,7 +26,7 @@ Persona 1: Quyen — New User Looking for a Match
     Quyen receives a mutual match when another user has also indicated interest in them.
     Quyen sends messages to the mutual match and continues the conversation.
 
-Persona 2: Jordan — User Managing Safety and Interactions
+Persona 2: Hai — User Managing Safety and Interactions
 
     Hai signs in to their account.
     Hai reviews new matches and unread messages.
