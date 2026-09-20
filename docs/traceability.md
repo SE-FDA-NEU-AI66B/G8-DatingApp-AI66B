@@ -1,24 +1,36 @@
 # Traceability
 
-Every screen traces back to a feature and forward to the issue that built it.
-This table is the single source of truth for Milestone 1 section 6 and for the
-Milestone 4 report. Keep it current - a PR that adds a route and does not
-update this file should not be approved.
-
-| Route | Purpose      | Access | Priority | Feature | Story issue | PR  | Status |
-| ----- | ------------ | ------ | -------- | ------- | ----------- | --- | ------ |
-| `/`   | Landing page | G      | P0       | F1      | #3          | #14 | Done   |
-|       |              |        |          |         |             |     |        |
-
-**Access codes:** G = guest (not logged in) · U = authenticated user · A = admin
-
-**Status:** Not started / In progress / Done
-
 ## Business rules
 
 Numbered, so issues and tests can cite them.
 
-| #   | Rule | Enforced where | Tested by |
-| --- | ---- | -------------- | --------- |
-| BR1 |      |                |           |
-| BR2 |      |                |           |
+| #   | Rule                           | example                                                     |
+| --- | ------------------------------ | ----------------------------------------------------------- |
+| BR1 | Minimum User Age 18            | Registration is rejected.                                   |
+| BR2 | Profile Completion Requirement | The profile is incomplete and must not appear in discovery. |
+| BR3 | Mutual Match Requirement       | Alex likes Jordan. Jordan does not like Alex. -> no match   |
+| BR4 | One Decision Per Profile       | Alex selects Like for Jordan again -> ignored               |
+| BR5 | Message Length Limit           | A message must contain between 1 and 500 characters.        |
+| BR6 | Blocked Users Cannot Interact  |                                                             |
+
+## Screens and flow
+
+5 screens Table: Route / Purpose / Access (G, U, A) / Priority. Plus a flow diagram - every screen must appear and be reachable. Hand-drawn is fine.
+all route are assign by hash
+
+| name           | Purpose                          | Access | Priority |
+| -------------- | -------------------------------- | ------ | -------- |
+| /              | home                             | G      | P0       |
+| /user_profile  | user profile for manaing account | U      | P0       |
+| /user_home     | show status + chat iteract       | U      | P0       |
+| /chat          | for chatting                     | U      | P0       |
+| /admin_console | show server status               | A      | P0       |
+
+                                            ┌─────────────┐
+                                            │      /      │
+                                            └──────┬──────┘
+                                                   │ sign in
+                                                   ▼
+                 ┌─────────────────┐if admin┌─────────────────┐    ┌─────────────────┐    ┌────────────┐
+                 │  /admin_console │────────│   /user_hom     │────│  /user_profile  │────│   /chat    │
+                 └─────────────────┘        └─────────────────┘    └─────────────────┘    └────────────┘
