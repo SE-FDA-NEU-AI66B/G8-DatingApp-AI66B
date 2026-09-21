@@ -2,16 +2,54 @@
 
 ## Product vision
 
-for lonely old guys
+for lonely NEU guys
 
-## Personas
 
-2 (teams of 5: 3) Built on conversations with at least 2 real people. Each: role, goal, what blocks them, one quoted sentence. Add an interview note - who you spoke to and when.
+# User Personas: NEU Dating Webapp
 
-| who   | goal             | what block them | quoted |
-| ----- | ---------------- | --------------- | ------ |
-| Quyen | somebody to love | lonely          |        |
-| Hai   | somebody to love | social anxiety  |        |
+Target Audience: National Economics University (NEU) students.
+
+### Persona 1: The Privacy-Conscious Senior
+
+* **Role:** Hoang Anh – Fourth-year student (Cohort K65), 21 years old, living off-campus. Balances an intensive schedule between an off-campus corporate internship and his graduation thesis.
+
+* **Goal:** Find a meaningful relationship with someone from the same university who understands final-year pressure, while keeping his profile completely invisible to classmates, club peers, and mutual acquaintances.
+
+* **Blocked by:** Fear of social exposure and gossip if peers screenshot his profile; zero patience for endless back-and-forth small talk during work hours.
+
+* **In his words:** *"I just want to find someone compatible to grab coffee with on the weekends, but my biggest nightmare is an acquaintance screenshotting my profile and sharing it in our group chat."*
+
+* **Technical skill:** Accesses the web app primarily via his laptop browser during lunch breaks or his phone's browser on commutes. Requires a discreet web interface and a quick way to switch tabs or hide the screen if a coworker or friend walks by.
+
+* **Interview note:** Spoke with N.V. Hoang Anh (Senior, K65) on September 12.
+
+### Persona 2: The Eager Freshman Explorer
+
+* **Role:** Minh Chau – First-year student (Cohort K68), 18 years old, lives in the campus dormitory. Highly active in university clubs and eager to expand her campus network.
+
+* **Goal:** Connect with upperclassmen and fellow students across campus to build a trusted social circle, find a hangout buddy, and exchange tips on university life and study materials.
+
+* **Blocked by:** Difficulty verifying whether users are legitimate NEU students; mainstream dating platforms feel unsafe, overwhelming, and flooded with strangers with whom she shares zero common context.
+
+* **In her words:** *"I want to date someone from NEU because we share the same campus vibe, but looking for people online feels creepy since you never know who is actually genuine."*
+
+* **Technical skill:** Strictly uses Safari/Chrome on her phone. She prefers a web app so she doesn't have to download a dedicated dating app (which saves phone storage and keeps it hidden from nosy roommates). The web app must be highly responsive and feel native on a small screen.
+
+* **Interview note:** Spoke with D.T. Minh Chau (Freshman, K68) on September 14.
+
+### Persona 3: The Deadline-Driven "Study Date" Seeker
+
+* **Role:** Tuan Kiet – Third-year student (Cohort K66), 20 years old, rents an apartment near campus. Constantly pulls late-night sessions working on group projects, case competitions, and exams.
+
+* **Goal:** Find casual "study-date" partners to work alongside during evening study hours before committing to a formal relationship.
+
+* **Blocked by:** Zero bandwidth for traditional dating routines (formal dinners, cinema outings); most platforms prioritize vanity and pickup lines over schedule matching and study habits.
+
+* **In his words:** *"I don't have time to text for three weeks before meeting. If someone is down to plug in their laptop and grind next to me at a cafe from 9 PM onwards, we will click immediately."*
+
+* **Technical skill:** Keeps the web app open in a background browser tab on his laptop while doing research or writing essays. Relies on browser notifications to see if someone messages him so he doesn't have to constantly check his phone.
+
+* **Interview note:** Spoke with L. Tuan Kiet (Junior, K66) on September 15.
 
 ## Scenarios
 
