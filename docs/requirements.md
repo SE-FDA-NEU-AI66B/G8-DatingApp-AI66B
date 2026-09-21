@@ -53,27 +53,38 @@ Target Audience: National Economics University (NEU) students.
 
 ## Scenarios
 
-Persona 1: Quyen — New User Looking for a Match
+### Scenario 1 - Hoang Anh arranges a discreet weekend coffee
 
-    Quyen creates an account using a valid email address and a password with at least 8 characters.
-    Quyen confirms that they are at least 18 years old.
-    Quyen adds their name, age, location, biography, interests, and at least one photo.
-    Quyen selects their preferred age range and maximum distance.
-    Quyen reviews suggested profiles that match their preferences.
-    Quyen indicates interest in profiles they like and skips profiles they are not interested in.
-    Quyen receives a mutual match when another user has also indicated interest in them.
-    Quyen sends messages to the mutual match and continues the conversation.
+1. During his lunch break at the internship, Hoang Anh opens the web app in his laptop browser.
+2. He applies a privacy filter to ensure his profile is completely hidden from anyone in his own cohort year.
+3. He indicates his availability for a casual coffee date this upcoming Saturday afternoon.
+4. He browses through a curated list of younger students who share his weekend availability and similar music tastes.
+5. He finds a compatible profile and sends a direct invitation to grab coffee.
+6. He immediately switches browser tabs to return to his spreadsheet work.
+7. Later that evening, while commuting home, he opens the web app on his phone browser.
+8. He sees the invitation was accepted and exchanges two quick messages to finalize the exact cafe location.
 
-Persona 2: Hai — User Managing Safety and Interactions
+### Scenario 2 - Minh Chau safely connects with an upperclassman
 
-    Hai signs in to their account.
-    Hai reviews new matches and unread messages.
-    Hai reads a message from a mutual match.
-    Hai decides that the conversation is unwanted.
-    Hai prevents the other user from contacting or viewing their profile.
-    Hai reports the user and selects a reason for the report.
-    The system records the report and removes the blocked user from Hai’s matches and conversations.
-    Hai continues using the dating app without seeing the blocked user again.
+1. While resting in the dormitory, Minh Chau opens the web app using her phone's browser.
+2. She logs in using her official university student email, ensuring her profile receives a verified student badge.
+3. She filters her view to only show older students who have successfully verified their university credentials.
+4. She looks for individuals who have explicitly indicated they are open to sharing campus tips or casual food outings.
+5. She matches with a sophomore who also enjoys street food near the university gates.
+6. They exchange a few messages about their favorite local snack stalls to establish mutual trust.
+7. She proposes a quick meeting time for the following afternoon right after her last class.
+8. The other student confirms the time, giving Minh Chau peace of mind that she is meeting a legitimate, verified student.
+
+### Scenario 3 - Tuan Kiet finds a last-minute study partner
+
+1. At 8:00 PM, Tuan Kiet is preparing for a long night of writing an essay.
+2. He opens the web app in a background tab on his laptop and sets his status to look for an immediate study session.
+3. He specifies a 24-hour cafe near the university that he plans to walk to in twenty minutes.
+4. He leaves the tab open and switches over to his word processor to start outlining his essay.
+5. Ten minutes later, a browser notification appears on his screen alerting him of a potential study match.
+6. He checks the notification and sees another student is also heading to the same cafe to study for an exam.
+7. He sends a quick message asking if they want to share a corner table to work quietly.
+8. The other student agrees instantly, and they coordinate exactly which floor they will meet on.
 
 ## User stories
 
