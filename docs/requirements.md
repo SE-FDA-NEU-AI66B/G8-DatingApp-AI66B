@@ -86,22 +86,120 @@ Target Audience: National Economics University (NEU) students.
 7. He sends a quick message asking if they want to share a corner table to work quietly.
 8. The other student agrees instantly, and they coordinate exactly which floor they will meet on.
 
-## User stories
+## 3. User Stories
 
-Then for every story: ≥2 acceptance criteria in Given–When–Then, of which ≥1 contains a concrete number or exact expected value.
+| ID | Story | Priority | Points |
+| :--- | :--- | :--- | :--- |
+| US01 | As Minh Chau, I want to register using my @neu.edu.vn email so that I am verified as a real NEU student. | P0 | 5 |
+| US02 | As Tuan Kiet, I want to create a "study date" request with a specific time slot so that others can join me. | P0 | 8 |
+| US03 | As Minh Chau, I want to browse active study date requests within a 24-hour window so I can find a study partner today. | P0 | 5 |
+| US04 | As Hoang Anh, I want to send a match request to a specific profile so that we can potentially connect. | P0 | 5 |
+| US05 | As Hoang Anh, I want to accept or decline an incoming match request so that I can control who messages me. | P0 | 3 |
+| US06 | As Tuan Kiet, I want to send text messages via the web interface so we can coordinate our meeting. | P1 | 8 |
+| US07 | As Minh Chau, I want to filter matches by cohort (e.g., K65, K68) so that I can connect with specific academic years. | P1 | 3 |
+| US08 | As Hoang Anh, I want to toggle a "Hide from my cohort" setting so that I avoid people I might already know. | P1 | 5 |
+| US09 | As a user, I want to report a suspicious profile so that the platform remains safe. | P2 | 3 |
+| US10 | As Tuan Kiet, I want to deactivate my account temporarily so that my profile is hidden during exam seasons. | P2 | 2 |
 
-| ID     | Story               | Priority                                                                                   | Points |
-| ------ | ------------------- | ------------------------------------------------------------------------------------------ | ------ |
-| DA-001 | As a visitor        | I want to create an account so that I can use the dating app.                              | 3      |
-| DA-002 | As a user           | I want to create a dating profile so that other users can learn about me.                  | 5      |
-| DA-003 | As a user           | I want to discover potential matches so that I can find people who interest me.            | 5      |
-| DA-004 | As a user           | I want to like or pass on profiles so that I can express my preferences.                   | 3      |
-| DA-005 | As a user           | I want to message a mutual match so that we can communicate.                               | 5      |
-| DA-006 | As a user           | I want to edit my profile so that my information remains accurate.                         | 3      |
-| DA-007 | As a user           | I want to filter potential matches so that I can find compatible people.                   | 5      |
-| DA-008 | As a user           | I want to block or report another user so that I can control my interactions and safety.   | 3      |
-| DA-009 | As a user           | I want to receive notifications about matches and messages so that I do not miss activity. | 3      |
-| DA-010 | As an administrator | I want to review reported profiles so that I can help keep the platform safe.              | 5      |
+**US01 - Register with NEU email · P0 · 5 points · Screen: /register**
+As Minh Chau, I want to register using my @neu.edu.vn email so that I am verified as a real NEU student.
+* **Acceptance criteria**
+  * Given I enter the email "minhchau@neu.edu.vn" and submit, then my account is created and I receive a 6-digit OTP code for verification.
+  * Given I enter the email "minhchau@gmail.com", when I submit the form, then it is rejected with the exact message "Please use a valid @neu.edu.vn email address".
+* **Tasks**
+  * Registration UI and input validation - @quang
+  * Backend authentication and email OTP routing - @hai
+  * Automated tests for domain rejections - @quyen
+
+**US02 - Create a study date request · P0 · 8 points · Screen: /study-date/new**
+As Tuan Kiet, I want to create a "study date" request with a specific time slot so that others can join me for a deadline session.
+* **Acceptance criteria**
+  * Given I select a start time of 20:00 and duration of 3 hours, when I publish the request, then it appears on the live feed for 180 minutes.
+  * Given I try to set a duration of 14 hours, when I submit, then it is rejected with the message "Maximum study date duration is 12 hours".
+* **Tasks**
+  * Time slot picker and submission form - @quang
+  * Database schema for study sessions - @hai
+  * Validation logic for maximum duration rules - @quyen
+
+**US03 - Browse active study date requests · P0 · 5 points · Screen: /feed**
+As Minh Chau, I want to browse active study date requests within a 24-hour window so I can find a study partner today.
+* **Acceptance criteria**
+  * Given there are 5 active requests starting within the next 24 hours, when I load the feed, then exactly 5 cards are displayed in chronological order.
+  * Given there are 0 active requests, when the page loads, then it shows "0 study dates found for today" instead of a blank screen.
+* **Tasks**
+  * Feed interface and card components - @quang
+  * API endpoint to fetch and sort chronological data - @hai
+  * Integration tests for empty states - @quyen
+
+**US04 - Send a match request · P0 · 5 points · Screen: /profile/:id**
+As Hoang Anh, I want to send a match request to a specific profile so that we can potentially connect.
+* **Acceptance criteria**
+  * Given I view a profile I haven't matched with, when I click "Connect", then the button changes to "Pending" and I cannot send a second request.
+  * Given I have already sent 20 requests today, when I try to send another, then it is blocked with the message "Daily limit of 20 requests reached".
+* **Tasks**
+  * Profile view and connection button state - @quang
+  * Matchmaking logic and daily limit constraints - @hai
+  * Test cases for button state changes - @quyen
+
+**US05 - Accept or decline a match request · P0 · 3 points · Screen: /requests**
+As Hoang Anh, I want to accept or decline an incoming match request so that I can control who messages me.
+* **Acceptance criteria**
+  * Given I have an incoming request from User A, when I click "Accept", then a chat room is created and User A moves to my "Matched" list.
+  * Given I have 3 incoming requests, when I click "Decline" on one, then the list immediately updates to show exactly 2 pending requests.
+* **Tasks**
+  * Incoming request list UI - @quang
+  * State update logic (Accept/Decline handling) - @hai
+  * Tests for list rendering updates - @quyen
+
+**US06 - Real-time chat messaging · P1 · 8 points · Screen: /chat/:id**
+As Tuan Kiet, I want to send text messages via the web interface so we can coordinate our meeting.
+* **Acceptance criteria**
+  * Given I am in a matched chat room, when I send a message, then it appears in the chat log within 1 second.
+  * Given I try to send a message exceeding 500 characters, when I hit enter, then the system truncates the input or displays "Message exceeds 500 characters".
+* **Tasks**
+  * Chat UI and scroll behavior - @quang
+  * WebSocket/Backend messaging implementation - @hai
+  * Character limit validation and tests - @quyen
+
+**US07 - Filter matches by cohort · P1 · 3 points · Screen: /discover**
+As Minh Chau, I want to filter matches by cohort so that I can connect with specific academic years.
+* **Acceptance criteria**
+  * Given I select the "K68" filter, when the list updates, then 100% of the displayed profiles have the cohort attribute "K68".
+  * Given I select multiple cohorts, when I apply the filter, then the URL query updates to include `?cohorts=K66,K68`.
+* **Tasks**
+  * Filter dropdown and URL param syncing - @quang
+  * Database query optimization for cohort tags - @hai
+  * Testing multiple cohort selections - @quyen
+
+**US08 - Hide from my cohort · P1 · 5 points · Screen: /settings**
+As Hoang Anh, I want to toggle a "Hide from my cohort" setting so that I avoid people I might already know.
+* **Acceptance criteria**
+  * Given I am K65 and I toggle this setting ON, when another K65 user searches the feed, then my profile is returned 0 times in their results.
+  * Given the setting is OFF by default, when I view my settings panel for the first time, then the toggle shows as disabled (grayed out).
+* **Tasks**
+  * Settings toggle UI - @quang
+  * Query exclusion logic for matching cohorts - @hai
+  * Privacy rule unit tests - @quyen
+
+**US09 - Report a suspicious profile · P2 · 3 points · Screen: /profile/:id**
+As a user, I want to report a suspicious profile so that the platform remains safe.
+* **Acceptance criteria**
+  * Given I submit a report, when it processes, then the reported user's profile is immediately hidden from my personal view.
+  * Given a profile receives exactly 5 unique reports in 24 hours, then the system automatically flags it for admin review.
+* **Tasks**
+  * Reporting modal and reason selection - @quang
+  * Flagging logic and report aggregation - @hai
+  * End-to-end test for report submission - @quyen
+
+**US10 - Deactivate account temporarily · P2 · 2 points · Screen: /settings**
+As Tuan Kiet, I want to deactivate my account temporarily so that my profile is hidden during exam seasons.
+* **Acceptance criteria**
+  * Given I click "Deactivate", when I confirm, then my session ends and my profile is hidden for at least 7 days.
+  * Given my account is deactivated, when I attempt to log back in before 7 days, then I see a prompt "Account deactivated. Reactivate now?".
+* **Tasks**
+  * Deactivation confirmation dialog - @quang
+  * Account status toggle in database - @hai
+  * Login flow restrictions - @quyen
 
 ## Business rules
 
