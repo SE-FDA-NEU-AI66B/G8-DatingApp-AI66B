@@ -12,8 +12,9 @@ cloudflared = "cargo run --example cloudflared"
 lego = "cd cert; lego"
 database = "cd database;docker compose up -d"
 database_clean = "cd database;docker compose down --remove-orphans"
-diagrams1 = "d2 --watch docs/diagrams/SequenceDiagrams.d2  docs/diagrams/SequenceDiagrams.svg"
-diagrams2 = "d2 --watch docs/diagrams/UseCase.d2  docs/diagrams/UseCase.svg"
+diagrams1 = "d2 --watch docs/diagrams/SequenceDiagram.d2  docs/diagrams/SequenceDiagram.svg"
+diagrams2 = "d2 --watch docs/diagrams/SequenceDiagram2.d2  docs/diagrams/SequenceDiagram2.svg"
+diagrams3 = "d2 --watch docs/diagrams/UseCase.d2  docs/diagrams/UseCase.svg"
 [settings]
 activate_aggressive = true
 python.uv_venv_auto = "source"
