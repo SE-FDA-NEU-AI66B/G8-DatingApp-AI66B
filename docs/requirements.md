@@ -6,12 +6,37 @@ for lonely old guys
 
 ## Personas
 
-2 (teams of 5: 3) Built on conversations with at least 2 real people. Each: role, goal, what blocks them, one quoted sentence. Add an interview note - who you spoke to and when.
+# User Personas: NEU Dating Webapp
 
-| who   | goal             | what block them | quoted |
-| ----- | ---------------- | --------------- | ------ |
-| Quyen | somebody to love | lonely          |        |
-| Hai   | somebody to love | social anxiety  |        |
+Target Audience: National Economics University (NEU) students in Hanoi, Vietnam.
+
+### Persona 1: The Privacy-Conscious Senior
+
+* **Role:** Hoang Anh – Fourth-year student, 22, rents a room on Tran Dai Nghia Street. Balances a rigorous schedule between an off-campus corporate internship and his graduation thesis.
+* **Goal:** Find a meaningful relationship with someone from the same university who understands final-year pressure, while keeping his profile completely hidden from classmates, club members, and mutual acquaintances.
+* **Blocked by:** Fear of judgment or peer gossip if mutual acquaintances spot his profile; zero patience for endless back-and-forth small talk during work hours.
+* **In his words:** *"I just want to find someone compatible to grab coffee with on the weekends, but my biggest nightmare is an acquaintance screenshotting my profile and sharing it in our group chat."*
+* **Interview note:** Interviewed N.V. Hoang Anh (Senior, K62) on March 12, 2026, at 6:30 PM at The Coffee House near the NEU Dormitory.
+
+---
+
+### Persona 2: The Eager Freshman Explorer
+
+* **Role:** Minh Chau – First-year student, 18, lives in the NEU Dormitory. Highly active in student clubs and eager to immerse herself in university social life.
+* **Goal:** Connect with upperclassmen or peers across campus to build a trusted social circle, find a partner for casual street-food dates along Tu Do Alley, and trade campus tips and past exam archives.
+* **Blocked by:** Difficulty verifying whether users are legitimate NEU students; mainstream dating apps feel unsafe, overwhelming, and flooded with strangers with whom she shares zero common context.
+* **In her words:** *"I want to date someone from NEU because we share the same campus vibe, but swiping on mainstream apps feels creepy since you never know who is actually genuine."*
+* **Interview note:** Interviewed D.T. Minh Chau (Freshman, K65) and her roommate on March 14, 2026, at 12:15 PM at the 1st-floor cafeteria of the NEU Dormitory building.
+
+---
+
+### Persona 3: The Deadline-Driven "Study Date" Seeker
+
+* **Role:** Tuan Kiet – Third-year student, 21, rents a flat in Alley 205 Giai Phong. Constantly pulls late-night shifts working on group projects, reports, and student competitions.
+* **Goal:** Find casual "study-date" partners to work alongside at 24/7 cafes around the Bach - Kinh - Xay hub (HUST, NEU, NUCE area) before committing to a formal romance.
+* **Blocked by:** Zero bandwidth for traditional dating routines (formal dinners, cinema outings); existing apps prioritize vanity and pickup lines over shared study schedules and focus styles.
+* **In his words:** *"I don't have time to text for three weeks before meeting. If someone is down to plug in their laptop and grind next to me at a cafe from 9 PM onwards, we will click immediately."*
+* **Interview note:** Interviewed L. Tuan Kiet (Junior, K63) on March 15, 2026, at 10:00 PM at a 24/7 study cafe on Quang Trung Street while he was preparing a slide presentation.
 
 ## Scenarios
 
