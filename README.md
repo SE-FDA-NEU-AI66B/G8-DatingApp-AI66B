@@ -22,14 +22,7 @@ mối quan hệ lành mạnh và lâu dài nếu họ tự nguyện lựa chọn
 ## Nhóm
 
 **Nhóm:** QHQ<br>
-
-| Name                            | GitHub username  | Role       |
-| ------------------------------- | ---------------- | ---------- |
-| このminh quangだ                | iambadwithname   |            |
-| [Leonhard](assets/Leonhard.png) | projecteuler.net | math Titan |
-| ![king of pop](asset/MJ.png)    | Muzan Kibutsuji. | king       |
-| _add yourself here_             |                  |            |
-
+**Thành viên:** @Nguyễn Sơn Hải · @Nguyễn Minh Quang · @Lê Duy Quyền<br>
 **Product Owner (cố định cả kỳ):** @Nguyễn Sơn Hải<br>
 **Scrum Master (luân phiên mỗi sprint):** @Nguyễn Minh Quang (Sprint 2)
 
