@@ -1,0 +1,11 @@
+request: {
+shape: sequence_diagram
+user.r -> servers.r: request(async)
+servers.r.a<-> postgres database.a: verify user and fetch data(async)
+servers: {
+  "process request"
+}
+servers.r.a<-> postgres database.a: verify user and fetch data(async)
+servers.r->admin.r : respond(async)
+direction: right
+}
