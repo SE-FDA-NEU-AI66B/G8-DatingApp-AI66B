@@ -1,86 +1,22 @@
 direction: right
-
-User: {
-  shape: person
+ServerApi.Adminconsle{
+database_status
+log
+dashboard
+}
+ServerApi.UserProfile{
+Self{include setting}
+Other
+}
+ServerApi.Home{
+Dashboard
+Contaclist
+Navigation
 }
 
-Web App: {
-  shape: rectangle
-}
-
-API: {
-  shape: hexagon
-}
-
-Database: {
-  shape: cylinder
-}
-
-User -> Web App: Uses
-Web App -> API: Sends requests
-API -> Database: Reads and writes
-
-direction: right
-
-Member: Member {
-  shape: person
-}
-
-Librarian: Librarian {
-  shape: person
-}
-
-PaymentSystem: Payment System {
-  shape: person
-}
-
-LibrarySystem: Library Management System {
-  shape: rectangle
-
-  SearchBooks: Search Books {
-    shape: oval
-  }
-
-  BorrowBook: Borrow Book {
-    shape: oval
-  }
-
-  ReturnBook: Return Book {
-    shape: oval
-  }
-
-  RenewBook: Renew Book {
-    shape: oval
-  }
-
-  PayFine: Pay Fine {
-    shape: oval
-  }
-
-  RegisterMember: Register Member {
-    shape: oval
-  }
-
-  ManageBooks: Add/Remove Book {
-    shape: oval
-  }
-
-  GenerateReports: Generate Reports {
-    shape: oval
-  }
-}
-
-Member -> LibrarySystem.SearchBooks
-Member -> LibrarySystem.BorrowBook
-Member -> LibrarySystem.ReturnBook
-Member -> LibrarySystem.RenewBook
-Member -> LibrarySystem.PayFine
-
-Librarian -> LibrarySystem.RegisterMember
-Librarian -> LibrarySystem.ManageBooks
-Librarian -> LibrarySystem.GenerateReports
-Librarian -> LibrarySystem.BorrowBook
-Librarian -> LibrarySystem.ReturnBook
-
-LibrarySystem.PayFine -> PaymentSystem
-
+User -> ServerApi.Search_match
+User -> ServerApi.UserProfile
+User -> ServerApi.Home
+User -> ServerApi.Chat
+Admin -> ServerApi.Adminconsle
+ServerApi->Posgresdatabase
