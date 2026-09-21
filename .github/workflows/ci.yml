@@ -49,7 +49,60 @@ jobs:
         run: uv sync
 
       - name: Lint
-        run: ruff check . --output-format=github
+        run: uv run ruff check . --output-format=github
+        continue-on-error: true # Week 1-6: warn only. Remove this line from Sprint 2 onward.
+
+      - name: Test
+        run: uv run pytest -v --cov --cov-report=term-missing --junitxml=junit.xml
+
+      - name: Publish test summary
+        if: always()
+        run: |
+          echo "### Test results" >> "$GITHUB_STEP_SUMMARY"
+          python - << 'PY' >> "$GITHUB_STEP_SUMMARY"
+          import xml.etree.ElementTree as ET, pathlib
+          f = pathlib.Path("junit.xml")
+          if not f.exists():
+              print("No test report produced. Did the test run crash?")
+          else:
+              r = ET.parse(f).getroot()
+              s = r if r.tag == "testsuite" else r.find("testsuite")
+              if s is None:
+                  print("No test suite found.")
+              else:
+                  total = int(s.get("tests", 0))
+                  bad = int(s.get("failures", 0)) + int(s.get("errors", 0))
+                  print(f"- Tests run: **{total}**")
+                  print(f"- Failed: **{bad}**")
+                  print(f"- Skipped: **{s.get('skipped', 0)}**")
+          PY
+
+  python-windows:
+    name: Python tests (Windows)
+    needs: detect
+    if: needs.detect.outputs.python == 'true'
+    runs-on: windows-latest
+    defaults:
+      run:
+        # Windows runners default to PowerShell. Every step below (heredoc,
+        # >> redirection, $GITHUB_STEP_SUMMARY) is written for bash, so force it.
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      # Puts `python` 3.13 on PATH for the summary step below.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - uses: astral-sh/setup-uv@v9.0.0
+        with:
+          enable-cache: true
+      - name: Set up Python
+        run: uv sync
+
+      - name: Lint
+        run: uv run ruff check . --output-format=github
         continue-on-error: true # Week 1-6: warn only. Remove this line from Sprint 2 onward.
 
       - name: Test
