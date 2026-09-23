@@ -24,7 +24,7 @@ mối quan hệ lành mạnh và lâu dài nếu họ tự nguyện lựa chọn
 **Nhóm:** QHQ<br>
 **Thành viên:** @Nguyễn Sơn Hải · @Nguyễn Minh Quang · @Lê Duy Quyền<br>
 **Product Owner (cố định cả kỳ):** @Nguyễn Sơn Hải<br>
-**Scrum Master (luân phiên mỗi sprint):** @Nguyễn Minh Quang (Sprint 2)
+**Scrum Master:** @Nguyễn Minh Quang (Sprint 1) · @Lê Duy Quyền (Sprint 2)
 
 **Board:** [NEUDating GitHub Project](https://github.com/orgs/SE-FDA-NEU-AI66B/projects/20)
 

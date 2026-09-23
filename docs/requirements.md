@@ -291,9 +291,10 @@ The block must apply in both directions: Alex must not see Jordan, and Jordan mu
 
 5 screens Table: Route / Purpose / Access (G, U, A) / Priority. Plus a flow diagram - every screen must appear and be reachable. Hand-drawn is fine.
 
-| Route    | Purpose       | Access (G, U, A) | Priority |
-| -------- | ------------- | ---------------- | -------- |
-| hashbase | home          | guest /user      | high     |
-| hashbase | login         | guest            | high     |
-| hashbase | admin console | guest            | high     |
-| hashbase | chat          | user             | low      |
+| Route          | Purpose                          | Access (G, U, A) | Priority |
+| -------------- | -------------------------------- | ---------------- | -------- |
+| /              | home                             | G                | P0       |
+| /user_profile  | user profile for managing account| U                | P0       |
+| /user_home     | show status + chat interact      | U                | P0       |
+| /chat          | for chatting                     | U                | P0       |
+| /admin_console | show server status               | A                | P0       |
