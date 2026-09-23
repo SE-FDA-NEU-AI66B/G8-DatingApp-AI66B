@@ -1,0 +1,22 @@
+direction: right
+ServerApi.Adminconsle{
+database_status
+log
+dashboard
+}
+ServerApi.UserProfile{
+Self{include setting}
+Other
+}
+ServerApi.Home{
+Dashboard
+Contaclist
+Navigation
+}
+
+User -> ServerApi.Search_match
+User -> ServerApi.UserProfile
+User -> ServerApi.Home
+User -> ServerApi.Chat
+Admin -> ServerApi.Adminconsle
+ServerApi->Posgresdatabase
