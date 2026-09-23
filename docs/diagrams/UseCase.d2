@@ -8,15 +8,18 @@ ServerApi.UserProfile{
 Self{include setting}
 Other
 }
-ServerApi.Home{
+ServerApi.UserHome{
 Dashboard
 Contaclist
 Navigation
 }
 
+Guess -> ServerApi.Home
+Guess -> ServerApi.Login
+ServerApi.Login-> Auth_20
 User -> ServerApi.Search_match
 User -> ServerApi.UserProfile
-User -> ServerApi.Home
+User -> ServerApi.UserHome
 User -> ServerApi.Chat
 Admin -> ServerApi.Adminconsle
 ServerApi->Posgresdatabase
