@@ -106,7 +106,7 @@ Target Audience: National Economics University (NEU) students.
 | :--- | :--------------------------------------------------------------------------------------------------------------------- | :------- | :----- |
 | US01 | As Minh Chau, I want to register using my @neu.edu.vn email so that I am verified as a real NEU student.               | P0       | 5      |
 | US02 | As Tuan Kiet, I want to create a "study date" request with a specific time slot so that others can join me.            | P0       | 8      |
-| US03 | As Minh Chau, I want to browse active study date requests within a 24-hour window so I can find a study partner today. | P0       | 5      |
+| US03 | As Tuan Kiet, I want to browse active study date requests within a 24-hour window so I can find a study partner today. | P0       | 5      |
 | US04 | As Hoang Anh, I want to send a match request to a specific profile so that we can potentially connect.                 | P0       | 5      |
 | US05 | As Hoang Anh, I want to accept or decline an incoming match request so that I can control who messages me.             | P0       | 3      |
 | US06 | As Tuan Kiet, I want to send text messages via the web interface so we can coordinate our meeting.                     | P1       | 8      |
@@ -115,7 +115,7 @@ Target Audience: National Economics University (NEU) students.
 | US09 | As a user, I want to report a suspicious profile so that the platform remains safe.                                    | P2       | 3      |
 | US10 | As Tuan Kiet, I want to deactivate my account temporarily so that my profile is hidden during exam seasons.            | P2       | 2      |
 
-**US01 - Register with NEU email · P0 · 5 points · Screen: /register**
+**US01 - Register with NEU email · P0 · 5 points · Screen: /**
 As Minh Chau, I want to register using my @neu.edu.vn email so that I am verified as a real NEU student.
 
 - **Acceptance criteria**
@@ -126,7 +126,7 @@ As Minh Chau, I want to register using my @neu.edu.vn email so that I am verifie
   - Backend authentication and email OTP routing - @hai
   - Automated tests for domain rejections - @quyen
 
-**US02 - Create a study date request · P0 · 8 points · Screen: /study-date/new**
+**US02 - Create a study date request · P0 · 8 points · Screen: /profile**
 As Tuan Kiet, I want to create a "study date" request with a specific time slot so that others can join me for a deadline session.
 
 - **Acceptance criteria**
@@ -137,8 +137,8 @@ As Tuan Kiet, I want to create a "study date" request with a specific time slot 
   - Database schema for study sessions - @hai
   - Validation logic for maximum duration rules - @quyen
 
-**US03 - Browse active study date requests · P0 · 5 points · Screen: /feed**
-As Minh Chau, I want to browse active study date requests within a 24-hour window so I can find a study partner today.
+**US03 - Browse active study date requests · P0 · 5 points · Screen: /discover**
+As Tuan Kiet, I want to browse active study date requests within a 24-hour window so I can find a study partner today.
 
 - **Acceptance criteria**
   - Given there are 5 active requests starting within the next 24 hours, when I load the feed, then exactly 5 cards are displayed in chronological order.
@@ -148,7 +148,7 @@ As Minh Chau, I want to browse active study date requests within a 24-hour windo
   - API endpoint to fetch and sort chronological data - @hai
   - Integration tests for empty states - @quyen
 
-**US04 - Send a match request · P0 · 5 points · Screen: /profile/:id**
+**US04 - Send a match request · P0 · 5 points · Screen: /discover**
 As Hoang Anh, I want to send a match request to a specific profile so that we can potentially connect.
 
 - **Acceptance criteria**
@@ -159,7 +159,7 @@ As Hoang Anh, I want to send a match request to a specific profile so that we ca
   - Matchmaking logic and daily limit constraints - @hai
   - Test cases for button state changes - @quyen
 
-**US05 - Accept or decline a match request · P0 · 3 points · Screen: /requests**
+**US05 - Accept or decline a match request · P0 · 3 points · Screen: /chat**
 As Hoang Anh, I want to accept or decline an incoming match request so that I can control who messages me.
 
 - **Acceptance criteria**
@@ -170,7 +170,7 @@ As Hoang Anh, I want to accept or decline an incoming match request so that I ca
   - State update logic (Accept/Decline handling) - @hai
   - Tests for list rendering updates - @quyen
 
-**US06 - Real-time chat messaging · P1 · 8 points · Screen: /chat/:id**
+**US06 - Real-time chat messaging · P1 · 8 points · Screen: /chat**
 As Tuan Kiet, I want to send text messages via the web interface so we can coordinate our meeting.
 
 - **Acceptance criteria**
@@ -192,7 +192,7 @@ As Minh Chau, I want to filter matches by cohort so that I can connect with spec
   - Database query optimization for cohort tags - @hai
   - Testing multiple cohort selections - @quyen
 
-**US08 - Hide from my cohort · P1 · 5 points · Screen: /settings**
+**US08 - Hide from my cohort · P1 · 5 points · Screen: /profile**
 As Hoang Anh, I want to toggle a "Hide from my cohort" setting so that I avoid people I might already know.
 
 - **Acceptance criteria**
@@ -203,7 +203,7 @@ As Hoang Anh, I want to toggle a "Hide from my cohort" setting so that I avoid p
   - Query exclusion logic for matching cohorts - @hai
   - Privacy rule unit tests - @quyen
 
-**US09 - Report a suspicious profile · P2 · 3 points · Screen: /profile/:id**
+**US09 - Report a suspicious profile · P2 · 3 points · Screen: /discover**
 As a user, I want to report a suspicious profile so that the platform remains safe.
 
 - **Acceptance criteria**
@@ -214,7 +214,7 @@ As a user, I want to report a suspicious profile so that the platform remains sa
   - Flagging logic and report aggregation - @hai
   - End-to-end test for report submission - @quyen
 
-**US10 - Deactivate account temporarily · P2 · 2 points · Screen: /settings**
+**US10 - Deactivate account temporarily · P2 · 2 points · Screen: /profile**
 As Tuan Kiet, I want to deactivate my account temporarily so that my profile is hidden during exam seasons.
 
 - **Acceptance criteria**
@@ -243,19 +243,25 @@ Numbered, so issues and tests can cite them.
 5 screens. Route / Purpose / Access (G = Guest, U = User, A = Admin) / Priority.
 Plus a flow diagram — every screen must appear and be reachable.
 
-| Route          | Purpose                           | Access | Priority |
-| -------------- | --------------------------------- | ------ | -------- |
-| /              | home                              | G      | P0       |
-| /user_profile  | user profile for managing account | U      | P0       |
-| /user_home     | show status + chat interact       | U      | P0       |
-| /chat          | for chatting                      | U      | P0       |
-| /admin_console | show server status                | A      | P0       |
+| Route          | Purpose                                                     | Access | Priority |
+| -------------- | ----------------------------------------------------------- | ------ | -------- |
+| /              | Landing & Auth (login, register NEU email)                  | G      | P0       |
+| /discover      | Feed: swipe, filter, find study dates, report profiles      | U      | P0       |
+| /chat          | Inbox: view pending requests, active matches, and messaging | U      | P0       |
+| /profile       | My Profile: settings, privacy toggles, create study date    | U      | P0       |
+| /admin_console | Admin Dashboard: system status, review flagged users        | A      | P0       |
 
                                             ┌─────────────┐
                                             │      /      │
                                             └──────┬──────┘
                                                    │ sign in
                                                    ▼
-                 ┌─────────────────┐if admin┌─────────────────┐    ┌─────────────────┐    ┌────────────┐
-                 │  /admin_console │────────│   /user_home    │────│  /user_profile  │────│   /chat    │
-                 └─────────────────┘        └─────────────────┘    └─────────────────┘    └────────────┘
+                 ┌─────────────────┐if admin┌─────────────────┐
+                 │ /admin_console  │────────│    /discover    │
+                 └─────────────────┘        └──────┬───┬──────┘
+                                      navigation   │   │ navigation
+                                      tabs (bot)   │   │ tabs (bot)
+                                                   ▼   ▼
+                                    ┌────────────┐       ┌─────────────┐
+                                    │   /chat    │       │  /profile   │
+                                    └────────────┘       └─────────────┘

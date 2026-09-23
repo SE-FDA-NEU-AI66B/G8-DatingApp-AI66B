@@ -15,22 +15,28 @@ Numbered, so issues and tests can cite them.
 
 ## Screens and flow
 
-5 screens Table: Route / Purpose / Access (G, U, A) / Priority. Plus a flow diagram - every screen must appear and be reachable. Hand-drawn is fine.
-all route are assign by hash
+5 screens. Route / Purpose / Access (G = Guest, U = User, A = Admin) / Priority.
+Plus a flow diagram — every screen must appear and be reachable.
 
-| name           | Purpose                          | Access | Priority |
-| -------------- | -------------------------------- | ------ | -------- |
-| /              | home                             | G      | P0       |
-| /user_profile  | user profile for manaing account | U      | P0       |
-| /user_home     | show status + chat iteract       | U      | P0       |
-| /chat          | for chatting                     | U      | P0       |
-| /admin_console | show server status               | A      | P0       |
+| Route          | Purpose                                                     | Access | Priority |
+| -------------- | ----------------------------------------------------------- | ------ | -------- |
+| /              | Landing & Auth (login, register NEU email)                  | G      | P0       |
+| /discover      | Feed: swipe, filter, find study dates, report profiles      | U      | P0       |
+| /chat          | Inbox: view pending requests, active matches, and messaging | U      | P0       |
+| /profile       | My Profile: settings, privacy toggles, create study date    | U      | P0       |
+| /admin_console | Admin Dashboard: system status, review flagged users        | A      | P0       |
 
                                             ┌─────────────┐
                                             │      /      │
                                             └──────┬──────┘
                                                    │ sign in
                                                    ▼
-                 ┌─────────────────┐if admin┌─────────────────┐    ┌─────────────────┐    ┌────────────┐
-                 │  /admin_console │────────│   /user_hom     │────│  /user_profile  │────│   /chat    │
-                 └─────────────────┘        └─────────────────┘    └─────────────────┘    └────────────┘
+                 ┌─────────────────┐if admin┌─────────────────┐
+                 │ /admin_console  │────────│    /discover    │
+                 └─────────────────┘        └──────┬───┬──────┘
+                                      navigation   │   │ navigation
+                                      tabs (bot)   │   │ tabs (bot)
+                                                   ▼   ▼
+                                    ┌────────────┐       ┌─────────────┐
+                                    │   /chat    │       │  /profile   │
+                                    └────────────┘       └─────────────┘
