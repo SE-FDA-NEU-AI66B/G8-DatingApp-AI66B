@@ -6,6 +6,6 @@ servers: {
   "process request"
 }
 servers.r.a<-> postgres database.a: verify user and fetch data(async)
-servers.r->admin.r : respond(async)
+servers.r->user.r : respond(async)
 direction: right
 }
