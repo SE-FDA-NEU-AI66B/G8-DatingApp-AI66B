@@ -14,6 +14,6 @@ jobs:
     container:
       image: quang1234567/cargo-leptos
     steps:
-      - uses: actions/checkout@v6
-      # - run: cargo leptos build -vv
-      # - run: cargo leptos test -vv
+      - uses: actions/checkout@v4
+      - run: cargo leptos build -vv
+      - run: cargo leptos test -vv

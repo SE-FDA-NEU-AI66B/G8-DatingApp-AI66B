@@ -228,13 +228,13 @@ Numbered, so issues and tests can cite them.
 5 screens Table: Route / Purpose / Access (G, U, A) / Priority. Plus a flow diagram - every screen must appear and be reachable. Hand-drawn is fine.
 all route are assign by hash
 
-| name           | Purpose                          | Access | Priority |
-| -------------- | -------------------------------- | ------ | -------- |
-| /              | home                             | G      | P0       |
-| /user_profile  | user profile for manaing account | U      | P0       |
-| /user_home     | show status + chat iteract       | U      | P0       |
-| /chat          | for chatting                     | U      | P0       |
-| /admin_console | show server status               | A      | P0       |
+| Route          | Purpose                          | Access (G, U, A) | Priority |
+| -------------- | -------------------------------- | ---------------- | -------- |
+| /              | home                             | G                | P0       |
+| /user_profile  | user profile for managing account| U                | P0       |
+| /user_home     | show status + chat interact      | U                | P0       |
+| /chat          | for chatting                     | U                | P0       |
+| /admin_console | show server status               | A                | P0       |
 
                                             ┌─────────────┐
                                             │      /      │
@@ -242,5 +242,5 @@ all route are assign by hash
                                                    │ sign in
                                                    ▼
                  ┌─────────────────┐if admin┌─────────────────┐    ┌─────────────────┐    ┌────────────┐
-                 │  /admin_console │────────│   /user_hom     │────│  /user_profile  │────│   /chat    │
+                 │  /admin_console │────────│   /user_home    │────│  /user_profile  │────│   /chat    │
                  └─────────────────┘        └─────────────────┘    └─────────────────┘    └────────────┘
