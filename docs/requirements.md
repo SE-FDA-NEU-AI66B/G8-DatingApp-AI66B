@@ -2,9 +2,24 @@
 
 ## Product vision
 
-for lonely NEU guys
+NEUDating là ứng dụng hẹn hò dành cho sinh viên và người trẻ tại Việt Nam,
+giúp họ kết nối với những người có sở thích, giá trị và mục tiêu tương đồng
+trong một môi trường an toàn, nghiêm túc và tôn trọng quyền riêng tư.
 
-# User Personas: NEU Dating Webapp
+Tỷ lệ sinh của Việt Nam đang giảm xuống dưới mức sinh thay thế. Theo
+[World Bank](https://data.worldbank.org/indicator/SP.DYN.TFRT.IN?locations=VN-KR),
+mức sinh của Việt Nam năm 2023 là khoảng 1,9 con/phụ nữ, trong khi Hàn Quốc
+đã ở mức thấp hơn rất nhiều. Số liệu chính thức của
+[Statistics Korea](https://kostat.go.kr/board.es?mid=a10301010000&bid=204&act=view&list_no=433085)
+cho thấy tổng tỷ suất sinh của Hàn Quốc năm 2023 chỉ là 0,72.
+
+Đây là lời cảnh báo về những khó khăn xã hội và kinh tế do dân số già hóa,
+thiếu lực lượng lao động và ngày càng ít gia đình trẻ. NEUDating không coi
+việc kết hôn hay sinh con là nghĩa vụ của mỗi cá nhân; sản phẩm tập trung vào
+việc giúp những người độc thân có thêm cơ hội gặp gỡ phù hợp, xây dựng các
+mối quan hệ lành mạnh và lâu dài nếu họ tự nguyện lựa chọn.
+
+## User Personas
 
 Target Audience: National Economics University (NEU) students.
 
@@ -85,7 +100,7 @@ Target Audience: National Economics University (NEU) students.
 7. He sends a quick message asking if they want to share a corner table to work quietly.
 8. The other student agrees instantly, and they coordinate exactly which floor they will meet on.
 
-## 3. User Stories
+## User Stories
 
 | ID   | Story                                                                                                                  | Priority | Points |
 | :--- | :--------------------------------------------------------------------------------------------------------------------- | :------- | :----- |
@@ -225,16 +240,16 @@ Numbered, so issues and tests can cite them.
 
 ## Screens and flow
 
-5 screens Table: Route / Purpose / Access (G, U, A) / Priority. Plus a flow diagram - every screen must appear and be reachable. Hand-drawn is fine.
-all route are assign by hash
+5 screens. Route / Purpose / Access (G = Guest, U = User, A = Admin) / Priority.
+Plus a flow diagram — every screen must appear and be reachable.
 
-| name           | Purpose                          | Access | Priority |
-| -------------- | -------------------------------- | ------ | -------- |
-| /              | home                             | G      | P0       |
-| /user_profile  | user profile for manaing account | U      | P0       |
-| /user_home     | show status + chat iteract       | U      | P0       |
-| /chat          | for chatting                     | U      | P0       |
-| /admin_console | show server status               | A      | P0       |
+| Route          | Purpose                           | Access | Priority |
+| -------------- | --------------------------------- | ------ | -------- |
+| /              | home                              | G      | P0       |
+| /user_profile  | user profile for managing account | U      | P0       |
+| /user_home     | show status + chat interact       | U      | P0       |
+| /chat          | for chatting                      | U      | P0       |
+| /admin_console | show server status                | A      | P0       |
 
                                             ┌─────────────┐
                                             │      /      │
@@ -242,5 +257,5 @@ all route are assign by hash
                                                    │ sign in
                                                    ▼
                  ┌─────────────────┐if admin┌─────────────────┐    ┌─────────────────┐    ┌────────────┐
-                 │  /admin_console │────────│   /user_hom     │────│  /user_profile  │────│   /chat    │
+                 │  /admin_console │────────│   /user_home    │────│  /user_profile  │────│   /chat    │
                  └─────────────────┘        └─────────────────┘    └─────────────────┘    └────────────┘
