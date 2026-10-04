@@ -1,6 +1,7 @@
 use crate::lib::share::admin::{DashboardStatistics, StatisticsError};
-use actix_web::{get, web, HttpResponse};
+use actix_web::{get, web, HttpRequest, HttpResponse};
 use sqlx::{FromRow, PgPool};
+use super::auth;
 
 #[derive(Debug, FromRow)]
 struct DashboardStatisticsRow {
@@ -10,7 +11,10 @@ struct DashboardStatisticsRow {
 }
 
 #[get("/api/admin/statistics")]
-pub async fn dashboard_statistics(pool: web::Data<PgPool>) -> HttpResponse {
+pub async fn dashboard_statistics(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
+    if let Err(response) = auth::require_admin(&request, pool.get_ref()).await {
+        return response;
+    }
     let result = sqlx::query_as::<_, DashboardStatisticsRow>(
         "SELECT
             (SELECT COUNT(*) FROM app_user) AS total_registered_users,

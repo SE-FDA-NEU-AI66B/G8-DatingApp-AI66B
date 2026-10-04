@@ -7,9 +7,18 @@ CREATE TABLE IF NOT EXISTS app_user (
     email_verified  BOOLEAN NOT NULL DEFAULT FALSE,
     otp_code        CHAR(6),
     otp_expires_at  TIMESTAMPTZ,
+    role            TEXT NOT NULL DEFAULT 'user',
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT email_is_lowercase CHECK (email = lower(email)),
     CONSTRAINT email_is_neu CHECK (email LIKE '%@neu.edu.vn')
+)";
+
+const CREATE_AUTH_SESSIONS: &str = "
+CREATE TABLE IF NOT EXISTS auth_session (
+    token_hash  TEXT PRIMARY KEY,
+    user_id     BIGINT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
+    expires_at  TIMESTAMPTZ NOT NULL,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 )";
 
 const CREATE_STUDY_DATE_REQUEST: &str = "
@@ -49,8 +58,12 @@ CREATE INDEX IF NOT EXISTS report_pending_idx
 
 pub async fn run(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query(CREATE_APP_USER).execute(pool).await?;
+    sqlx::query("ALTER TABLE app_user ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user'")
+        .execute(pool)
+        .await?;
     sqlx::query(CREATE_STUDY_DATE_REQUEST).execute(pool).await?;
     sqlx::query(CREATE_REPORT).execute(pool).await?;
+    sqlx::query(CREATE_AUTH_SESSIONS).execute(pool).await?;
     sqlx::query(CREATE_DASHBOARD_INDEXES).execute(pool).await?;
     Ok(())
 }

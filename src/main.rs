@@ -38,6 +38,9 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("cannot connect to postgres (is PGPASS set and `mise run database` running?)");
     ss::migrate::run(&pool).await.expect("migration failed");
+    ss::auth::configure_admin(&pool, env::var("ADMIN_EMAIL").ok().as_deref())
+        .await
+        .expect("admin role configuration failed");
     let pool = web::Data::new(pool);
 
     // std::env::set_var("RUST_LOG", "debug");
@@ -51,6 +54,8 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .configure(worker::config)
             .app_data(pool.clone())
+            .service(actix_web::web::resource("/api/auth/login").route(actix_web::web::post().to(ss::auth::login)))
+            .service(actix_web::web::resource("/api/auth/logout").route(actix_web::web::post().to(ss::auth::logout)))
             .service(ss::admin::dashboard_statistics)
             .service(ss::register::register)
             // serve JS/WASM/CSS from `pkg`
