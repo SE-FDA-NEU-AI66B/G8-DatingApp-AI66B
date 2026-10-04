@@ -99,6 +99,11 @@ Target Audience: National Economics University (NEU) students.
 | US08 | As Hoang Anh, I want to toggle a "Hide from my cohort" setting so that I avoid people I might already know.            | P1       | 5      |
 | US09 | As a user, I want to report a suspicious profile so that the platform remains safe.                                    | P2       | 3      |
 | US10 | As Tuan Kiet, I want to deactivate my account temporarily so that my profile is hidden during exam seasons.            | P2       | 2      |
+| US11 | As an admin, I want to review reported profiles and take moderation action so that the community remains safe.        | P1       | 5      |
+| US12 | As an admin, I want the admin console to be accessible only to admin accounts so that normal users cannot see server data. | P0    | 3      |
+| US13 | As an admin, I want to see whether the database and server are healthy so that I can react before users are affected. | P0       | 3      |
+| US14 | As an admin, I want a dashboard with key numbers so that I can see how the platform is being used.                     | P1       | 3      |
+| US15 | As an admin, I want to see a log of important actions so that I can trace problems and abuse.                            | P1       | 3      |
 
 **US01 - Register with NEU email · P0 · 5 points · Screen: /register**
 As Minh Chau, I want to register using my @neu.edu.vn email so that I am verified as a real NEU student.
@@ -210,6 +215,53 @@ As Tuan Kiet, I want to deactivate my account temporarily so that my profile is 
   - Account status toggle in database - @hai
   - Login flow restrictions - @quyen
 
+**US11 - Review reported profiles · P1 · 5 points · Screen: /admin/reports**
+As an admin, I want to review reported profiles and take moderation action so that the community remains safe.
+
+- **Acceptance criteria**
+  - Given a profile receives 5 unique reports within 24 hours, when an admin opens the report queue, then the profile appears with its reports and reasons.
+  - Given an admin reviews a reported profile, when they choose "Hide profile", then the profile is removed from discovery and the report is marked as reviewed.
+  - Given an admin determines a report does not violate the rules, when they choose "Dismiss", then the report is marked as reviewed and the profile remains visible.
+- **Tasks**
+  - Admin report queue and profile review UI - @quang
+  - Moderation actions and report status updates - @hai
+  - Tests for hide and dismiss actions - @quyen
+
+**US12 - Restrict admin console to admins · P0 · 3 points · Route: /admin_console**
+As an admin, I want the admin console to be accessible only to admin accounts so that normal users cannot see server data.
+
+- **Labels:** `story`, `P0`, `area/backend`, `area/database`
+- **Acceptance criteria**
+  - Given I am not authenticated, when I open `/admin_console` or call an admin endpoint, then I am denied access and redirected to sign in or receive an authentication error.
+  - Given I am signed in as a regular user, when I open `/admin_console` or call an admin endpoint, then the server returns `403 Forbidden` and no admin data is included in the response.
+  - Given I am signed in with an admin account, when I open `/admin_console`, then access is granted.
+
+**US13 - View database and server status · P0 · 3 points · Route: /admin_console**
+As an admin, I want to see whether the database and server are healthy so that I can react before users are affected.
+
+- **Labels:** `story`, `P0`, `area/frontend`, `area/backend`
+- **Acceptance criteria**
+  - Given I open `/admin_console`, when the health checks complete, then the page displays separate healthy or unhealthy statuses for the server and database.
+  - Given either health check fails, when the status is displayed, then the affected component is clearly marked unhealthy and the page shows when it was last checked.
+
+**US14 - View dashboard statistics · P1 · 3 points · Route: /admin_console**
+As an admin, I want a dashboard with key numbers so that I can see how the platform is being used.
+
+- **Labels:** `story`, `P1`, `area/frontend`, `area/backend`, `area/database`
+- **Acceptance criteria**
+  - Given I open `/admin_console`, when the dashboard data loads, then it displays total registered users, active study date requests, and pending reports.
+  - Given the underlying counts change, when I refresh the dashboard, then each displayed number reflects the latest stored data.
+  - Given the statistics cannot be loaded, when the dashboard renders, then it shows an error state instead of presenting missing values as zero.
+
+**US15 - View activity log · P1 · 3 points · Route: /admin_console/logs**
+As an admin, I want to see a log of important actions so that I can trace problems and abuse.
+
+- **Labels:** `story`, `P1`, `area/frontend`, `area/backend`, `area/database`
+- **Acceptance criteria**
+  - Given important actions occur, when I open `/admin_console/logs`, then the log includes user registration, account deactivation, report submission, and admin moderation actions with the actor, action, target when applicable, and timestamp.
+  - Given multiple log entries exist, when the page loads, then entries are displayed newest first and can be filtered by action type.
+  - Given an action is recorded, then its log entry does not expose passwords, OTP codes, or authentication tokens.
+
 ## Business rules
 
 Numbered, so issues and tests can cite them.
@@ -217,7 +269,7 @@ Numbered, so issues and tests can cite them.
 | #   | Rule                           | example                                                     |
 | --- | ------------------------------ | ----------------------------------------------------------- |
 | BR1 | Minimum User Age 18            | Registration is rejected.                                   |
-| BR2 | Profile Completion Requirement | The profile is incomplete and must not appear in discovery. |
+| BR2 | Profile Completion Requirement | A profile is complete only when every field marked as required in profile setup has a valid value. The backend must exclude incomplete profiles from discovery until corrected. |
 | BR3 | Mutual Match Requirement       | Alex likes Jordan. Jordan does not like Alex. -> no match   |
 | BR4 | One Decision Per Profile       | Alex selects Like for Jordan again -> ignored               |
 | BR5 | Message Length Limit           | A message must contain between 1 and 500 characters.        |
