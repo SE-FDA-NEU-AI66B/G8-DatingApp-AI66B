@@ -4,6 +4,7 @@ use leptos_router::{
     components::{Route, Router, Routes},
     StaticSegment, WildcardSegment,
 };
+mod admin;
 #[allow(non_snake_case)]
 #[component]
 pub fn app() -> impl IntoView {
@@ -21,6 +22,7 @@ pub fn app() -> impl IntoView {
                 <Routes fallback=move || "Not found.">
                     <Route path=StaticSegment("") view=HomePage />
                     <Route path=StaticSegment("register") view=register::RegisterPage />
+                    <Route path=StaticSegment("admin_console") view=admin::AdminDashboard />
                     <Route path=WildcardSegment("any") view=NotFound />
                 </Routes>
             </main>
@@ -29,14 +31,14 @@ pub fn app() -> impl IntoView {
 }
 
 #[allow(non_snake_case)]
-#[path = "register.ss"]
-mod register;
-#[allow(non_snake_case)]
 mod p15;
 #[allow(non_snake_case)]
 mod p3;
 #[allow(non_snake_case)]
 mod p4;
+#[allow(non_snake_case)]
+#[path = "register.ss"]
+mod register;
 #[component]
 fn HomePage() -> impl IntoView {
     view! {

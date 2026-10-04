@@ -51,6 +51,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .configure(worker::config)
             .app_data(pool.clone())
+            .service(ss::admin::dashboard_statistics)
             .service(ss::register::register)
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
