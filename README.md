@@ -52,6 +52,26 @@ Sau khi lệnh chạy thành công, mở
 <http://localhost:3100>. Chế độ `watch` tự động biên dịch lại khi mã nguồn
 thay đổi.
 
+### Admin authentication (development)
+
+The admin dashboard requires an authenticated session. Register a NEU email,
+use the six-digit OTP printed by the development mail stub to call
+`POST /api/auth/login`, and set `ADMIN_EMAIL` to the account email before
+starting the server. The server then provisions that account as an admin.
+Sessions use an HttpOnly cookie and expire after eight hours.
+
+```bash
+set ADMIN_EMAIL=admin@neu.edu.vn
+curl -i -c cookies.txt -H "Content-Type: application/json" ^
+  -d "{\"email\":\"admin@neu.edu.vn\",\"otp\":\"123456\"}" ^
+  http://localhost:3100/api/auth/login
+curl -i -b cookies.txt http://localhost:3100/api/admin/statistics
+```
+
+Do not use the development OTP stub or `ADMIN_EMAIL` provisioning as a
+production identity provider. Production deployment must replace them with the
+shared US12 authentication and admin-provisioning flow.
+
 ### Chạy bản release
 
 ```bash
