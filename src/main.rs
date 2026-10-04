@@ -32,6 +32,13 @@ async fn main() -> std::io::Result<()> {
     // }
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
+    let pool = sqlx::postgres::PgPoolOptions::new()
+        .max_connections(10)
+        .connect(&ss::functions::get_db_uri())
+        .await
+        .expect("cannot connect to postgres (is PGPASS set and `mise run database` running?)");
+    ss::migrate::run(&pool).await.expect("migration failed");
+    let pool = web::Data::new(pool);
 
     // std::env::set_var("RUST_LOG", "debug");
     // env_logger::init();
@@ -43,6 +50,8 @@ async fn main() -> std::io::Result<()> {
         println!("listening on http://{}", &addr);
         App::new()
             .configure(worker::config)
+            .app_data(pool.clone())
+            .service(ss::register::register)
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve other assets from the `assets` directory

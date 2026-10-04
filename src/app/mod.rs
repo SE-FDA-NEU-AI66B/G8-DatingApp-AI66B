@@ -20,6 +20,7 @@ pub fn app() -> impl IntoView {
             <main>
                 <Routes fallback=move || "Not found.">
                     <Route path=StaticSegment("") view=HomePage />
+                    <Route path=StaticSegment("register") view=register::RegisterPage />
                     <Route path=WildcardSegment("any") view=NotFound />
                 </Routes>
             </main>
@@ -27,6 +28,9 @@ pub fn app() -> impl IntoView {
     }
 }
 
+#[allow(non_snake_case)]
+#[path = "register.ss"]
+mod register;
 #[allow(non_snake_case)]
 mod p15;
 #[allow(non_snake_case)]
