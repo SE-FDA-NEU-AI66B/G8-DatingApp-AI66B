@@ -1,9 +1,17 @@
 #![feature(test)]
+#![allow(unused_imports)]
 // #![allow(unused_crate_dependencies)]
 mod ss;
+use std::cell::Cell;
 use std::env;
 mod worker;
+use actix_web::web::Data;
 pub use datingapp as lib;
+
+use sqlx::postgres::PgPoolOptions;
+use sqlx::Pool;
+use sqlx::Postgres;
+use std::sync::Arc;
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -17,47 +25,24 @@ async fn main() -> std::io::Result<()> {
     use leptos_actix::{generate_route_list, LeptosRoutes};
     use leptos_meta::MetaTags;
     use lib::app::*;
-    // if true {
-    //     use std::time::Instant;
-    //     let start = Instant::now();
-    //     let (n, m) = (40, 10000);
-    //     ss::functions::tests::database_speed5(n, m).await;
-    //     let dur = Instant::now() - start;
-    //     println!("{} in {:?}", n * m, dur);
-    //     println!(
-    //         "{:?} req/s",
-    //         (time::Duration::seconds(1) / dur) * (m * n) as f64
-    //     );
-    //     return Ok(());
-    // }
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
-    let pool = sqlx::postgres::PgPoolOptions::new()
-        .max_connections(10)
-        .connect(&ss::functions::get_db_uri())
-        .await
-        .expect("cannot connect to postgres (is PGPASS set and `mise run database` running?)");
-    ss::migrate::run(&pool).await.expect("migration failed");
-    ss::auth::configure_admin(&pool, env::var("ADMIN_EMAIL").ok().as_deref())
-        .await
-        .expect("admin role configuration failed");
-    let pool = web::Data::new(pool);
 
     // std::env::set_var("RUST_LOG", "debug");
     // env_logger::init();
+
+    let db = ss::database::get_database_pool().await;
+    let db = crate::lib::share::database::Database(db);
     let server = HttpServer::new(move || {
         // Generate the list of routes in your Leptos App
         let routes = generate_route_list(App);
         let leptos_options = &conf.leptos_options;
         let site_root = leptos_options.site_root.clone().to_string();
         println!("listening on http://{}", &addr);
+
         App::new()
             .configure(worker::config)
-            .app_data(pool.clone())
-            .service(actix_web::web::resource("/api/auth/login").route(actix_web::web::post().to(ss::auth::login)))
-            .service(actix_web::web::resource("/api/auth/logout").route(actix_web::web::post().to(ss::auth::logout)))
-            .service(ss::admin::dashboard_statistics)
-            .service(ss::register::register)
+            .app_data(Data::new(db.clone()))
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve other assets from the `assets` directory

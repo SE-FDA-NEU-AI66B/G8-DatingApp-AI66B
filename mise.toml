@@ -12,6 +12,8 @@ cloudflared = "cargo run --example cloudflared"
 lego = "cd cert; lego"
 database = "cd database;docker compose up -d"
 database_clean = "cd database;docker compose down --remove-orphans"
+database_note = "uv run marimo edit database/note.py"
+
 [settings]
 activate_aggressive = true
 python.uv_venv_auto = "source"

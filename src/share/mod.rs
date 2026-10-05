@@ -1,4 +1,3 @@
-pub mod admin;
-pub mod auth;
+// #[cfg(feature = "ssr")]
+pub mod database;
 pub mod worker;
-pub mod register;

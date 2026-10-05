@@ -172,75 +172,88 @@ pub mod tests {
             i.await.unwrap();
         }
     }
-    #[allow(dead_code)]
-    pub async fn database_speed4(n: usize, m: usize) {
-        let mut v = Vec::new();
-        for _ in 0..n {
-            use clickhouse::Client;
-            let client = Client::default()
-                .with_url("http://localhost:8123")
-                .with_user("username")
-                .with_password("password")
-                .with_database("default");
-            v.push(actix::spawn(async move {
-                for _ in 0..m {
-                    use clickhouse::Row;
-                    use serde::{Deserialize, Serialize};
-                    use time::OffsetDateTime;
-
-                    #[derive(Row, Serialize, Deserialize, Debug)]
-                    struct MyRow {
-                        #[serde(with = "serde_bytes")]
-                        cookie: Vec<u8>,
-                        userid: u64,
-                        //
-                        #[serde(with = "clickhouse::serde::time::datetime64::nanos")]
-                        start: OffsetDateTime,
-                    }
-                    // cookie,
-                    let _a: Vec<MyRow> = client
-                        .query("SELECT  cookie,userid,start  FROM cookielogin2 Limit 5")
-                        .fetch_all()
-                        .await
-                        .unwrap();
-                    // println!("{:?}", a);
-                }
-                std::time::Instant::now()
-            }));
-        }
-        for i in v {
-            i.await.unwrap();
-        }
-    }
-    #[allow(dead_code)]
-    pub async fn database_speed5(n: usize, m: usize) {
-        use std::sync::Arc;
-        let mut v = Vec::new();
-        use sqlx::mysql::MySqlPoolOptions;
-        let pool = Arc::new(
-            MySqlPoolOptions::new()
-                .max_connections(n as u32)
-                .connect("mariadb://root:password@0.0.0.0:3306/mysql")
-                .await
-                .unwrap(),
-        );
-        // Rc::new(       );
-
-        for _ in 0..n {
-            let pool = pool.clone();
-            v.push(actix::spawn(async move {
-                for _ in 0..m {
-                    let r: Vec<(Vec<u8>, String, Option<time::PlainDateTime>)> =
-                        sqlx::query_as("SELECT * FROM cookielogin3 Limit 5")
-                            .fetch_all(&*pool)
-                            .await
-                            .unwrap();
-                }
-                std::time::Instant::now()
-            }));
-        }
-        for i in v {
-            let _r = i.await;
-        }
-    }
+    // #[allow(dead_code)]
+    // pub async fn database_speed4(n: usize, m: usize) {
+    //     let mut v = Vec::new();
+    //     for _ in 0..n {
+    //         use clickhouse::Client;
+    //         let client = Client::default()
+    //             .with_url("http://localhost:8123")
+    //             .with_user("username")
+    //             .with_password("password")
+    //             .with_database("default");
+    //         v.push(actix::spawn(async move {
+    //             for _ in 0..m {
+    //                 use clickhouse::Row;
+    //                 use serde::{Deserialize, Serialize};
+    //                 use time::OffsetDateTime;
+    //
+    //                 #[derive(Row, Serialize, Deserialize, Debug)]
+    //                 struct MyRow {
+    //                     #[serde(with = "serde_bytes")]
+    //                     cookie: Vec<u8>,
+    //                     userid: u64,
+    //                     //
+    //                     #[serde(with = "clickhouse::serde::time::datetime64::nanos")]
+    //                     start: OffsetDateTime,
+    //                 }
+    //                 // cookie,
+    //                 let _a: Vec<MyRow> = client
+    //                     .query("SELECT  cookie,userid,start  FROM cookielogin2 Limit 5")
+    //                     .fetch_all()
+    //                     .await
+    //                     .unwrap();
+    //                 // println!("{:?}", a);
+    //             }
+    //             std::time::Instant::now()
+    //         }));
+    //     }
+    //     for i in v {
+    //         i.await.unwrap();
+    //     }
+    // }
+    // #[allow(dead_code)]
+    // pub async fn database_speed5(n: usize, m: usize) {
+    //     use std::sync::Arc;
+    //     let mut v = Vec::new();
+    //     use sqlx::mysql::MySqlPoolOptions;
+    //     let pool = Arc::new(
+    //         MySqlPoolOptions::new()
+    //             .max_connections(n as u32)
+    //             .connect("mariadb://root:password@0.0.0.0:3306/mysql")
+    //             .await
+    //             .unwrap(),
+    //     );
+    //     // Rc::new(       );
+    //
+    //     for _ in 0..n {
+    //         let pool = pool.clone();
+    //         v.push(actix::spawn(async move {
+    //             for _ in 0..m {
+    //                 let r: Vec<(Vec<u8>, String, Option<time::PlainDateTime>)> =
+    //                     sqlx::query_as("SELECT * FROM cookielogin3 Limit 5")
+    //                         .fetch_all(&*pool)
+    //                         .await
+    //                         .unwrap();
+    //             }
+    //             std::time::Instant::now()
+    //         }));
+    //     }
+    //     for i in v {
+    //         let _r = i.await;
+    //     }
+    // }
 }
+// if true {
+//     use std::time::Instant;
+//     let start = Instant::now();
+//     let (n, m) = (40, 1000);
+//     ss::functions::tests::database_speed3(n, m).await;
+//     let dur = Instant::now() - start;
+//     println!("{} in {:?}", n * m, dur);
+//     println!(
+//         "{:?} req/s",
+//         (time::Duration::seconds(1) / dur) * (m * n) as f64
+//     );
+//     return Ok(());
+// }

@@ -46,20 +46,20 @@ def _(os, psycopg2):
 
 @app.cell
 def _():
-    import clickhouse_connect
+    #import clickhouse_connect
 
-    _a = "password"
-    conn2 = clickhouse_connect.create_client(host="localhost", username="username", password=_a, port="8123", database="default")
-    return (conn2,)
+    #_a = "password"
+    #conn2 = clickhouse_connect.create_client(host="localhost", username="username", password=_a, port="8123", database="default")
+    return
 
 
 @app.cell
 def _():
-    import mariadb
-    _a = "password"
-    mariadb_uri = "mariadb://root:password@0.0.0.0:3306/mysql"
-    conn3 = mariadb.connect(mariadb_uri )
-    return (conn3,)
+    #import mariadb
+    #_a = "password"
+    #mariadb_uri = "mariadb://root:password@0.0.0.0:3306/mysql"
+    #conn3 = mariadb.connect(mariadb_uri )
+    return
 
 
 @app.cell(hide_code=True)
@@ -72,21 +72,6 @@ def _(mo):
         """
     )
     return
-
-
-app._unparsable_cell(
-    r"""
-    def run_db_operations():
-        conn = None
-        cursor = None
-        try:
-            # 2. Establish a Connection
-            print("Connecting to MariaDB...")
-            conn = mariadb.connect(DATABASE_URL)
-            print("Connection successful!")
-    """,
-    name="_"
-)
 
 
 @app.cell
@@ -163,6 +148,7 @@ def _(conn, mo):
             cookie  BYTEA,
             userid UHUGEINT,
             start DATETIME,
+            info string
         );
         """,
         engine=conn
