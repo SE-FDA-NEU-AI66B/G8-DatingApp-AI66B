@@ -7,7 +7,11 @@ SM Sprint 2: @pham-ha-gif
 
 ## Sprint 2 (week 7-8)
 
-Goal: 
-Committed . Completed . Velocity:
-Not finished: 
+Goal: Ship a running walking skeleton through the browser, server, and database.
+Committed: US14 dashboard, admin authentication boundary, PostgreSQL coverage,
+Playwright harness, and health-status endpoint.
+Completed: US14 dashboard, authentication boundary, metric policy,
+PostgreSQL coverage, and Playwright harness.
+Velocity: tracked in the GitHub project board.
+Not finished: Sprint wrap-up PDF/LMS submission is an external submission step.
 SM Sprint 3: @iambadwithname
