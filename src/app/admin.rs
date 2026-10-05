@@ -13,10 +13,10 @@ async fn fetch_statistics() -> Result<DashboardStatistics, String> {
         .map_err(|_| "Unable to reach the dashboard statistics service.".to_string())?;
 
     if response.ok() {
-        response
+        return response
             .json()
             .await
-            .map_err(|_| "The dashboard returned an unexpected response.".to_string())
+            .map_err(|_| "The dashboard returned an unexpected response.".to_string());
     } else {
         let error = response.json::<StatisticsError>().await.ok();
         Err(error.map_or_else(
@@ -24,24 +24,24 @@ async fn fetch_statistics() -> Result<DashboardStatistics, String> {
             |error| error.message,
         ))
     }
+}
 
-    #[cfg(target_arch = "wasm32")]
-    async fn fetch_health() -> Result<HealthStatus, String> {
-        use gloo_net::http::Request;
+#[cfg(target_arch = "wasm32")]
+async fn fetch_health() -> Result<HealthStatus, String> {
+    use gloo_net::http::Request;
 
-        let response = Request::get("/api/admin/health")
-            .send()
+    let response = Request::get("/api/admin/health")
+        .send()
+        .await
+        .map_err(|_| "Unable to reach the health service.".to_string())?;
+
+    if response.ok() {
+        response
+            .json()
             .await
-            .map_err(|_| "Unable to reach the health service.".to_string())?;
-
-        if response.ok() {
-            response
-                .json()
-                .await
-                .map_err(|_| "The health service returned an unexpected response.".to_string())
-        } else {
-            Err("Health status is unavailable.".to_string())
-        }
+            .map_err(|_| "The health service returned an unexpected response.".to_string())
+    } else {
+        Err("Health status is unavailable.".to_string())
     }
 }
 
