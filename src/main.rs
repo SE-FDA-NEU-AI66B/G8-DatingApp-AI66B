@@ -58,7 +58,11 @@ async fn main() -> std::io::Result<()> {
             .service(actix_web::web::resource("/api/auth/logout").route(actix_web::web::post().to(ss::auth::logout)))
             .service(ss::admin::dashboard_statistics)
             .service(ss::register::register)
-            .service(ss::study_date::list_study_dates)
+            .service(
+                actix_web::web::resource("/api/study-dates")
+                    .route(actix_web::web::get().to(ss::study_date::list_study_dates))
+                    .route(actix_web::web::post().to(ss::study_date::create_study_date)),
+            )
             .service(ss::matching::get_profile)
             .service(ss::matching::send_request)
             .service(ss::matching::incoming_requests)

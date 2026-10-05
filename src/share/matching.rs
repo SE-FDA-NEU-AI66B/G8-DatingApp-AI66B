@@ -19,6 +19,12 @@ pub struct StudyDateCard {
     pub is_mine: bool,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+pub struct CreateStudyDateRequest {
+    pub starts_at: String,
+    pub duration_min: i32,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[serde(rename_all = "snake_case")]
 pub enum Relation {

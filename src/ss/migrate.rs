@@ -27,10 +27,13 @@ CREATE TABLE IF NOT EXISTS study_date_request (
     creator_id      BIGINT NOT NULL REFERENCES app_user(id),
     starts_at       TIMESTAMPTZ NOT NULL,
     ends_at         TIMESTAMPTZ NOT NULL,
+    duration_min    INTEGER NOT NULL DEFAULT 60,
     status          TEXT NOT NULL DEFAULT 'active',
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT study_date_request_valid_status
         CHECK (status IN ('active', 'cancelled', 'expired', 'completed')),
+    CONSTRAINT study_date_request_valid_duration
+        CHECK (duration_min BETWEEN 1 AND 720),
     CONSTRAINT study_date_request_valid_window
         CHECK (ends_at > starts_at)
 )";
@@ -92,6 +95,38 @@ pub async fn run(pool: &PgPool) -> Result<(), sqlx::Error> {
         .execute(pool)
         .await?;
     sqlx::query(CREATE_STUDY_DATE_REQUEST).execute(pool).await?;
+    sqlx::query("ALTER TABLE study_date_request ADD COLUMN IF NOT EXISTS duration_min INTEGER")
+        .execute(pool)
+        .await?;
+    sqlx::query(
+        "UPDATE study_date_request
+         SET duration_min = GREATEST(1, CEIL(EXTRACT(EPOCH FROM (ends_at - starts_at)) / 60)::INTEGER)
+         WHERE duration_min IS NULL",
+    )
+    .execute(pool)
+    .await?;
+    sqlx::query(
+        "ALTER TABLE study_date_request
+         ALTER COLUMN duration_min SET DEFAULT 60,
+         ALTER COLUMN duration_min SET NOT NULL",
+    )
+    .execute(pool)
+    .await?;
+    sqlx::query(
+        "DO $$
+         BEGIN
+             IF NOT EXISTS (
+                 SELECT 1 FROM pg_constraint
+                 WHERE conname = 'study_date_request_valid_duration'
+             ) THEN
+                 ALTER TABLE study_date_request
+                 ADD CONSTRAINT study_date_request_valid_duration
+                 CHECK (duration_min BETWEEN 1 AND 720) NOT VALID;
+             END IF;
+         END $$",
+    )
+    .execute(pool)
+    .await?;
     sqlx::query(CREATE_REPORT).execute(pool).await?;
     sqlx::query(CREATE_AUTH_SESSIONS).execute(pool).await?;
     sqlx::query(CREATE_DASHBOARD_INDEXES).execute(pool).await?;

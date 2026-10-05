@@ -8,6 +8,7 @@ mod admin;
 mod api;
 mod profile;
 mod requests;
+mod study_date_form;
 mod study_feed;
 #[allow(non_snake_case)]
 #[component]
@@ -27,6 +28,7 @@ pub fn app() -> impl IntoView {
                     <Route path=StaticSegment("") view=HomePage />
                     <Route path=StaticSegment("register") view=register::RegisterPage />
                     <Route path=StaticSegment("feed") view=study_feed::StudyFeed />
+                    <Route path=(StaticSegment("study-date"), StaticSegment("new")) view=study_date_form::StudyDateForm />
                     <Route path=(StaticSegment("profile"), ParamSegment("id")) view=profile::ProfilePage />
                     <Route path=StaticSegment("requests") view=requests::RequestsPage />
                     <Route path=StaticSegment("admin_console") view=admin::AdminDashboard />

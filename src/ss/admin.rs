@@ -98,8 +98,8 @@ mod tests {
         .await
         .expect("pending fixture must exist");
         sqlx::query(
-            "INSERT INTO study_date_request (creator_id, starts_at, ends_at, status)
-             VALUES ($1, now() + interval '1 hour', now() + interval '2 hours', 'active')",
+            "INSERT INTO study_date_request (creator_id, starts_at, ends_at, duration_min, status)
+             VALUES ($1, now() + interval '1 hour', now() + interval '2 hours', 60, 'active')",
         )
         .bind(verified_id)
         .execute(&mut *transaction)

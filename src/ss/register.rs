@@ -51,4 +51,3 @@ pub async fn register(pool: web::Data<PgPool>, body: web::Json<RegisterReq>) -> 
         }
     }
 }
-
