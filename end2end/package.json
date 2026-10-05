@@ -5,7 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "playwright test",
-    "test:admin-dashboard": "playwright test tests/admin-dashboard.spec.ts"
+    "test:admin-dashboard": "playwright test tests/admin-dashboard.spec.ts",
+    "test:list": "playwright test --list",
+    "install:browsers": "playwright install chromium"
+  },
+  "engines": {
+    "node": ">=20",
+    "npm": ">=10"
   },
   "keywords": [],
   "author": "",
