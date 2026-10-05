@@ -54,9 +54,16 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .configure(worker::config)
             .app_data(pool.clone())
-            .service(actix_web::web::resource("/api/auth/login").route(actix_web::web::post().to(ss::auth::login)))
-            .service(actix_web::web::resource("/api/auth/logout").route(actix_web::web::post().to(ss::auth::logout)))
+            .service(
+                actix_web::web::resource("/api/auth/login")
+                    .route(actix_web::web::post().to(ss::auth::login)),
+            )
+            .service(
+                actix_web::web::resource("/api/auth/logout")
+                    .route(actix_web::web::post().to(ss::auth::logout)),
+            )
             .service(ss::admin::dashboard_statistics)
+            .service(ss::admin::health_status)
             .service(ss::register::register)
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))

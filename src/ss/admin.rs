@@ -1,7 +1,10 @@
 use super::auth;
-use crate::lib::share::admin::{DashboardStatistics, StatisticsError};
+use crate::lib::share::admin::{
+    DashboardStatistics, HealthComponent, HealthStatus, StatisticsError,
+};
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use sqlx::{FromRow, PgPool};
+use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 #[derive(Debug, FromRow)]
 struct DashboardStatisticsRow {
@@ -21,10 +24,7 @@ const DASHBOARD_QUERY: &str = "SELECT
     (SELECT COUNT(*) FROM report WHERE status = 'pending') AS pending_reports";
 
 #[get("/api/admin/statistics")]
-pub async fn dashboard_statistics(
-    request: HttpRequest,
-    pool: web::Data<PgPool>,
-) -> HttpResponse {
+pub async fn dashboard_statistics(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
     if let Err(response) = auth::require_admin(&request, pool.get_ref()).await {
         return response;
     }
@@ -48,6 +48,32 @@ pub async fn dashboard_statistics(
     }
 }
 
+#[get("/api/admin/health")]
+pub async fn health_status(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
+    if let Err(response) = auth::require_admin(&request, pool.get_ref()).await {
+        return response;
+    }
+
+    let checked_at = OffsetDateTime::now_utc()
+        .format(&Rfc3339)
+        .expect("RFC3339 formatting must be available");
+    let database_healthy = sqlx::query("SELECT 1")
+        .execute(pool.get_ref())
+        .await
+        .is_ok();
+
+    HttpResponse::Ok().json(HealthStatus {
+        server: HealthComponent {
+            healthy: true,
+            checked_at: checked_at.clone(),
+        },
+        database: HealthComponent {
+            healthy: database_healthy,
+            checked_at,
+        },
+    })
+}
+
 #[cfg(test)]
 mod tests {
     use super::{DashboardStatisticsRow, DASHBOARD_QUERY};
@@ -69,7 +95,9 @@ mod tests {
             .connect(&database_url)
             .await
             .expect("test database must be reachable");
-        migrate::run(&pool).await.expect("first migration must succeed");
+        migrate::run(&pool)
+            .await
+            .expect("first migration must succeed");
         migrate::run(&pool)
             .await
             .expect("migration must be idempotent");
@@ -123,7 +151,10 @@ mod tests {
         assert_eq!(row.active_study_date_requests, 1);
         assert_eq!(row.pending_reports, 1);
 
-        transaction.rollback().await.expect("fixtures must roll back");
+        transaction
+            .rollback()
+            .await
+            .expect("fixtures must roll back");
     }
 
     #[tokio::test]

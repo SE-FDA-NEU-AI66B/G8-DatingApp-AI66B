@@ -1,6 +1,6 @@
-use crate::share::admin::DashboardStatistics;
 #[cfg(target_arch = "wasm32")]
 use crate::share::admin::StatisticsError;
+use crate::share::admin::{DashboardStatistics, HealthStatus};
 use leptos::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
@@ -24,20 +24,42 @@ async fn fetch_statistics() -> Result<DashboardStatistics, String> {
             |error| error.message,
         ))
     }
+
+    #[cfg(target_arch = "wasm32")]
+    async fn fetch_health() -> Result<HealthStatus, String> {
+        use gloo_net::http::Request;
+
+        let response = Request::get("/api/admin/health")
+            .send()
+            .await
+            .map_err(|_| "Unable to reach the health service.".to_string())?;
+
+        if response.ok() {
+            response
+                .json()
+                .await
+                .map_err(|_| "The health service returned an unexpected response.".to_string())
+        } else {
+            Err("Health status is unavailable.".to_string())
+        }
+    }
 }
 
 #[component]
 pub fn AdminDashboard() -> impl IntoView {
     let (statistics, set_statistics) = signal(None::<DashboardStatistics>);
+    let (health, set_health) = signal(None::<HealthStatus>);
     let (error, set_error) = signal(None::<String>);
+    let (health_error, set_health_error) = signal(None::<String>);
     let (loading, set_loading) = signal(true);
 
     #[cfg(not(target_arch = "wasm32"))]
-    let _ = &set_statistics;
+    let _ = (&set_statistics, &set_health);
 
     let load = move || {
         set_loading.set(true);
         set_error.set(None);
+        set_health_error.set(None);
 
         #[cfg(target_arch = "wasm32")]
         {
@@ -50,6 +72,15 @@ pub fn AdminDashboard() -> impl IntoView {
                     }
                 }
                 set_loading.set(false);
+            });
+            leptos::task::spawn_local(async move {
+                match fetch_health().await {
+                    Ok(value) => set_health.set(Some(value)),
+                    Err(message) => {
+                        set_health.set(None);
+                        set_health_error.set(Some(message));
+                    }
+                }
             });
         }
     };
@@ -92,6 +123,29 @@ pub fn AdminDashboard() -> impl IntoView {
                     }.into_any()
                 } else {
                     view! { <p role="alert">"Dashboard statistics are unavailable."</p> }.into_any()
+                }
+            }}
+            {move || {
+                if let Some(message) = health_error.get() {
+                    view! { <p role="alert">{message}</p> }.into_any()
+                } else if let Some(value) = health.get() {
+                    view! {
+                        <section aria-labelledby="health-status-title">
+                            <h2 id="health-status-title">"System health"</h2>
+                            <p>
+                                "Server: "
+                                {if value.server.healthy { "Healthy" } else { "Unhealthy" }}
+                                " (last checked " {value.server.checked_at.clone()} ")"
+                            </p>
+                            <p>
+                                "Database: "
+                                {if value.database.healthy { "Healthy" } else { "Unhealthy" }}
+                                " (last checked " {value.database.checked_at.clone()} ")"
+                            </p>
+                        </section>
+                    }.into_any()
+                } else {
+                    view! { <p role="status">"Checking system health..."</p> }.into_any()
                 }
             }}
         </section>
