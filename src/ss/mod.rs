@@ -6,3 +6,7 @@ pub mod auth;
 pub mod admin;
 #[cfg(feature = "ssr")]
 pub mod register;
+#[cfg(feature = "ssr")]
+pub mod study_date;
+#[cfg(feature = "ssr")]
+pub mod matching;

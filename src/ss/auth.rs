@@ -17,6 +17,13 @@ pub struct AuthenticatedUser {
     pub role: String,
 }
 
+#[allow(dead_code)]
+#[derive(Debug, Clone, FromRow)]
+pub struct CurrentUser {
+    pub id: i64,
+    pub role: String,
+}
+
 #[derive(Debug, FromRow)]
 struct LoginUser {
     id: i64,
@@ -220,6 +227,40 @@ pub async fn require_admin(
     }
 
     Ok(user)
+}
+
+pub async fn require_user(
+    request: &HttpRequest,
+    pool: &PgPool,
+) -> Result<CurrentUser, HttpResponse> {
+    let Some(cookie) = request.cookie(SESSION_COOKIE) else {
+        return Err(auth_error(
+            actix_web::http::StatusCode::UNAUTHORIZED,
+            "Authentication is required.",
+        ));
+    };
+    let user = sqlx::query_as::<_, CurrentUser>(
+        "SELECT u.id, u.role
+         FROM auth_session s
+         JOIN app_user u ON u.id = s.user_id
+         WHERE s.token_hash = $1 AND s.expires_at > now()",
+    )
+    .bind(hash_token(cookie.value()))
+    .fetch_optional(pool)
+    .await
+    .map_err(|error| {
+        eprintln!("user authorization lookup failed: {error}");
+        auth_error(
+            actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
+            "Authentication service is temporarily unavailable.",
+        )
+    })?;
+    user.ok_or_else(|| {
+        auth_error(
+            actix_web::http::StatusCode::UNAUTHORIZED,
+            "Authentication is required.",
+        )
+    })
 }
 
 pub async fn configure_admin(pool: &PgPool, email: Option<&str>) -> Result<(), sqlx::Error> {

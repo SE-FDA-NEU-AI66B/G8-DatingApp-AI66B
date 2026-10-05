@@ -58,6 +58,13 @@ async fn main() -> std::io::Result<()> {
             .service(actix_web::web::resource("/api/auth/logout").route(actix_web::web::post().to(ss::auth::logout)))
             .service(ss::admin::dashboard_statistics)
             .service(ss::register::register)
+            .service(ss::study_date::list_study_dates)
+            .service(ss::matching::get_profile)
+            .service(ss::matching::send_request)
+            .service(ss::matching::incoming_requests)
+            .service(ss::matching::matched_users)
+            .service(ss::matching::accept_request)
+            .service(ss::matching::decline_request)
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve other assets from the `assets` directory

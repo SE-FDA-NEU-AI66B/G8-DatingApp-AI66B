@@ -56,6 +56,36 @@ CREATE INDEX IF NOT EXISTS report_pending_idx
     ON report (status)
     WHERE status = 'pending'";
 
+const CREATE_MATCH_REQUEST: &str = "
+CREATE TABLE IF NOT EXISTS match_request (
+    id            BIGSERIAL PRIMARY KEY,
+    sender_id     BIGINT NOT NULL REFERENCES app_user(id),
+    receiver_id   BIGINT NOT NULL REFERENCES app_user(id),
+    status        TEXT NOT NULL DEFAULT 'pending',
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    responded_at  TIMESTAMPTZ,
+    CONSTRAINT match_request_valid_status CHECK (status IN ('pending', 'accepted', 'declined')),
+    CONSTRAINT match_request_not_self CHECK (sender_id <> receiver_id),
+    CONSTRAINT match_request_unique_pair UNIQUE (sender_id, receiver_id)
+)";
+
+const CREATE_CHAT_ROOM: &str = "
+CREATE TABLE IF NOT EXISTS chat_room (
+    id                BIGSERIAL PRIMARY KEY,
+    user_low          BIGINT NOT NULL REFERENCES app_user(id),
+    user_high         BIGINT NOT NULL REFERENCES app_user(id),
+    match_request_id  BIGINT UNIQUE REFERENCES match_request(id),
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT chat_room_ordered CHECK (user_low < user_high),
+    CONSTRAINT chat_room_unique_pair UNIQUE (user_low, user_high)
+)";
+
+const CREATE_MATCH_INDEXES: &str = "
+CREATE INDEX IF NOT EXISTS match_request_receiver_pending_idx
+    ON match_request (receiver_id) WHERE status = 'pending';
+CREATE INDEX IF NOT EXISTS match_request_sender_day_idx
+    ON match_request (sender_id, created_at)";
+
 pub async fn run(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query(CREATE_APP_USER).execute(pool).await?;
     sqlx::query("ALTER TABLE app_user ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user'")
@@ -65,5 +95,8 @@ pub async fn run(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query(CREATE_REPORT).execute(pool).await?;
     sqlx::query(CREATE_AUTH_SESSIONS).execute(pool).await?;
     sqlx::query(CREATE_DASHBOARD_INDEXES).execute(pool).await?;
+    sqlx::query(CREATE_MATCH_REQUEST).execute(pool).await?;
+    sqlx::query(CREATE_CHAT_ROOM).execute(pool).await?;
+    sqlx::query(CREATE_MATCH_INDEXES).execute(pool).await?;
     Ok(())
 }
