@@ -65,6 +65,17 @@ async fn main() -> std::io::Result<()> {
             .service(ss::admin::dashboard_statistics)
             .service(ss::admin::health_status)
             .service(ss::register::register)
+            .service(
+                actix_web::web::resource("/api/study-dates")
+                    .route(actix_web::web::get().to(ss::study_date::list_study_dates))
+                    .route(actix_web::web::post().to(ss::study_date::create_study_date)),
+            )
+            .service(ss::matching::get_profile)
+            .service(ss::matching::send_request)
+            .service(ss::matching::incoming_requests)
+            .service(ss::matching::matched_users)
+            .service(ss::matching::accept_request)
+            .service(ss::matching::decline_request)
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve other assets from the `assets` directory
