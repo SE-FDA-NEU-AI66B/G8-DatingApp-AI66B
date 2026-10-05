@@ -118,18 +118,19 @@ extract the admin API behind that provider.
    to anonymous or regular users, so the session, expiry, role, `401`, and
    `403` behaviors were added to the API and tested.
 
-## Verification and submission metadata
+## Cover and submission metadata
 
 | Field | Value |
 |---|---|
-| Team | QHQ |
+| Team | Team 08 — QHQ |
 | Topic | Walking skeleton: admin dashboard statistics and system health |
 | Members | Nguyen Son Hai (`hai291`), Nguyen Minh Quang (`iambadwithname`), Pham Ha (`pham-ha-gif`) |
 | Product Owner | `@hai291` |
 | Scrum Master | `@pham-ha-gif` (Sprint 2; different from Sprint 1) |
 | Repository | https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B |
 | Project board | https://github.com/orgs/SE-FDA-NEU-AI66B/projects/20 |
-| Setup guide | [docs/SETUP.md](./SETUP.md) |
+| Setup guide | https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/blob/main/docs/SETUP.md |
+| Submitted by | Nguyen Son Hai (`hai291`) |
 
 Validation: `cargo check --features ssr`, `cargo test --lib --features ssr`,
 and CI passed for the implementation PRs. The final PDF must include the
