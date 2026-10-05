@@ -9,9 +9,10 @@ SM Sprint 2: @pham-ha-gif
 
 Goal: Ship a running walking skeleton through the browser, server, and database.
 Committed: US14 dashboard, admin authentication boundary, PostgreSQL coverage,
-Playwright harness, and health-status endpoint.
+Playwright harness, health-status endpoint, and Milestone 2 documentation.
 Completed: US14 dashboard, authentication boundary, metric policy,
-PostgreSQL coverage, and Playwright harness.
-Velocity: tracked in the GitHub project board.
-Not finished: Sprint wrap-up PDF/LMS submission is an external submission step.
+PostgreSQL coverage, Playwright harness, health-status endpoint, and the
+Milestone 2 design/setup documents.
+Velocity: 6 deliverables completed (tracked by the merged Sprint 2 PRs).
+Not finished: PDF export and LMS upload remain external submission steps.
 SM Sprint 3: @iambadwithname
