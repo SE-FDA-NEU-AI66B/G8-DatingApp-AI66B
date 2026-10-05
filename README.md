@@ -93,3 +93,5 @@ cargo doc --open
 - [Architecture](docs/architecture.md)
 - [API design](docs/api.md)
 - [Walking skeleton](docs/walking-skeleton.md)
+- [Milestone 2 design](docs/design.md)
+- [Milestone 2 setup](docs/SETUP.md)
