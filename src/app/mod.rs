@@ -20,6 +20,7 @@ pub fn app() -> impl IntoView {
             <main>
                 <Routes fallback=move || "Not found.">
                     <Route path=StaticSegment("login") view=login::App />
+                    <Route path=StaticSegment("admin_console") view=admin::AdminDashboard />
                     <Route path=StaticSegment("") view=HomePage />
                     <Route path=WildcardSegment("any") view=NotFound />
                 </Routes>
@@ -27,7 +28,7 @@ pub fn app() -> impl IntoView {
         </Router>
     }
 }
-
+mod admin;
 #[allow(non_snake_case)]
 mod login;
 #[allow(non_snake_case)]

@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use datingapp::share::database::Database;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 pub fn get_db_uri() -> String {

@@ -1,10 +1,9 @@
 use crate::share::admin::DashboardStatistics;
-#[cfg(target_arch = "wasm32")]
-use crate::share::admin::StatisticsError;
 use leptos::prelude::*;
 
 #[cfg(target_arch = "wasm32")]
 async fn fetch_statistics() -> Result<DashboardStatistics, String> {
+    use crate::share::admin::StatisticsError;
     use gloo_net::http::Request;
 
     let response = Request::get("/api/admin/statistics")
@@ -71,8 +70,11 @@ pub fn AdminDashboard() -> impl IntoView {
                 } else if let Some(message) = error.get() {
                     view! {
                         <p role="alert">{message}</p>
-                        <button type="button" on:click=move |_| load()>"Try again"</button>
-                    }.into_any()
+                        <button type="button" on:click=move |_| load()>
+                            "Try again"
+                        </button>
+                    }
+                        .into_any()
                 } else if let Some(value) = statistics.get() {
                     view! {
                         <div class="dashboard-statistics">
@@ -89,7 +91,8 @@ pub fn AdminDashboard() -> impl IntoView {
                                 <p>{value.pending_reports}</p>
                             </article>
                         </div>
-                    }.into_any()
+                    }
+                        .into_any()
                 } else {
                     view! { <p role="alert">"Dashboard statistics are unavailable."</p> }.into_any()
                 }

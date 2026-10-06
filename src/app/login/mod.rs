@@ -1,11 +1,10 @@
-// use actix_web::web::Data;
 #[allow(unused_imports)]
 use itertools::Itertools;
 use leptos::prelude::*;
 use leptos::reactive::spawn_local;
 use leptos::server::codee::string::FromToStringCodec;
-mod e1;
-mod e2;
+// mod e1;
+// mod e2;
 // use leptos::server_fn::client;
 // #[client]
 pub fn get_client_info() -> String {
@@ -26,13 +25,24 @@ pub async fn login(
     password: String,
     info: String,
 ) -> Result<String, ServerFnError> {
-    // use leptos_actix::extract;
-    // let worker: (Data<crate::share::database::Database>, Data<LeptosOptions>) =
-    //     extract().await.unwrap_or_else(|i| {
-    //         println!("{:?}", i);
-    //         panic!("asdf");
-    //     });
-    println!("{:?}", (username, password, info));
+    use actix_web::web::Data;
+    use leptos_actix::extract;
+    let db: Data<crate::share::database::Database> = extract().await.unwrap_or_else(|i| {
+        println!("{:?}", i);
+        panic!("asdf");
+    });
+    let db = (*db).0.as_ref();
+    use sqlx::Row;
+    println!("whatappp");
+    // SELECT * from app_user where username='{"mq"}' and password='{"urmom_fat"}';
+    let userid: (String,) =
+        sqlx::query_as("SELECT username from app_user where username=$1 and password=$2")
+            .bind(username)
+            .bind(password)
+            .fetch_one(db)
+            .await
+            .unwrap();
+    print!("{:?}", userid);
     Ok("a cookie".to_string())
 }
 pub fn Forms() -> impl IntoView {
@@ -47,7 +57,7 @@ pub fn Forms() -> impl IntoView {
     let on_submit = move |ev: SubmitEvent| {
         let login_cookie = login_cookie.clone();
         let a = get_client_info();
-        // device_info.1.set(a.clone());
+        device_info.1.set(a.clone());
         spawn_local(async move {
             let cookie = login(username.0.get(), password.0.get(), a).await.unwrap();
             login_cookie.1.set(Some(cookie));
@@ -55,7 +65,6 @@ pub fn Forms() -> impl IntoView {
         ev.prevent_default();
     };
     view! {
-        // {get_client_info()}
         {device_info.0}
         <form on:submit=on_submit>
             <input type="text" placeholder="username" bind:value=username />
