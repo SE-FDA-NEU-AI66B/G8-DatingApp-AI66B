@@ -1,7 +1,6 @@
 use crate::share::admin::DashboardStatistics;
 use leptos::prelude::*;
 
-#[cfg(target_arch = "wasm32")]
 async fn fetch_statistics() -> Result<DashboardStatistics, String> {
     use crate::share::admin::StatisticsError;
     use gloo_net::http::Request;
@@ -30,14 +29,9 @@ pub fn AdminDashboard() -> impl IntoView {
     let (statistics, set_statistics) = signal(None::<DashboardStatistics>);
     let (error, set_error) = signal(None::<String>);
     let (loading, set_loading) = signal(true);
-
-    #[cfg(not(target_arch = "wasm32"))]
-    let _ = &set_statistics;
-
     let load = move || {
         set_loading.set(true);
         set_error.set(None);
-        #[cfg(target_arch = "wasm32")]
         {
             leptos::task::spawn_local(async move {
                 match fetch_statistics().await {
@@ -52,11 +46,7 @@ pub fn AdminDashboard() -> impl IntoView {
         }
     };
 
-    #[cfg(target_arch = "wasm32")]
-    {
-        load();
-    }
-
+    Effect::new(load);
     view! {
         <section aria-labelledby="admin-dashboard-title">
             <h1 id="admin-dashboard-title">"Admin dashboard"</h1>
