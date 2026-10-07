@@ -136,7 +136,7 @@ def _(conn, mo):
         CREATE INDEX IF NOT EXISTS idx_users_username ON app_user (username);
         CREATE TABLE if Not exists cookie_login (
             cookie 		BYTEA PRIMARY KEY,
-            userid 		UUID,
+            userid 		UUID NOT NULL REFERENCES app_user(id) ON DELETE CASCADE ,
             create_at  	TIMESTAMP NOT NULL DEFAULT now(),
             expires_at	TIMESTAMP,
             info 		BYTEA
@@ -160,13 +160,36 @@ def _(app_user, conn, mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(app_user, conn, mo):
     _df = mo.sql(
         f"""
-        Select * from app_user
+        SELECT (SELECT id from app_user where username='mq')
         """,
-        engine=conn,
+        engine=conn
+    )
+    return
+
+
+@app.cell
+def _(app_user, conn, cookie_login, mo):
+    _df = mo.sql(
+        f"""
+        INSERT INTO cookie_login (cookie,userid,info)
+        VALUES ('00000',(SELECT id from app_user where username='mq'),'admin')
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell
+def _(conn, cookie_login, mo):
+    _df = mo.sql(
+        f"""
+        Select * from cookie_login
+        """,
+        engine=conn
     )
     return
 
@@ -199,7 +222,7 @@ def _(conn, mo):
         f"""
         EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
         """,
-        engine=conn,
+        engine=conn
     )
     return
 
@@ -223,7 +246,7 @@ def _(conn2, mo):
             start DATETIME64,
         );
         """,
-        engine=conn2,
+        engine=conn2
     )
     return
 
@@ -235,7 +258,7 @@ def _(conn2, cookielogin2, mo):
         INSERT INTO cookielogin2 (cookie,userid,start)
         VALUES (unhex('AA'),3,now64(8))
         """,
-        engine=conn2,
+        engine=conn2
     )
     return
 
@@ -246,7 +269,7 @@ def _(conn2, cookielogin2, mo):
         f"""
         Select cookie  from cookielogin2;
         """,
-        engine=conn2,
+        engine=conn2
     )
     return
 
@@ -257,7 +280,7 @@ def _(conn2, mo):
         f"""
         SELECT now64(9);
         """,
-        engine=conn2,
+        engine=conn2
     )
     return
 
@@ -296,7 +319,7 @@ def _(conn, mo):
         f"""
         EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
         """,
-        engine=conn,
+        engine=conn
     )
     return
 
@@ -307,7 +330,7 @@ def _(conn3, mo):
         f"""
         EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
         """,
-        engine=conn3,
+        engine=conn3
     )
     return
 
@@ -344,7 +367,7 @@ def _(conn3, cookielogin3, mo):
         f"""
         Select * from cookielogin3
         """,
-        engine=conn3,
+        engine=conn3
     )
     return
 
@@ -369,7 +392,7 @@ def _(conn, mo):
         f"""
         select cookie from public.cookielogin Limit 3
         """,
-        engine=conn,
+        engine=conn
     )
     return
 

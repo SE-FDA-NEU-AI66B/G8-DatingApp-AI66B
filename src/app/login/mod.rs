@@ -1,12 +1,12 @@
+use actix_web::web::Data;
 #[allow(unused_imports)]
 use itertools::Itertools;
-use leptos::prelude::*;
 use leptos::reactive::spawn_local;
 use leptos::server::codee::string::FromToStringCodec;
-// mod e1;
-// mod e2;
-// use leptos::server_fn::client;
-// #[client]
+use leptos::{html, prelude::*};
+use leptos_actix::extract;
+use leptos_use::use_cookie;
+use sqlx::types::uuid::Uuid;
 pub fn get_client_info() -> String {
     use wasm_bindgen::prelude::*;
     let window = web_sys::window().unwrap();
@@ -16,43 +16,74 @@ pub fn get_client_info() -> String {
     format!("{user_agent:?}{window:?}")
 }
 pub fn App() -> impl IntoView {
-    // let text=;
     view! { <Forms /> }
 }
+pub fn Applogout() -> impl IntoView {
+    let login_cookie = use_cookie::<String, FromToStringCodec>("login_cookie");
+    Effect::new(move |_| {
+        login_cookie.1.set(None);
+        // navigate("/login", Default::default());
+    });
+    view! {
+        <p>"Logging out…"</p>
+        {login_cookie.0}
+    }
+}
+
 #[server()]
 pub async fn login(
     username: String,
     password: String,
     info: String,
 ) -> Result<String, ServerFnError> {
-    use actix_web::web::Data;
-    use leptos_actix::extract;
     let db: Data<crate::share::database::Database> = extract().await.unwrap_or_else(|i| {
         println!("{:?}", i);
         panic!("asdf");
     });
     let db = (*db).0.as_ref();
     use sqlx::Row;
-    println!("whatappp");
-    // SELECT * from app_user where username='{"mq"}' and password='{"urmom_fat"}';
-    let userid: (String,) =
-        sqlx::query_as("SELECT username from app_user where username=$1 and password=$2")
-            .bind(username)
-            .bind(password)
-            .fetch_one(db)
-            .await
-            .unwrap();
+    let mut cookie: Vec<u8> = vec![0; 32];
+    getrandom::fill(&mut cookie).unwrap();
+    println!("{:?}", cookie);
+    let username = "mq".to_string();
+    let password = "urmom_fat".to_string();
+    let userid = sqlx::query_as("SELECT id from app_user where username=$1 and password=$2")
+        .bind(username)
+        .bind(password)
+        .fetch_one(db)
+        .await;
+    if userid.is_err() {
+        panic!("what {:?}", userid.unwrap_err());
+    }
+    let userid: (Uuid,) = match userid {
+        Ok(userid) => userid,
+        e => return Err(ServerFnError::new("Wronguser name or pass")),
+    };
+    let result = match sqlx::query(
+        "INSERT INTO cookie_login (cookie,userid,info) VALUES ($1,$2,$3)
+",
+    )
+    .bind(cookie.clone())
+    .bind(userid.0)
+    .bind(info.as_bytes())
+    .execute(db)
+    .await
+    {
+        Ok(a) => a,
+        a => {
+            println!("{:?}", a);
+            return Err(ServerFnError::new("server err"));
+        }
+    };
+
     print!("{:?}", userid);
-    Ok("a cookie".to_string())
+    Ok(hex::encode(&cookie))
 }
 pub fn Forms() -> impl IntoView {
     let username = signal("".to_string());
     let password = signal("".to_string());
     let device_info = signal("".to_string());
-
-    use leptos_use::use_cookie;
     let login_cookie = use_cookie::<String, FromToStringCodec>("login_cookie");
-
     use leptos::tachys::html::event::SubmitEvent;
     let on_submit = move |ev: SubmitEvent| {
         let login_cookie = login_cookie.clone();
@@ -65,16 +96,39 @@ pub fn Forms() -> impl IntoView {
         ev.prevent_default();
     };
     view! {
-        {device_info.0}
-        <form on:submit=on_submit>
-            <input type="text" placeholder="username" bind:value=username />
-            <br />
-            <input type="text" placeholder="password" bind:value=password />
-            <br />
-            <input type="submit" value="Submit" />
-            <br />
-            login_cookie:
-            {login_cookie.0}
-        </form>
+        <Show
+            when=move || login_cookie.0.get().is_none()
+            fallback=move || {
+                view! {
+                    <p>"You are logged in."</p>
+                    <button on:click=move |_| login_cookie.1.set(None)>"Log out"</button>
+                }
+            }
+        >
+            <form on:submit=on_submit>
+                <input type="text" placeholder="username" bind:value=username />
+                <br />
+                <input type="text" placeholder="password" bind:value=password />
+                <br />
+                <input type="submit" value="Submit" />
+                <br />
+                login_cookie:
+                {login_cookie.0}
+            </form>
+        </Show>
     }
+}
+pub async fn user_id(cookie: &[u8]) -> Result<Uuid, String> {
+    let db: Data<crate::share::database::Database> = extract().await.unwrap_or_else(|i| {
+        println!("{:?}", i);
+        panic!("asdf");
+    });
+    let db = (*db).0.as_ref();
+    let userid: Result<(Uuid,), _> =
+        sqlx::query_as("SELECT id from cookie_login where cookie=$1 and expires_at<now()")
+            .bind(cookie.clone())
+            .fetch_one(db)
+            .await;
+    let userid = userid.map(|i| i.0);
+    userid.map_err(|err| err.to_string())
 }

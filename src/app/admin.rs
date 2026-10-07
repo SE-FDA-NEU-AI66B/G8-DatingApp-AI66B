@@ -37,7 +37,6 @@ pub fn AdminDashboard() -> impl IntoView {
     let load = move || {
         set_loading.set(true);
         set_error.set(None);
-
         #[cfg(target_arch = "wasm32")]
         {
             leptos::task::spawn_local(async move {
