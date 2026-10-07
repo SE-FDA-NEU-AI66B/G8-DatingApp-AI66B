@@ -19,8 +19,8 @@ pub fn app() -> impl IntoView {
         <Router>
             <main>
                 <Routes fallback=move || "Not found.">
-                    <Route path=StaticSegment("login") view=login::App />
-                    <Route path=StaticSegment("logout") view=login::Applogout />
+                    <Route path=StaticSegment("login") view=login::App::App />
+                    <Route path=StaticSegment("logout") view=login::App::Applogout />
                     <Route path=StaticSegment("admin_console") view=admin::AdminDashboard />
                     <Route path=StaticSegment("") view=HomePage />
                     <Route path=WildcardSegment("any") view=NotFound />
