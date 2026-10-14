@@ -3,11 +3,18 @@ use crate::share::admin::StatisticsError;
 use crate::share::admin::{DashboardStatistics, HealthStatus};
 use leptos::prelude::*;
 
-#[cfg(target_arch = "wasm32")]
 #[derive(Clone, Debug, PartialEq, Eq)]
 struct DashboardError {
     status: Option<u16>,
     message: String,
+}
+
+fn error_message(error: &DashboardError) -> String {
+    match error.status {
+        Some(401) => "Your session has expired. Sign in again to continue.".to_string(),
+        Some(403) => "You do not have permission to view this dashboard.".to_string(),
+        _ => error.message.clone(),
+    }
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -62,7 +69,7 @@ async fn fetch_health() -> Result<HealthStatus, String> {
 pub fn AdminDashboard() -> impl IntoView {
     let (statistics, set_statistics) = signal(None::<DashboardStatistics>);
     let (health, set_health) = signal(None::<HealthStatus>);
-    let (error, set_error) = signal(None::<String>);
+    let (error, set_error) = signal(None::<DashboardError>);
     let (health_error, set_health_error) = signal(None::<String>);
     let (loading, set_loading) = signal(false);
 
@@ -83,11 +90,7 @@ pub fn AdminDashboard() -> impl IntoView {
                 match fetch_statistics().await {
                     Ok(value) => set_statistics.set(Some(value)),
                     Err(error) => {
-                        set_error.set(Some(if matches!(error.status, Some(401 | 403)) {
-                            "You are not authorized to view this dashboard.".to_string()
-                        } else {
-                            error.message
-                        }));
+                        set_error.set(Some(error));
                     }
                 }
                 set_loading.set(false);
@@ -134,7 +137,9 @@ pub fn AdminDashboard() -> impl IntoView {
                                 <p>{value.pending_reports}</p>
                             </article>
                         </div>
-                        {error.get().map(|message| view! { <p role="alert">{message}</p> })}
+                        {error.get().map(|error| view! {
+                            <p role="alert">{error_message(&error)}</p>
+                        })}
                         {if value.total_registered_users == 0
                             && value.active_study_date_requests == 0
                             && value.pending_reports == 0 {
@@ -147,10 +152,20 @@ pub fn AdminDashboard() -> impl IntoView {
                             view! {}.into_any()
                         }}
                     }.into_any()
-                } else if let Some(message) = error.get() {
+                } else if let Some(error) = error.get() {
                     view! {
-                        <p role="alert">{message}</p>
-                        <button type="button" on:click=move |_| load() disabled=move || loading.get()>"Try again"</button>
+                        <p role="alert">{error_message(&error)}</p>
+                        {if matches!(error.status, Some(401 | 403)) {
+                                    view! {
+                                        <a href="/">"Return to the home page"</a>
+                                    }.into_any()
+                        } else {
+                            view! {
+                                <button type="button" on:click=move |_| load() disabled=move || loading.get()>
+                                    "Try again"
+                                </button>
+                            }.into_any()
+                        }}
                     }.into_any()
                 } else {
                     view! { <p role="alert">"Dashboard statistics are unavailable."</p> }.into_any()
