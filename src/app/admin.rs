@@ -113,14 +113,23 @@ pub fn AdminDashboard() -> impl IntoView {
     }
 
     view! {
-        <section aria-labelledby="admin-dashboard-title">
+        <section
+            aria-labelledby="admin-dashboard-title"
+            aria-busy=move || loading.get()
+            class="admin-dashboard"
+        >
             <h1 id="admin-dashboard-title">"Admin dashboard"</h1>
-            <button type="button" on:click=move |_| load() disabled=move || loading.get()>
+            <button
+                type="button"
+                aria-label="Refresh dashboard statistics"
+                on:click=move |_| load()
+                disabled=move || loading.get()
+            >
                 {move || if loading.get() { "Refreshing..." } else { "Refresh" }}
             </button>
             {move || {
                 if loading.get() && statistics.get().is_none() {
-                    view! { <p role="status">"Loading dashboard statistics..."</p> }.into_any()
+                    view! { <p role="status" aria-live="polite">"Loading dashboard statistics..."</p> }.into_any()
                 } else if let Some(value) = statistics.get() {
                     view! {
                         <div class="dashboard-statistics">
@@ -138,7 +147,7 @@ pub fn AdminDashboard() -> impl IntoView {
                             </article>
                         </div>
                         {error.get().map(|error| view! {
-                            <p role="alert">{error_message(&error)}</p>
+                            <p role="alert" aria-live="assertive">{error_message(&error)}</p>
                         })}
                         {if value.total_registered_users == 0
                             && value.active_study_date_requests == 0
@@ -154,7 +163,7 @@ pub fn AdminDashboard() -> impl IntoView {
                     }.into_any()
                 } else if let Some(error) = error.get() {
                     view! {
-                        <p role="alert">{error_message(&error)}</p>
+                        <p role="alert" aria-live="assertive">{error_message(&error)}</p>
                         {if matches!(error.status, Some(401 | 403)) {
                                     view! {
                                         <a href="/">"Return to the home page"</a>
@@ -168,23 +177,27 @@ pub fn AdminDashboard() -> impl IntoView {
                         }}
                     }.into_any()
                 } else {
-                    view! { <p role="alert">"Dashboard statistics are unavailable."</p> }.into_any()
+                    view! { <p role="alert" aria-live="assertive">"Dashboard statistics are unavailable."</p> }.into_any()
                 }
             }}
             {move || {
                 if let Some(message) = health_error.get() {
-                    view! { <p role="alert">{message}</p> }.into_any()
+                    view! { <p role="alert" aria-live="assertive">{message}</p> }.into_any()
                 } else if let Some(value) = health.get() {
                     view! {
                         <section aria-labelledby="health-status-title">
                             <h2 id="health-status-title">"System health"</h2>
-                            <p>
-                                "Server: "
+                            <p class:health-unhealthy=move || !value.server.healthy>
+                                <span class="health-label">"Server: "</span>
+                                <span aria-hidden="true">{if value.server.healthy { "●" } else { "!" }}</span>
+                                " "
                                 {if value.server.healthy { "Healthy" } else { "Unhealthy" }}
                                 " (last checked " {value.server.checked_at.clone()} ")"
                             </p>
-                            <p>
-                                "Database: "
+                            <p class:health-unhealthy=move || !value.database.healthy>
+                                <span class="health-label">"Database: "</span>
+                                <span aria-hidden="true">{if value.database.healthy { "●" } else { "!" }}</span>
+                                " "
                                 {if value.database.healthy { "Healthy" } else { "Unhealthy" }}
                                 " (last checked " {value.database.checked_at.clone()} ")"
                             </p>
