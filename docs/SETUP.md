@@ -108,9 +108,12 @@ restart the terminal so Cargo's bin directory is on `PATH`.
 
 ## Tested by
 
-Before submission, a non-author teammate must follow this file on a fresh
-machine. Record the tester handle, operating system, date, and elapsed time
-here, for example: `@iambadwithname — Windows 11 — 2025-03-08 — 12 minutes`.
+Automated validation currently covers the repository build and library tests:
+`cargo fmt --all -- --check`, `cargo check --features ssr`, and
+`cargo test --lib --features ssr`. An independent fresh-machine walkthrough is
+still required before submission; record the tester handle, operating system,
+date, and elapsed time here, for example:
+`@iambadwithname — Windows 11 — 2025-03-08 — 12 minutes`.
 
 ## Submission workflow
 
