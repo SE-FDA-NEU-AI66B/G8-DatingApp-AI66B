@@ -16,3 +16,17 @@ Milestone 2 design/setup documents.
 Velocity: 6 deliverables completed (tracked by the merged Sprint 2 PRs).
 Not finished: PDF export and LMS upload remain external submission steps.
 SM Sprint 3: @iambadwithname
+
+## Sprint 3 (Milestone 3)
+
+Goal: complete and evidence the P0 admin dashboard flow, then reconcile the
+project backlog and documentation.
+
+Committed: P0 dashboard implementation, error/unauthorized handling,
+responsive/accessibility work, backlog refinement, and M3 documentation.
+Completed: implementation branches and automated validation are complete;
+independent fresh-machine evidence and final review packaging remain.
+Velocity: pending final board reconciliation.
+Not finished: real-data and error screenshots with the browser address bar,
+independent setup walkthrough, and final Sprint 3 review package.
+SM Sprint 3: @iambadwithname
