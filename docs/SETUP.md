@@ -42,9 +42,11 @@ cargo install cargo-leptos
 cargo leptos build
 ```
 
-Run migrations by starting the server once, then seed ten users, two active
-requests, and one pending report. Use two terminals because the development
-server must remain running while `psql` connects:
+Run migrations by starting the server once, then seed the deterministic
+development fixtures: one admin, eight verified users, one unverified user,
+two active requests, and one pending report. Re-running the script updates the
+named fixture users without creating duplicate rows. Use two terminals because
+the development server must remain running while `psql` connects:
 
 Windows PowerShell:
 

@@ -3,6 +3,7 @@ VALUES
     ('admin.seed@neu.edu.vn', TRUE, 'admin'),
     ('user01.seed@neu.edu.vn', TRUE, 'user'),
     ('user02.seed@neu.edu.vn', TRUE, 'user'),
+    ('unverified.seed@neu.edu.vn', FALSE, 'user'),
     ('user03.seed@neu.edu.vn', TRUE, 'user'),
     ('user04.seed@neu.edu.vn', TRUE, 'user'),
     ('user05.seed@neu.edu.vn', TRUE, 'user'),
@@ -10,7 +11,9 @@ VALUES
     ('user07.seed@neu.edu.vn', TRUE, 'user'),
     ('user08.seed@neu.edu.vn', TRUE, 'user'),
     ('user09.seed@neu.edu.vn', TRUE, 'user')
-ON CONFLICT (email) DO NOTHING;
+ON CONFLICT (email) DO UPDATE
+SET email_verified = EXCLUDED.email_verified,
+    role = EXCLUDED.role;
 
 INSERT INTO study_date_request (creator_id, starts_at, ends_at, status)
 SELECT id, now() + interval '2 hours', now() + interval '3 hours', 'active'
@@ -33,7 +36,7 @@ WHERE email = 'user02.seed@neu.edu.vn'
 INSERT INTO report (reporter_id, reported_user_id, status)
 SELECT reporter.id, reported.id, 'pending'
 FROM app_user reporter
-JOIN app_user reported ON reported.email = 'user02.seed@neu.edu.vn'
+JOIN app_user reported ON reported.email = 'unverified.seed@neu.edu.vn'
 WHERE reporter.email = 'user01.seed@neu.edu.vn'
   AND NOT EXISTS (
       SELECT 1 FROM report
