@@ -5,6 +5,8 @@ use leptos_router::{
     ParamSegment, StaticSegment, WildcardSegment,
 };
 mod admin;
+mod admin_activity;
+mod admin_reports;
 mod api;
 mod profile;
 mod requests;
@@ -32,6 +34,8 @@ pub fn app() -> impl IntoView {
                     <Route path=(StaticSegment("profile"), ParamSegment("id")) view=profile::ProfilePage />
                     <Route path=StaticSegment("requests") view=requests::RequestsPage />
                     <Route path=StaticSegment("admin_console") view=admin::AdminDashboard />
+                    <Route path=(StaticSegment("admin"), StaticSegment("reports")) view=admin_reports::AdminReportsPage />
+                    <Route path=(StaticSegment("admin_console"), StaticSegment("logs")) view=admin_activity::AdminActivityLogPage />
                     <Route path=WildcardSegment("any") view=NotFound />
                 </Routes>
             </main>
