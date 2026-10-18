@@ -67,4 +67,65 @@ test.describe("admin dashboard statistics", () => {
     await expect(page.getByText("Registered users").locator("..")).not.toBeVisible();
     await expect(page.getByText("0")).not.toBeVisible();
   });
+
+  test("recovers from a transient API error with retry", async ({ page }) => {
+    let requestCount = 0;
+    await page.route("**/api/admin/statistics", async (route) => {
+      requestCount += 1;
+      if (requestCount === 1) {
+        await route.fulfill({
+          status: 503,
+          contentType: "application/json",
+          body: JSON.stringify({ message: "Dashboard temporarily unavailable." }),
+        });
+        return;
+      }
+      await route.fulfill({ json: statistics });
+    });
+
+    await page.goto("/admin_console");
+    await expect(page.getByRole("alert")).toContainText(
+      "Dashboard temporarily unavailable.",
+    );
+    await page.getByRole("button", { name: "Try again" }).click();
+    await expect(page.getByText("Registered users").locator("..")).toContainText("42");
+  });
+
+  test("shows the server authorization response without rendering statistics", async ({
+    page,
+  }) => {
+    await page.route("**/api/admin/statistics", async (route) => {
+      await route.fulfill({
+        status: 403,
+        contentType: "application/json",
+        body: JSON.stringify({ message: "Administrator access is required." }),
+      });
+    });
+
+    await page.goto("/admin_console");
+
+    await expect(page.getByRole("alert")).toContainText(
+      "Administrator access is required.",
+    );
+    await expect(page.getByText("Registered users").locator("..")).not.toBeVisible();
+  });
+
+  test("keeps business-rule failures visible instead of treating them as success", async ({
+    page,
+  }) => {
+    await page.route("**/api/admin/statistics", async (route) => {
+      await route.fulfill({
+        status: 422,
+        contentType: "application/json",
+        body: JSON.stringify({ message: "The requested report cannot be reviewed." }),
+      });
+    });
+
+    await page.goto("/admin_console");
+
+    await expect(page.getByRole("alert")).toContainText(
+      "The requested report cannot be reviewed.",
+    );
+    await expect(page.getByText("Registered users").locator("..")).not.toBeVisible();
+  });
 });

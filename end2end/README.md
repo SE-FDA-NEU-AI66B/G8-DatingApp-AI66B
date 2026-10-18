@@ -21,5 +21,7 @@ npm run test:admin-dashboard
 ```
 
 `BASE_URL` may point to a deployed test instance. The test suite intercepts the
-statistics API so the load, refresh, and error-state checks remain deterministic.
+statistics API so the normal, refresh, retry, unauthorized, and business-rule
+error checks remain deterministic. The live database fixtures are documented
+in `../database/seed.sql`.
 Never commit `node_modules`, Playwright browser binaries, or test credentials.
