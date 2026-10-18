@@ -24,6 +24,29 @@ pub struct HealthStatus {
     pub database: HealthComponent,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct ReportSummary {
+    pub id: i64,
+    pub reported_user_id: i64,
+    pub reason: String,
+    pub report_count: i64,
+    pub status: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct CreateReportRequest {
+    pub reported_user_id: i64,
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct ActivityLogEntry {
+    pub action: String,
+    pub target_id: Option<i64>,
+    pub actor_id: Option<i64>,
+    pub created_at: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

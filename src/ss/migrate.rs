@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS app_user (
     otp_code        CHAR(6),
     otp_expires_at  TIMESTAMPTZ,
     role            TEXT NOT NULL DEFAULT 'user',
+    is_hidden       BOOLEAN NOT NULL DEFAULT FALSE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT email_is_lowercase CHECK (email = lower(email)),
     CONSTRAINT email_is_neu CHECK (email LIKE '%@neu.edu.vn')
@@ -43,12 +44,22 @@ CREATE TABLE IF NOT EXISTS report (
     id                BIGSERIAL PRIMARY KEY,
     reporter_id       BIGINT NOT NULL REFERENCES app_user(id),
     reported_user_id  BIGINT NOT NULL REFERENCES app_user(id),
+    reason            TEXT NOT NULL DEFAULT 'unspecified',
     status            TEXT NOT NULL DEFAULT 'pending',
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT report_valid_status
         CHECK (status IN ('pending', 'reviewed', 'dismissed')),
     CONSTRAINT report_not_self
         CHECK (reporter_id <> reported_user_id)
+)";
+
+const CREATE_ACTIVITY_LOG: &str = "
+CREATE TABLE IF NOT EXISTS activity_log (
+    id          BIGSERIAL PRIMARY KEY,
+    actor_id    BIGINT REFERENCES app_user(id) ON DELETE SET NULL,
+    action      TEXT NOT NULL,
+    target_id   BIGINT,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 )";
 
 const CREATE_DASHBOARD_INDEXES: &str = "
@@ -94,6 +105,11 @@ pub async fn run(pool: &PgPool) -> Result<(), sqlx::Error> {
     sqlx::query("ALTER TABLE app_user ADD COLUMN IF NOT EXISTS role TEXT NOT NULL DEFAULT 'user'")
         .execute(pool)
         .await?;
+    sqlx::query(
+        "ALTER TABLE app_user ADD COLUMN IF NOT EXISTS is_hidden BOOLEAN NOT NULL DEFAULT FALSE",
+    )
+    .execute(pool)
+    .await?;
     sqlx::query(CREATE_STUDY_DATE_REQUEST).execute(pool).await?;
     sqlx::query("ALTER TABLE study_date_request ADD COLUMN IF NOT EXISTS duration_min INTEGER")
         .execute(pool)
@@ -128,6 +144,12 @@ pub async fn run(pool: &PgPool) -> Result<(), sqlx::Error> {
     .execute(pool)
     .await?;
     sqlx::query(CREATE_REPORT).execute(pool).await?;
+    sqlx::query(
+        "ALTER TABLE report ADD COLUMN IF NOT EXISTS reason TEXT NOT NULL DEFAULT 'unspecified'",
+    )
+    .execute(pool)
+    .await?;
+    sqlx::query(CREATE_ACTIVITY_LOG).execute(pool).await?;
     sqlx::query(CREATE_AUTH_SESSIONS).execute(pool).await?;
     sqlx::query(CREATE_DASHBOARD_INDEXES).execute(pool).await?;
     sqlx::query(CREATE_MATCH_REQUEST).execute(pool).await?;

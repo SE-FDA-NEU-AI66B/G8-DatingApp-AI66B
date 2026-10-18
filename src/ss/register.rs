@@ -27,17 +27,28 @@ pub async fn register(pool: web::Data<PgPool>, body: web::Json<RegisterReq>) -> 
 
     // 2. Insert; UNIQUE sẽ chặn email trùng
     let otp = generate_otp();
-    let res = sqlx::query(
+    let res = sqlx::query_scalar::<_, i64>(
         "INSERT INTO app_user (email, otp_code, otp_expires_at)
-         VALUES ($1, $2, now() + interval '10 minutes')",
+         VALUES ($1, $2, now() + interval '10 minutes')
+         RETURNING id",
     )
     .bind(&email)
     .bind(&otp)
-    .execute(pool.get_ref())
+    .fetch_one(pool.get_ref())
     .await;
 
     match res {
-        Ok(_) => {
+        Ok(user_id) => {
+            if let Err(error) = sqlx::query(
+                "INSERT INTO activity_log (action, target_id)
+                 VALUES ('user_registration', $1)",
+            )
+            .bind(user_id)
+            .execute(pool.get_ref())
+            .await
+            {
+                eprintln!("registration activity log failed: {error}");
+            }
             send_otp_email_stub(&email, &otp);
             HttpResponse::Created().json(msg("Account created. We sent a 6-digit OTP to your email."))
         }

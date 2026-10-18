@@ -64,6 +64,11 @@ async fn main() -> std::io::Result<()> {
             )
             .service(ss::admin::dashboard_statistics)
             .service(ss::admin::health_status)
+            .service(ss::admin::create_report)
+            .service(ss::admin::report_queue)
+            .service(ss::admin::hide_report)
+            .service(ss::admin::dismiss_report)
+            .service(ss::admin::activity_log)
             .service(ss::register::register)
             .service(
                 actix_web::web::resource("/api/study-dates")

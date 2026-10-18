@@ -14,6 +14,7 @@ const SESSION_COOKIE: &str = "datingapp_session";
 
 #[derive(Debug, Clone, FromRow)]
 pub struct AuthenticatedUser {
+    pub id: i64,
     pub role: String,
 }
 
@@ -195,7 +196,7 @@ pub async fn require_admin(
     };
 
     let user = sqlx::query_as::<_, AuthenticatedUser>(
-        "SELECT u.role
+        "SELECT u.id, u.role
          FROM auth_session s
          JOIN app_user u ON u.id = s.user_id
          WHERE s.token_hash = $1
