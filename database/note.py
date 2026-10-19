@@ -228,6 +228,51 @@ def _(conn, mo):
 def _(conn, mo):
     _df = mo.sql(
         f"""
+        CREATE INDEX IF NOT EXISTS study_date_request_creator_idx
+        ON study_date_request (creator_id)
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell
+def _(conn, mo):
+    _df = mo.sql(
+        f"""
+        CREATE INDEX IF NOT EXISTS report_reporter_id_idx ON report (reporter_id)
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell
+def _(conn, mo):
+    _df = mo.sql(
+        f"""
+        CREATE INDEX IF NOT EXISTS report_reported_user_id_idx ON report (reported_user_id)
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell
+def _(conn, mo):
+    _df = mo.sql(
+        f"""
+        CREATE INDEX IF NOT EXISTS auth_session_user_id_idx ON auth_session (user_id)
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell
+def _(conn, mo):
+    _df = mo.sql(
+        f"""
         CREATE TABLE IF NOT EXISTS match_request (
             id BIGSERIAL PRIMARY KEY,
             sender_id UUID NOT NULL REFERENCES app_user(id),
@@ -249,6 +294,18 @@ def _(conn, mo):
 def _(conn, mo):
     _df = mo.sql(
         f"""
+        CREATE INDEX IF NOT EXISTS match_request_receiver_sender_idx
+        ON match_request (receiver_id, sender_id)
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell
+def _(conn, mo):
+    _df = mo.sql(
+        f"""
         CREATE TABLE IF NOT EXISTS chat_room (
             id BIGSERIAL PRIMARY KEY,
             user_low UUID NOT NULL REFERENCES app_user(id),
@@ -258,6 +315,17 @@ def _(conn, mo):
             CONSTRAINT chat_room_ordered CHECK (user_low < user_high),
             CONSTRAINT chat_room_unique_pair UNIQUE (user_low, user_high)
         )
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell
+def _(conn, mo):
+    _df = mo.sql(
+        f"""
+        CREATE INDEX IF NOT EXISTS chat_room_user_high_idx ON chat_room (user_high)
         """,
         engine=conn
     )
@@ -292,6 +360,17 @@ def _(mo):
     mo.md(r"""
     ##OTHER
     """)
+    return
+
+
+@app.cell
+def _(auth_session, conn, mo):
+    _df = mo.sql(
+        f"""
+        Select * from auth_session
+        """,
+        engine=conn
+    )
     return
 
 
@@ -364,6 +443,11 @@ def _(conn, load_seed_button, mo):
     else:
         seed_status = mo.md("Click the button above to load seed.sql.")
     seed_status
+    return
+
+
+@app.cell
+def _():
     return
 
 
