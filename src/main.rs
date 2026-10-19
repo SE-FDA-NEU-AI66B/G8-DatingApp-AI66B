@@ -37,7 +37,6 @@ async fn main() -> std::io::Result<()> {
         .connect(&ss::functions::get_db_uri())
         .await
         .expect("cannot connect to postgres (is PGPASS set and `mise run database` running?)");
-    ss::migrate::run(&pool).await.expect("migration failed");
     ss::auth::configure_admin(&pool, env::var("ADMIN_EMAIL").ok().as_deref())
         .await
         .expect("admin role configuration failed");

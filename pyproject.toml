@@ -9,6 +9,7 @@ requires-python = ">=3.13"
 dependencies = [
     "basedpyright>=1.39.10",
     "clickhouse-connect>=1.8.0",
+    "connectorx>=0.4.6",
     "duckdb>=1.5.5",
     "mariadb[binary,pool]>=2.0.0rc",
     "marimo[lsp,recommended,sandbox,sql]>=0.24.0",

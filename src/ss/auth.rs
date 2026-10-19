@@ -9,6 +9,7 @@ use actix_web::{
 use rand::Rng;
 use sha2::{Digest, Sha256};
 use sqlx::{FromRow, PgPool};
+use uuid::Uuid;
 
 const SESSION_COOKIE: &str = "datingapp_session";
 
@@ -20,13 +21,13 @@ pub struct AuthenticatedUser {
 #[allow(dead_code)]
 #[derive(Debug, Clone, FromRow)]
 pub struct CurrentUser {
-    pub id: i64,
+    pub id: Uuid,
     pub role: String,
 }
 
 #[derive(Debug, FromRow)]
 struct LoginUser {
-    id: i64,
+    id: Uuid,
     otp_code: Option<String>,
     otp_expires_at: Option<time::OffsetDateTime>,
 }

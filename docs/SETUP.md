@@ -42,9 +42,17 @@ cargo install cargo-leptos
 cargo leptos build
 ```
 
-Run migrations by starting the server once, then seed ten users, two active
-requests, and one pending report. Use two terminals because the development
-server must remain running while `psql` connects:
+Run the migration cell in `database/note.py` with Marimo before starting the
+server. It creates and upgrades the application tables. Then seed ten users,
+two active requests, and one pending report. Use two terminals because the
+development server must remain running while `psql` connects:
+
+```bash
+uv run marimo edit database/note.py
+```
+
+Run the notebook cell labeled for the application migration, then close Marimo.
+Start the server in the first terminal and seed in the second:
 
 Windows PowerShell:
 

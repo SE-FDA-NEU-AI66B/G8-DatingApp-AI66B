@@ -7,7 +7,7 @@ app = marimo.App(width="full", auto_download=["html"])
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Setup
+    ## Setup
     """)
     return
 
@@ -16,7 +16,6 @@ def _(mo):
 def _():
     import os
     import marimo as mo
-
     # note if ur new to marimo dont worry about duckdb marimo auto useit if available;since both duckdb and and polars use arrow data format duckdb intergration with marimo can read all polars object and so is the otherway round
     import psycopg2
     import polars as pl  # arrow conpatable
@@ -44,10 +43,20 @@ def _(os, psycopg2):
     return conn, uri
 
 
+@app.cell
+def _(mo, uri):
+    _df = mo.sql(
+        f"""
+        ATTACH '{uri}' AS userdb (TYPE postgres);
+        """
+    )
+    return
+
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Application database migration
+    ## Application database creation
     Run this notebook cell before starting the Rust server.
     """)
     return
@@ -58,7 +67,7 @@ def _(conn, mo):
     _df = mo.sql(
         f"""
         CREATE TABLE IF NOT EXISTS app_user (
-            id BIGSERIAL PRIMARY KEY,
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             email TEXT NOT NULL UNIQUE,
             email_verified BOOLEAN NOT NULL DEFAULT FALSE,
             otp_code CHAR(6),
@@ -75,23 +84,12 @@ def _(conn, mo):
 
 
 @app.cell
-def _(app_user, conn, mo):
-    _df = mo.sql(
-        f"""
-        Select * from app_user
-        """,
-        engine=conn
-    )
-    return
-
-
-@app.cell
 def _(conn, mo):
     _df = mo.sql(
         f"""
         CREATE TABLE IF NOT EXISTS study_date_request (
             id BIGSERIAL PRIMARY KEY,
-            creator_id BIGINT NOT NULL REFERENCES app_user(id),
+            creator_id UUID NOT NULL REFERENCES app_user(id),
             starts_at TIMESTAMPTZ NOT NULL,
             ends_at TIMESTAMPTZ NOT NULL,
             duration_min INTEGER NOT NULL DEFAULT 60,
@@ -173,8 +171,8 @@ def _(conn, mo):
         f"""
         CREATE TABLE IF NOT EXISTS report (
             id BIGSERIAL PRIMARY KEY,
-            reporter_id BIGINT NOT NULL REFERENCES app_user(id),
-            reported_user_id BIGINT NOT NULL REFERENCES app_user(id),
+            reporter_id UUID NOT NULL REFERENCES app_user(id),
+            reported_user_id UUID NOT NULL REFERENCES app_user(id),
             status TEXT NOT NULL DEFAULT 'pending',
             created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
             CONSTRAINT report_valid_status CHECK (status IN ('pending', 'reviewed', 'dismissed')),
@@ -192,7 +190,7 @@ def _(conn, mo):
         f"""
         CREATE TABLE IF NOT EXISTS auth_session (
             token_hash TEXT PRIMARY KEY,
-            user_id BIGINT NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
+            user_id UUID NOT NULL REFERENCES app_user(id) ON DELETE CASCADE,
             expires_at TIMESTAMPTZ NOT NULL,
             created_at TIMESTAMPTZ NOT NULL DEFAULT now()
         )
@@ -232,8 +230,8 @@ def _(conn, mo):
         f"""
         CREATE TABLE IF NOT EXISTS match_request (
             id BIGSERIAL PRIMARY KEY,
-            sender_id BIGINT NOT NULL REFERENCES app_user(id),
-            receiver_id BIGINT NOT NULL REFERENCES app_user(id),
+            sender_id UUID NOT NULL REFERENCES app_user(id),
+            receiver_id UUID NOT NULL REFERENCES app_user(id),
             status TEXT NOT NULL DEFAULT 'pending',
             created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
             responded_at TIMESTAMPTZ,
@@ -253,8 +251,8 @@ def _(conn, mo):
         f"""
         CREATE TABLE IF NOT EXISTS chat_room (
             id BIGSERIAL PRIMARY KEY,
-            user_low BIGINT NOT NULL REFERENCES app_user(id),
-            user_high BIGINT NOT NULL REFERENCES app_user(id),
+            user_low UUID NOT NULL REFERENCES app_user(id),
+            user_high UUID NOT NULL REFERENCES app_user(id),
             match_request_id BIGINT UNIQUE REFERENCES match_request(id),
             created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
             CONSTRAINT chat_room_ordered CHECK (user_low < user_high),
@@ -283,6 +281,25 @@ def _(conn, mo):
     _df = mo.sql(
         f"""
         CREATE INDEX IF NOT EXISTS match_request_sender_day_idx ON match_request (sender_id, created_at)
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ##OTHER
+    """)
+    return
+
+
+@app.cell
+def _(app_user, conn, mo):
+    _df = mo.sql(
+        f"""
+        Select * from app_user
         """,
         engine=conn
     )
@@ -347,16 +364,6 @@ def _(conn, load_seed_button, mo):
     else:
         seed_status = mo.md("Click the button above to load seed.sql.")
     seed_status
-    return
-
-
-@app.cell
-def _(mo, uri):
-    _df = mo.sql(
-        f"""
-        ATTACH '{uri}' AS userdb (TYPE postgres);
-        """
-    )
     return
 
 

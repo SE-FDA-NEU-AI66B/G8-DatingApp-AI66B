@@ -77,7 +77,6 @@ pub async fn health_status(request: HttpRequest, pool: web::Data<PgPool>) -> Htt
 #[cfg(test)]
 mod tests {
     use super::{DashboardStatisticsRow, DASHBOARD_QUERY};
-    use crate::ss::migrate;
     use sqlx::postgres::PgPoolOptions;
 
     #[test]
@@ -95,13 +94,6 @@ mod tests {
             .connect(&database_url)
             .await
             .expect("test database must be reachable");
-        migrate::run(&pool)
-            .await
-            .expect("first migration must succeed");
-        migrate::run(&pool)
-            .await
-            .expect("migration must be idempotent");
-
         let mut transaction = pool.begin().await.expect("fixture transaction must start");
         sqlx::query(
             "INSERT INTO app_user (email, email_verified)
@@ -113,13 +105,13 @@ mod tests {
         .await
         .expect("user fixtures must insert");
 
-        let verified_id: i64 = sqlx::query_scalar(
+        let verified_id: uuid::Uuid = sqlx::query_scalar(
             "SELECT id FROM app_user WHERE email = 'verified-dashboard-test@neu.edu.vn'",
         )
         .fetch_one(&mut *transaction)
         .await
         .expect("verified fixture must exist");
-        let pending_id: i64 = sqlx::query_scalar(
+        let pending_id: uuid::Uuid = sqlx::query_scalar(
             "SELECT id FROM app_user WHERE email = 'pending-dashboard-test@neu.edu.vn'",
         )
         .fetch_one(&mut *transaction)

@@ -2,6 +2,7 @@ use super::auth;
 use crate::lib::share::{matching::*, register::MessageBody};
 use actix_web::{get, http::StatusCode, post, web, HttpRequest, HttpResponse};
 use sqlx::PgPool;
+use uuid::Uuid;
 
 fn reply(status: StatusCode, message: &str) -> HttpResponse {
     HttpResponse::build(status).json(MessageBody {
@@ -32,7 +33,7 @@ const NOT_REQUEST_RECIPIENT: &str = "You are not the recipient of this request";
 async fn request_belongs_to_another_user<'e, E>(
     executor: E,
     id: i64,
-    me: i64,
+    me: Uuid,
 ) -> Result<bool, sqlx::Error>
 where
     E: sqlx::Executor<'e, Database = sqlx::Postgres>,
@@ -78,7 +79,7 @@ fn relation_from_db(value: &str) -> Relation {
 pub async fn get_profile(
     request: HttpRequest,
     pool: web::Data<PgPool>,
-    path: web::Path<i64>,
+    path: web::Path<Uuid>,
 ) -> HttpResponse {
     let me = current_user!(request, pool);
     let target = path.into_inner();
@@ -97,7 +98,7 @@ pub async fn get_profile(
     }
 }
 
-async fn try_send(pool: &PgPool, me: i64, to: i64) -> Result<HttpResponse, sqlx::Error> {
+async fn try_send(pool: &PgPool, me: Uuid, to: Uuid) -> Result<HttpResponse, sqlx::Error> {
     if me == to {
         return Ok(reply(
             StatusCode::BAD_REQUEST,
@@ -106,7 +107,7 @@ async fn try_send(pool: &PgPool, me: i64, to: i64) -> Result<HttpResponse, sqlx:
     }
     let mut tx = pool.begin().await?;
     // Tuần tự hóa các request của cùng một người gửi để giới hạn 20/ngày không bị vượt khi gửi song song.
-    sqlx::query("SELECT pg_advisory_xact_lock($1)")
+    sqlx::query("SELECT pg_advisory_xact_lock(hashtextextended($1::text, 0))")
         .bind(me)
         .execute(&mut *tx)
         .await?;
@@ -121,7 +122,7 @@ async fn try_send(pool: &PgPool, me: i64, to: i64) -> Result<HttpResponse, sqlx:
         return Ok(reply(StatusCode::NOT_FOUND, "Profile not found"));
     }
 
-    let existing: Vec<(i64, String)> = sqlx::query_as(
+    let existing: Vec<(Uuid, String)> = sqlx::query_as(
         "SELECT sender_id, status FROM match_request
          WHERE (sender_id = $1 AND receiver_id = $2)
             OR (sender_id = $2 AND receiver_id = $1)",
@@ -222,9 +223,9 @@ pub async fn matched_users(request: HttpRequest, pool: web::Data<PgPool>) -> Htt
     }
 }
 
-async fn try_accept(pool: &PgPool, me: i64, id: i64) -> Result<HttpResponse, sqlx::Error> {
+async fn try_accept(pool: &PgPool, me: Uuid, id: i64) -> Result<HttpResponse, sqlx::Error> {
     let mut tx = pool.begin().await?;
-    let sender: Option<i64> = sqlx::query_scalar(
+    let sender: Option<Uuid> = sqlx::query_scalar(
         "UPDATE match_request SET status = 'accepted', responded_at = now()
          WHERE id = $1 AND receiver_id = $2 AND status = 'pending'
          RETURNING sender_id",
@@ -307,13 +308,13 @@ pub async fn decline_request(
 #[cfg(test)]
 mod tests {
     use super::{accept_request, decline_request};
-    use crate::ss::migrate;
     use actix_web::{cookie::Cookie, http::StatusCode, test, web, App};
     use rand::random;
     use sha2::{Digest, Sha256};
     use sqlx::{postgres::PgPoolOptions, PgPool};
+    use uuid::Uuid;
 
-    async fn insert_user(pool: &PgPool, email: String) -> i64 {
+    async fn insert_user(pool: &PgPool, email: String) -> Uuid {
         sqlx::query_scalar("INSERT INTO app_user (email) VALUES ($1) RETURNING id")
             .bind(email)
             .fetch_one(pool)
@@ -331,10 +332,6 @@ mod tests {
             .connect(&database_url)
             .await
             .expect("test database must be reachable");
-        migrate::run(&pool)
-            .await
-            .expect("database migrations must succeed");
-
         let unique = random::<u64>();
         let sender_one = insert_user(&pool, format!("sender-one-{unique}@neu.edu.vn")).await;
         let sender_two = insert_user(&pool, format!("sender-two-{unique}@neu.edu.vn")).await;
