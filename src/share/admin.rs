@@ -12,6 +12,18 @@ pub struct StatisticsError {
     pub message: String,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct HealthComponent {
+    pub healthy: bool,
+    pub checked_at: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct HealthStatus {
+    pub server: HealthComponent,
+    pub database: HealthComponent,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -36,5 +48,23 @@ mod tests {
         };
 
         assert!(!error.message.is_empty());
+    }
+
+    #[test]
+    fn health_status_contains_independent_components() {
+        let checked_at = "2026-10-05T15:00:00Z".to_string();
+        let status = HealthStatus {
+            server: HealthComponent {
+                healthy: true,
+                checked_at: checked_at.clone(),
+            },
+            database: HealthComponent {
+                healthy: false,
+                checked_at,
+            },
+        };
+
+        assert!(status.server.healthy);
+        assert!(!status.database.healthy);
     }
 }

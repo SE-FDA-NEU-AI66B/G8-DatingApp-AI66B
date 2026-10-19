@@ -27,6 +27,15 @@ async fn main() -> std::io::Result<()> {
     use lib::app::*;
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
+    let pool = sqlx::postgres::PgPoolOptions::new()
+        .max_connections(10)
+        .connect(&ss::functions::get_db_uri())
+        .await
+        .expect("cannot connect to postgres (is PGPASS set and `mise run database` running?)");
+    ss::auth::configure_admin(&pool, env::var("ADMIN_EMAIL").ok().as_deref())
+        .await
+        .expect("admin role configuration failed");
+    let pool = web::Data::new(pool);
 
     // std::env::set_var("RUST_LOG", "debug");
     // env_logger::init();
@@ -43,6 +52,29 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .configure(worker::config)
             .app_data(Data::new(db.clone()))
+            .app_data(pool.clone())
+            .service(
+                actix_web::web::resource("/api/auth/login")
+                    .route(actix_web::web::post().to(ss::auth::login)),
+            )
+            .service(
+                actix_web::web::resource("/api/auth/logout")
+                    .route(actix_web::web::post().to(ss::auth::logout)),
+            )
+            .service(ss::admin::dashboard_statistics)
+            .service(ss::admin::health_status)
+            .service(ss::register::register)
+            .service(
+                actix_web::web::resource("/api/study-dates")
+                    .route(actix_web::web::get().to(ss::study_date::list_study_dates))
+                    .route(actix_web::web::post().to(ss::study_date::create_study_date)),
+            )
+            .service(ss::matching::get_profile)
+            .service(ss::matching::send_request)
+            .service(ss::matching::incoming_requests)
+            .service(ss::matching::matched_users)
+            .service(ss::matching::accept_request)
+            .service(ss::matching::decline_request)
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve other assets from the `assets` directory

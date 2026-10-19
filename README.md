@@ -90,3 +90,8 @@ cargo doc --open
 - [Definition of Done](docs/definition-of-done.md)
 - [Sprint log](docs/sprint-log.md)
 - [Traceability](docs/traceability.md)
+- [Architecture](docs/architecture.md)
+- [API design](docs/api.md)
+- [Walking skeleton](docs/walking-skeleton.md)
+- [Milestone 2 design](docs/design.md)
+- [Milestone 2 setup](docs/SETUP.md)
