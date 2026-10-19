@@ -86,6 +86,7 @@ web-sys = "0.3.106"
 sqlx = { version = "0.9", features = ["postgres", "time", "derive", "uuid"] }
 getrandom = { version = "0.4.3", features = ["wasm_js"] }
 sha2 = "0.11.0"
+uuid = { version = "1.26", features = ["serde"] }
 gloo-net = "0.7.0"
 hex = "0.4.3"
 # rand = { version = "0.9" }
@@ -103,9 +104,6 @@ rustls-pemfile = "2.2.0"
 tokio-postgres = "0.7.18"
 actix = "0.13.5"
 rand = "0.9"
-
-sha2 = "0.10"
-uuid = { version = "1.26", features = ["serde"] }
 
 [features]
 csr = ["leptos/csr"]

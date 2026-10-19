@@ -7,6 +7,7 @@ use leptos_router::{
 mod admin;
 mod api;
 mod profile;
+mod register;
 mod requests;
 mod study_date_form;
 mod study_feed;
@@ -28,7 +29,6 @@ pub fn app() -> impl IntoView {
                     <Route path=StaticSegment("login") view=login::App::App />
                     <Route path=StaticSegment("logout") view=login::App::Applogout />
 
-                    <Route path=StaticSegment("") view=HomePage />
                     <Route path=StaticSegment("register") view=register::RegisterPage />
                     <Route path=StaticSegment("feed") view=study_feed::StudyFeed />
                     <Route
@@ -48,7 +48,6 @@ pub fn app() -> impl IntoView {
         </Router>
     }
 }
-mod admin;
 #[allow(non_snake_case)]
 mod login;
 #[allow(non_snake_case)]

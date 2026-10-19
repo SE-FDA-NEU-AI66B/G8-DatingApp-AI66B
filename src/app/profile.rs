@@ -7,7 +7,12 @@ use leptos_router::{components::A, hooks::use_params_map};
 #[component]
 pub fn ProfilePage() -> impl IntoView {
     let params = use_params_map();
-    let user_id = move || params.read().get("id").and_then(|s| s.parse::<uuid::Uuid>().ok());
+    let user_id = move || {
+        params
+            .read()
+            .get("id")
+            .and_then(|s| s.parse::<uuid::Uuid>().ok())
+    };
 
     let (profile, set_profile) = signal(None::<ProfileView>);
     let (error, set_error) = signal(None::<String>);

@@ -1,4 +1,3 @@
-use crate::share::admin::DashboardStatistics;
 #[cfg(target_arch = "wasm32")]
 use crate::share::admin::StatisticsError;
 use crate::share::admin::{DashboardStatistics, HealthStatus};
@@ -27,6 +26,29 @@ async fn fetch_statistics() -> Result<DashboardStatistics, String> {
     }
 }
 
+async fn fetch_health() -> Result<HealthStatus, String> {
+    use crate::share::admin::StatisticsError;
+    use gloo_net::http::Request;
+
+    let response = Request::get("/api/admin/health")
+        .send()
+        .await
+        .map_err(|_| "Unable to reach the system health service.".to_string())?;
+
+    if response.ok() {
+        response
+            .json()
+            .await
+            .map_err(|_| "The health service returned an unexpected response.".to_string())
+    } else {
+        let error = response.json::<StatisticsError>().await.ok();
+        Err(error.map_or_else(
+            || "System health is temporarily unavailable.".to_string(),
+            |error| error.message,
+        ))
+    }
+}
+
 #[component]
 pub fn AdminDashboard() -> impl IntoView {
     let (statistics, set_statistics) = signal(None::<DashboardStatistics>);
@@ -37,6 +59,7 @@ pub fn AdminDashboard() -> impl IntoView {
     let load = move || {
         set_loading.set(true);
         set_error.set(None);
+        set_health_error.set(None);
         {
             leptos::task::spawn_local(async move {
                 match fetch_statistics().await {
