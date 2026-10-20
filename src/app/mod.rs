@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{
-    components::{Route, Router, Routes},
+    components::{A, Route, Router, Routes},
     ParamSegment, StaticSegment, WildcardSegment,
 };
 mod admin;
@@ -24,6 +24,14 @@ pub fn app() -> impl IntoView {
         // content for this welcome page
         <Router>
             <main>
+                <nav aria-label="Primary navigation">
+                    <A href="/">"Home"</A>
+                    <A href="/register">"Register"</A>
+                    <A href="/feed">"Study dates"</A>
+                    <A href="/study-date/new">"Create study date"</A>
+                    <A href="/requests">"Match requests"</A>
+                    <A href="/admin_console">"Admin console"</A>
+                </nav>
                 <Routes fallback=move || "Not found.">
                     <Route path=StaticSegment("") view=HomePage />
                     <Route path=StaticSegment("register") view=register::RegisterPage />
