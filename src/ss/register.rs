@@ -1,53 +1,86 @@
-use crate::lib::share::register::{normalize_email, MessageBody, RegisterReq};
+use crate::lib::share::register::{normalize_email, normalize_username, MessageBody, RegisterReq};
 use actix_web::{post, web, HttpResponse};
+use argon2::{
+    password_hash::{PasswordHasher, SaltString},
+    Argon2,
+};
+use rand::Rng;
 use sqlx::PgPool;
-
-fn msg(m: &str) -> MessageBody {
-    MessageBody { message: m.to_string() }
-}
-
-/// OTP 6 chữ số, giữ cả số 0 đứng đầu ("004821").
-pub fn generate_otp() -> String {
-    use rand::Rng;
-    format!("{:06}", rand::rng().random_range(0..1_000_000u32))
-}
-
-/// STUB (Sprint 2): chưa gửi mail thật, chỉ in ra log server.
-fn send_otp_email_stub(email: &str, otp: &str) {
-    println!("[stub-mail] to={email} otp={otp}");
-}
 
 #[post("/api/register")]
 pub async fn register(pool: web::Data<PgPool>, body: web::Json<RegisterReq>) -> HttpResponse {
-    // 1. Validate phía server (không tin client)
     let email = match normalize_email(&body.email) {
-        Ok(e) => e,
-        Err(m) => return HttpResponse::BadRequest().json(msg(m)),
+        Ok(email) => email,
+        Err(message) => {
+            return HttpResponse::BadRequest().json(MessageBody {
+                message: message.into(),
+            })
+        }
+    };
+    let username = match normalize_username(&body.username) {
+        Ok(username) => username,
+        Err(message) => {
+            return HttpResponse::BadRequest().json(MessageBody {
+                message: message.into(),
+            })
+        }
+    };
+    if body.password.chars().count() < 12 || body.password.len() > 1024 {
+        return HttpResponse::BadRequest().json(MessageBody {
+            message: "Password must contain at least 12 characters.".into(),
+        });
+    }
+
+    let password = body.password.clone();
+    let password_hash = match tokio::task::spawn_blocking(move || {
+        let mut salt_bytes = [0_u8; 16];
+        rand::rng().fill(&mut salt_bytes);
+        let salt = SaltString::encode_b64(&salt_bytes).map_err(|error| error.to_string())?;
+        Argon2::default()
+            .hash_password(password.as_bytes(), &salt)
+            .map(|hash| hash.to_string())
+            .map_err(|error| error.to_string())
+    })
+    .await
+    {
+        Ok(Ok(hash)) => hash,
+        Ok(Err(error)) => {
+            eprintln!("password hashing failed: {error}");
+            return HttpResponse::InternalServerError().json(MessageBody {
+                message: "Unable to create your account right now.".into(),
+            });
+        }
+        Err(error) => {
+            eprintln!("password hashing task failed: {error}");
+            return HttpResponse::InternalServerError().json(MessageBody {
+                message: "Unable to create your account right now.".into(),
+            });
+        }
     };
 
-    // 2. Insert; UNIQUE sẽ chặn email trùng
-    let otp = generate_otp();
-    let res = sqlx::query(
-        "INSERT INTO app_user (email, otp_code, otp_expires_at)
-         VALUES ($1, $2, now() + interval '10 minutes')",
+    match sqlx::query(
+        "INSERT INTO users (email, username, password_hash)
+         VALUES ($1, $2, $3)",
     )
-    .bind(&email)
-    .bind(&otp)
+    .bind(email)
+    .bind(username)
+    .bind(password_hash)
     .execute(pool.get_ref())
-    .await;
-
-    match res {
-        Ok(_) => {
-            send_otp_email_stub(&email, &otp);
-            HttpResponse::Created().json(msg("Account created. We sent a 6-digit OTP to your email."))
+    .await
+    {
+        Ok(_) => HttpResponse::Created().json(MessageBody {
+            message: "Account created. Continue with Microsoft to verify your NEU Outlook address; then you can sign in with your username and password.".into(),
+        }),
+        Err(sqlx::Error::Database(error)) if error.is_unique_violation() => {
+            HttpResponse::Conflict().json(MessageBody {
+                message: "That email or username is already registered. Sign in or choose another username.".into(),
+            })
         }
-        // 3. Trùng email -> 409, không có dòng mới
-        Err(sqlx::Error::Database(db)) if db.is_unique_violation() => {
-            HttpResponse::Conflict().json(msg("This email is already registered"))
-        }
-        Err(e) => {
-            eprintln!("register failed: {e}");
-            HttpResponse::InternalServerError().json(msg("Something went wrong, please try again"))
+        Err(error) => {
+            eprintln!("account registration failed: {error}");
+            HttpResponse::InternalServerError().json(MessageBody {
+                message: "Unable to create your account right now.".into(),
+            })
         }
     }
 }

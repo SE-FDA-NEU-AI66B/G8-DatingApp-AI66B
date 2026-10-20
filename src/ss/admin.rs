@@ -14,14 +14,14 @@ struct DashboardStatisticsRow {
 }
 
 const DASHBOARD_QUERY: &str = "SELECT
-    (SELECT COUNT(*) FROM app_user WHERE email_verified = TRUE) AS total_registered_users,
+    (SELECT COUNT(*) FROM users WHERE email_verified = TRUE) AS total_registered_users,
     -- Active means overlapping the current time and next 24 hours.
     (SELECT COUNT(*)
-    FROM study_date_request
+    FROM study_dates
     WHERE status = 'active'
       AND starts_at < now() + interval '24 hours'
       AND ends_at > now()) AS active_study_date_requests,
-    (SELECT COUNT(*) FROM report WHERE status = 'pending') AS pending_reports";
+    (SELECT COUNT(*) FROM user_reports WHERE status = 'pending') AS pending_reports";
 
 #[get("/api/admin/access")]
 pub async fn admin_access(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
@@ -86,7 +86,6 @@ pub async fn health_status(request: HttpRequest, pool: web::Data<PgPool>) -> Htt
 #[cfg(test)]
 mod tests {
     use super::{DashboardStatisticsRow, DASHBOARD_QUERY};
-    use crate::ss::migrate;
     use sqlx::postgres::PgPoolOptions;
 
     #[test]
@@ -104,16 +103,9 @@ mod tests {
             .connect(&database_url)
             .await
             .expect("test database must be reachable");
-        migrate::run(&pool)
-            .await
-            .expect("first migration must succeed");
-        migrate::run(&pool)
-            .await
-            .expect("migration must be idempotent");
-
         let mut transaction = pool.begin().await.expect("fixture transaction must start");
         sqlx::query(
-            "INSERT INTO app_user (email, email_verified)
+            "INSERT INTO users (email, email_verified)
              VALUES
                 ('verified-dashboard-test@neu.edu.vn', TRUE),
                 ('pending-dashboard-test@neu.edu.vn', FALSE)",
@@ -122,20 +114,20 @@ mod tests {
         .await
         .expect("user fixtures must insert");
 
-        let verified_id: i64 = sqlx::query_scalar(
-            "SELECT id FROM app_user WHERE email = 'verified-dashboard-test@neu.edu.vn'",
+        let verified_id: uuid::Uuid = sqlx::query_scalar(
+            "SELECT id FROM users WHERE email = 'verified-dashboard-test@neu.edu.vn'",
         )
         .fetch_one(&mut *transaction)
         .await
         .expect("verified fixture must exist");
-        let pending_id: i64 = sqlx::query_scalar(
-            "SELECT id FROM app_user WHERE email = 'pending-dashboard-test@neu.edu.vn'",
+        let pending_id: uuid::Uuid = sqlx::query_scalar(
+            "SELECT id FROM users WHERE email = 'pending-dashboard-test@neu.edu.vn'",
         )
         .fetch_one(&mut *transaction)
         .await
         .expect("pending fixture must exist");
         sqlx::query(
-            "INSERT INTO study_date_request (creator_id, starts_at, ends_at, duration_min, status)
+            "INSERT INTO study_dates (creator_id, starts_at, ends_at, duration_min, status)
              VALUES ($1, now() + interval '1 hour', now() + interval '2 hours', 60, 'active')",
         )
         .bind(verified_id)
@@ -143,7 +135,7 @@ mod tests {
         .await
         .expect("study-date fixture must insert");
         sqlx::query(
-            "INSERT INTO report (reporter_id, reported_user_id, status)
+            "INSERT INTO user_reports (reporter_id, reported_user_id, status)
              VALUES ($1, $2, 'pending')",
         )
         .bind(verified_id)

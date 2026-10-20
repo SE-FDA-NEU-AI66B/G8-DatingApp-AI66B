@@ -2,6 +2,7 @@ use super::auth;
 use crate::lib::share::{matching::*, register::MessageBody};
 use actix_web::{get, http::StatusCode, post, web, HttpRequest, HttpResponse};
 use sqlx::PgPool;
+use uuid::Uuid;
 
 fn reply(status: StatusCode, message: &str) -> HttpResponse {
     HttpResponse::build(status).json(MessageBody {
@@ -32,14 +33,14 @@ const NOT_REQUEST_RECIPIENT: &str = "You are not the recipient of this request";
 async fn request_belongs_to_another_user<'e, E>(
     executor: E,
     id: i64,
-    me: i64,
+    me: Uuid,
 ) -> Result<bool, sqlx::Error>
 where
     E: sqlx::Executor<'e, Database = sqlx::Postgres>,
 {
     sqlx::query_scalar(
         "SELECT EXISTS (
-            SELECT 1 FROM match_request WHERE id = $1 AND receiver_id <> $2
+            SELECT 1 FROM match_requests WHERE id = $1 AND receiver_id <> $2
          )",
     )
     .bind(id)
@@ -52,17 +53,64 @@ where
 
 const RELATION_QUERY: &str = "SELECT CASE
     WHEN u.id = $1 THEN 'self'
-    WHEN EXISTS (SELECT 1 FROM match_request m WHERE m.status = 'accepted'
+    WHEN EXISTS (SELECT 1 FROM match_requests m WHERE m.status = 'accepted'
                  AND ((m.sender_id = $1 AND m.receiver_id = u.id)
                    OR (m.sender_id = u.id AND m.receiver_id = $1))) THEN 'matched'
-    WHEN EXISTS (SELECT 1 FROM match_request m
+    WHEN EXISTS (SELECT 1 FROM match_requests m
                  WHERE m.sender_id = $1 AND m.receiver_id = u.id) THEN 'pending'
-    WHEN EXISTS (SELECT 1 FROM match_request m
+    WHEN EXISTS (SELECT 1 FROM match_requests m
                  WHERE m.sender_id = u.id AND m.receiver_id = $1
                    AND m.status = 'pending') THEN 'incoming'
     ELSE 'none' END
-FROM app_user u
+FROM users u
 WHERE u.id = $2 AND u.email_verified";
+
+#[derive(serde::Deserialize)]
+pub struct ProfileSearchQuery {
+    q: String,
+}
+
+#[get("/api/profiles/search")]
+pub async fn search_profiles(
+    request: HttpRequest,
+    pool: web::Data<PgPool>,
+    query: web::Query<ProfileSearchQuery>,
+) -> HttpResponse {
+    let me = current_user!(request, pool);
+    let term = query.q.trim();
+    let pattern = if term.is_empty() {
+        "%".to_string()
+    } else {
+        format!("%{term}%")
+    };
+    match sqlx::query_as::<_, ProfileSearchResult>(
+        "SELECT u.id AS user_id,
+                COALESCE(NULLIF(btrim(p.display_name), ''), NULLIF(btrim(u.username), ''), split_part(u.email, '@', 1)) AS display_name,
+                p.cohort,
+                COALESCE(p.bio, '') AS bio,
+                COALESCE(p.interests, '') AS interests
+         FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id
+         WHERE u.email_verified AND u.id <> $1
+           AND ($3::boolean OR COALESCE(NULLIF(btrim(p.display_name), ''), '') ILIKE $2
+                OR COALESCE(u.username, '') ILIKE $2)
+           AND NOT EXISTS (
+               SELECT 1 FROM match_requests m
+               WHERE (m.sender_id = $1 AND m.receiver_id = u.id)
+                  OR (m.sender_id = u.id AND m.receiver_id = $1 AND m.status IN ('pending', 'accepted'))
+           )
+         ORDER BY u.created_at DESC, display_name ASC
+         LIMIT 25",
+    )
+    .bind(me.id)
+    .bind(pattern)
+    .bind(term.is_empty())
+    .fetch_all(pool.get_ref())
+    .await
+    {
+        Ok(profiles) => HttpResponse::Ok().json(profiles),
+        Err(error) => db_error("search profiles", error),
+    }
+}
 
 fn relation_from_db(value: &str) -> Relation {
     match value {
@@ -78,7 +126,7 @@ fn relation_from_db(value: &str) -> Relation {
 pub async fn get_profile(
     request: HttpRequest,
     pool: web::Data<PgPool>,
-    path: web::Path<i64>,
+    path: web::Path<Uuid>,
 ) -> HttpResponse {
     let me = current_user!(request, pool);
     let target = path.into_inner();
@@ -88,16 +136,32 @@ pub async fn get_profile(
         .fetch_optional(pool.get_ref())
         .await
     {
-        Ok(Some(rel)) => HttpResponse::Ok().json(ProfileView {
-            user_id: target,
-            relation: relation_from_db(&rel),
-        }),
+        Ok(Some(rel)) => match sqlx::query_as::<_, crate::lib::share::user_profile::UserProfile>(
+            "SELECT COALESCE(p.display_name, u.username, split_part(u.email, '@', 1)) AS display_name,
+                    COALESCE(p.bio, '') AS bio, p.cohort,
+                    COALESCE(p.interests, '') AS interests
+             FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id WHERE u.id = $1",
+        )
+        .bind(target)
+        .fetch_one(pool.get_ref())
+        .await
+        {
+            Ok(details) => HttpResponse::Ok().json(ProfileView {
+                user_id: target,
+                relation: relation_from_db(&rel),
+                display_name: details.display_name,
+                bio: details.bio,
+                cohort: details.cohort,
+                interests: details.interests,
+            }),
+            Err(e) => db_error("load profile details", e),
+        },
         Ok(None) => reply(StatusCode::NOT_FOUND, "Profile not found"),
         Err(e) => db_error("get profile", e),
     }
 }
 
-async fn try_send(pool: &PgPool, me: i64, to: i64) -> Result<HttpResponse, sqlx::Error> {
+async fn try_send(pool: &PgPool, me: Uuid, to: Uuid) -> Result<HttpResponse, sqlx::Error> {
     if me == to {
         return Ok(reply(
             StatusCode::BAD_REQUEST,
@@ -106,23 +170,22 @@ async fn try_send(pool: &PgPool, me: i64, to: i64) -> Result<HttpResponse, sqlx:
     }
     let mut tx = pool.begin().await?;
     // Tuần tự hóa các request của cùng một người gửi để giới hạn 20/ngày không bị vượt khi gửi song song.
-    sqlx::query("SELECT pg_advisory_xact_lock($1)")
+    sqlx::query("SELECT pg_advisory_xact_lock(hashtextextended($1::text, 0))")
         .bind(me)
         .execute(&mut *tx)
         .await?;
 
-    let exists: bool = sqlx::query_scalar(
-        "SELECT EXISTS (SELECT 1 FROM app_user WHERE id = $1 AND email_verified)",
-    )
-    .bind(to)
-    .fetch_one(&mut *tx)
-    .await?;
+    let exists: bool =
+        sqlx::query_scalar("SELECT EXISTS (SELECT 1 FROM users WHERE id = $1 AND email_verified)")
+            .bind(to)
+            .fetch_one(&mut *tx)
+            .await?;
     if !exists {
         return Ok(reply(StatusCode::NOT_FOUND, "Profile not found"));
     }
 
-    let existing: Vec<(i64, String)> = sqlx::query_as(
-        "SELECT sender_id, status FROM match_request
+    let existing: Vec<(Uuid, String)> = sqlx::query_as(
+        "SELECT sender_id, status FROM match_requests
          WHERE (sender_id = $1 AND receiver_id = $2)
             OR (sender_id = $2 AND receiver_id = $1)",
     )
@@ -145,7 +208,7 @@ async fn try_send(pool: &PgPool, me: i64, to: i64) -> Result<HttpResponse, sqlx:
     }
 
     let sent_today: i64 = sqlx::query_scalar(
-        "SELECT COUNT(*) FROM match_request
+        "SELECT COUNT(*) FROM match_requests
          WHERE sender_id = $1
            AND created_at >= (date_trunc('day', now() AT TIME ZONE 'Asia/Ho_Chi_Minh')
                               AT TIME ZONE 'Asia/Ho_Chi_Minh')",
@@ -157,7 +220,7 @@ async fn try_send(pool: &PgPool, me: i64, to: i64) -> Result<HttpResponse, sqlx:
         return Ok(reply(StatusCode::TOO_MANY_REQUESTS, DAILY_LIMIT_MESSAGE));
     }
 
-    sqlx::query("INSERT INTO match_request (sender_id, receiver_id) VALUES ($1, $2)")
+    sqlx::query("INSERT INTO match_requests (sender_id, receiver_id) VALUES ($1, $2)")
         .bind(me)
         .bind(to)
         .execute(&mut *tx)
@@ -189,10 +252,12 @@ pub async fn incoming_requests(request: HttpRequest, pool: web::Data<PgPool>) ->
     let me = current_user!(request, pool);
     match sqlx::query_as::<_, IncomingRequest>(
         "SELECT id, sender_id,
-                to_char(created_at AT TIME ZONE 'Asia/Ho_Chi_Minh', 'YYYY-MM-DD HH24:MI') AS created_at
-         FROM match_request
-         WHERE receiver_id = $1 AND status = 'pending'
-         ORDER BY match_request.created_at DESC, id DESC",
+                to_char(created_at AT TIME ZONE 'Asia/Ho_Chi_Minh', 'YYYY-MM-DD HH24:MI') AS created_at,
+                status
+         FROM match_requests
+         WHERE receiver_id = $1 AND status IN ('pending', 'declined')
+         ORDER BY CASE WHEN status = 'pending' THEN 0 ELSE 1 END,
+                  match_requests.created_at DESC, id DESC",
     )
     .bind(me.id)
     .fetch_all(pool.get_ref())
@@ -208,8 +273,8 @@ pub async fn matched_users(request: HttpRequest, pool: web::Data<PgPool>) -> Htt
     let me = current_user!(request, pool);
     match sqlx::query_as::<_, MatchedUser>(
         "SELECT CASE WHEN user_low = $1 THEN user_high ELSE user_low END AS user_id,
-                id AS chat_room_id
-         FROM chat_room
+                id AS conversation_id
+         FROM conversations
          WHERE user_low = $1 OR user_high = $1
          ORDER BY created_at DESC, id DESC",
     )
@@ -222,10 +287,10 @@ pub async fn matched_users(request: HttpRequest, pool: web::Data<PgPool>) -> Htt
     }
 }
 
-async fn try_accept(pool: &PgPool, me: i64, id: i64) -> Result<HttpResponse, sqlx::Error> {
+async fn try_accept(pool: &PgPool, me: Uuid, id: i64) -> Result<HttpResponse, sqlx::Error> {
     let mut tx = pool.begin().await?;
-    let sender: Option<i64> = sqlx::query_scalar(
-        "UPDATE match_request SET status = 'accepted', responded_at = now()
+    let sender: Option<Uuid> = sqlx::query_scalar(
+        "UPDATE match_requests SET status = 'accepted', responded_at = now()
          WHERE id = $1 AND receiver_id = $2 AND status = 'pending'
          RETURNING sender_id",
     )
@@ -244,11 +309,11 @@ async fn try_accept(pool: &PgPool, me: i64, id: i64) -> Result<HttpResponse, sql
     } else {
         (me, sender)
     };
-    let room: i64 = sqlx::query_scalar(
-        "INSERT INTO chat_room (user_low, user_high, match_request_id)
+    let conversation_id: i64 = sqlx::query_scalar(
+        "INSERT INTO conversations (user_low, user_high, match_request_id)
          VALUES ($1, $2, $3)
          ON CONFLICT (user_low, user_high)
-         DO UPDATE SET match_request_id = chat_room.match_request_id
+         DO UPDATE SET match_request_id = conversations.match_request_id
          RETURNING id",
     )
     .bind(low)
@@ -259,7 +324,7 @@ async fn try_accept(pool: &PgPool, me: i64, id: i64) -> Result<HttpResponse, sql
     tx.commit().await?;
     Ok(HttpResponse::Ok().json(MatchedUser {
         user_id: sender,
-        chat_room_id: room,
+        conversation_id,
     }))
 }
 
@@ -285,7 +350,7 @@ pub async fn decline_request(
     let me = current_user!(request, pool);
     let id = path.into_inner();
     match sqlx::query_scalar::<_, i64>(
-        "UPDATE match_request SET status = 'declined', responded_at = now()
+        "UPDATE match_requests SET status = 'declined', responded_at = now()
          WHERE id = $1 AND receiver_id = $2 AND status = 'pending'
          RETURNING id",
     )
@@ -307,14 +372,14 @@ pub async fn decline_request(
 #[cfg(test)]
 mod tests {
     use super::{accept_request, decline_request};
-    use crate::ss::migrate;
     use actix_web::{cookie::Cookie, http::StatusCode, test, web, App};
     use rand::random;
     use sha2::{Digest, Sha256};
     use sqlx::{postgres::PgPoolOptions, PgPool};
+    use uuid::Uuid;
 
-    async fn insert_user(pool: &PgPool, email: String) -> i64 {
-        sqlx::query_scalar("INSERT INTO app_user (email) VALUES ($1) RETURNING id")
+    async fn insert_user(pool: &PgPool, email: String) -> Uuid {
+        sqlx::query_scalar("INSERT INTO users (email) VALUES ($1) RETURNING id")
             .bind(email)
             .fetch_one(pool)
             .await
@@ -331,10 +396,6 @@ mod tests {
             .connect(&database_url)
             .await
             .expect("test database must be reachable");
-        migrate::run(&pool)
-            .await
-            .expect("database migrations must succeed");
-
         let unique = random::<u64>();
         let sender_one = insert_user(&pool, format!("sender-one-{unique}@neu.edu.vn")).await;
         let sender_two = insert_user(&pool, format!("sender-two-{unique}@neu.edu.vn")).await;
@@ -342,7 +403,7 @@ mod tests {
         let current_user = insert_user(&pool, format!("outsider-{unique}@neu.edu.vn")).await;
         let request_ids: Vec<i64> = vec![
             sqlx::query_scalar(
-                "INSERT INTO match_request (sender_id, receiver_id) VALUES ($1, $2) RETURNING id",
+                "INSERT INTO match_requests (sender_id, receiver_id) VALUES ($1, $2) RETURNING id",
             )
             .bind(sender_one)
             .bind(receiver)
@@ -350,7 +411,7 @@ mod tests {
             .await
             .expect("first pending request should be inserted"),
             sqlx::query_scalar(
-                "INSERT INTO match_request (sender_id, receiver_id) VALUES ($1, $2) RETURNING id",
+                "INSERT INTO match_requests (sender_id, receiver_id) VALUES ($1, $2) RETURNING id",
             )
             .bind(sender_two)
             .bind(receiver)
@@ -360,9 +421,9 @@ mod tests {
         ];
 
         let token = format!("test-session-{unique}");
-        let token_hash = format!("{:x}", Sha256::digest(token.as_bytes()));
+        let token_hash = hex::encode(Sha256::digest(token.as_bytes()));
         sqlx::query(
-            "INSERT INTO auth_session (token_hash, user_id, expires_at)
+            "INSERT INTO auth_cookies (token_hash, user_id, expires_at)
              VALUES ($1, $2, now() + interval '1 hour')",
         )
         .bind(token_hash)
@@ -389,24 +450,24 @@ mod tests {
         }
 
         let statuses: Vec<String> =
-            sqlx::query_scalar("SELECT status FROM match_request WHERE id = ANY($1) ORDER BY id")
+            sqlx::query_scalar("SELECT status FROM match_requests WHERE id = ANY($1) ORDER BY id")
                 .bind(&request_ids)
                 .fetch_all(&pool)
                 .await
                 .expect("request statuses should be readable");
         assert_eq!(statuses, ["pending", "pending"]);
 
-        sqlx::query("DELETE FROM match_request WHERE id = ANY($1)")
+        sqlx::query("DELETE FROM match_requests WHERE id = ANY($1)")
             .bind(&request_ids)
             .execute(&pool)
             .await
             .expect("test requests should be removed");
-        sqlx::query("DELETE FROM auth_session WHERE user_id = $1")
+        sqlx::query("DELETE FROM auth_cookies WHERE user_id = $1")
             .bind(current_user)
             .execute(&pool)
             .await
             .expect("test session should be removed");
-        sqlx::query("DELETE FROM app_user WHERE id = ANY($1)")
+        sqlx::query("DELETE FROM users WHERE id = ANY($1)")
             .bind([sender_one, sender_two, receiver, current_user])
             .execute(&pool)
             .await

@@ -109,11 +109,12 @@ Target Audience: National Economics University (NEU) students.
 As Minh Chau, I want to register using my @neu.edu.vn email so that I am verified as a real NEU student.
 
 - **Acceptance criteria**
-  - Given I enter the email "minhchau@neu.edu.vn" and submit, then my account is created and I receive a 6-digit OTP code for verification.
+  - Given I register with a username, an email at `neu.edu.vn` or any of its subdomains, and a password, then an account is created pending email verification.
+  - Given I verify that email through Microsoft Outlook, then I can sign in with my username and password or Microsoft.
   - Given I enter the email "minhchau@gmail.com", when I submit the form, then it is rejected with the exact message "Please use a valid @neu.edu.vn email address".
 - **Tasks**
   - Registration UI and input validation - @quang
-  - Backend authentication and email OTP routing - @hai
+  - OAuth2 authentication and account provisioning - @hai
   - Automated tests for domain rejections - @quyen
 
 **US02 - Create a study date request · P0 · 8 points · Screen: /study-date/new**
@@ -260,7 +261,7 @@ As an admin, I want to see a log of important actions so that I can trace proble
 - **Acceptance criteria**
   - Given important actions occur, when I open `/admin_console/logs`, then the log includes user registration, account deactivation, report submission, and admin moderation actions with the actor, action, target when applicable, and timestamp.
   - Given multiple log entries exist, when the page loads, then entries are displayed newest first and can be filtered by action type.
-  - Given an action is recorded, then its log entry does not expose passwords, OTP codes, or authentication tokens.
+  - Given an action is recorded, then its log entry does not expose passwords, OAuth tokens, or authentication tokens.
 
 ## Business rules
 

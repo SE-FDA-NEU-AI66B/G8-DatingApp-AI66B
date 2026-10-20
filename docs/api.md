@@ -6,23 +6,37 @@ documented error status.
 
 | Method | Path | Input | Success | Errors |
 |---|---|---|---|---|
-| POST | `/api/register` | `{email}` | `201` | `400`, `409`, `500` |
-| POST | `/api/auth/login` | `{email, otp}` | `200`, session cookie | `400`, `401`, `500` |
-| POST | `/api/auth/logout` | session cookie | `204`, clears cookie | `500` |
-| GET | `/api/study-dates` | session cookie | `200`, active study-date cards | `401`, `500` |
-| POST | `/api/study-dates` | session cookie, `{starts_at, duration_min}` | `201`, created study date | `401`, `422`, `500` |
-| GET | `/api/profiles/{id}` | session cookie | `200`, profile and relationship | `401`, `404`, `500` |
-| POST | `/api/match-requests` | session cookie, `{to_user_id}` | `201`, request sent | `400`, `401`, `404`, `409`, `429`, `500` |
-| GET | `/api/match-requests/incoming` | session cookie | `200`, incoming requests | `401`, `500` |
-| GET | `/api/matches` | session cookie | `200`, matched users | `401`, `500` |
-| POST | `/api/match-requests/{id}/accept` | session cookie | `200`, match and chat-room id | `401`, `403`, `404`, `500` |
-| POST | `/api/match-requests/{id}/decline` | session cookie | `200`, decline confirmation | `401`, `403`, `404`, `500` |
-| GET | `/api/admin/access` | admin session cookie | `204` | `401`, `403`, `500` |
-| GET | `/api/admin/statistics` | admin session cookie | `200`, three counts | `401`, `403`, `500` |
-| GET | `/api/admin/health` | admin session cookie | `200`, server/database status and timestamps | `401`, `403` |
+| POST | `/api/register` | `{ email, username, password }` | `201`, account created pending Microsoft verification | `400`, `409`, `500` |
+| POST | `/api/auth/password` | `{ username_or_email, password }` (`email` is also accepted) | `200`, session cookie | `401`, `403` unverified email, `500` |
+| GET | `/api/auth/session` | session cookie | `200`, current user's username, NEU email, and role | `401`, `500` |
+| GET | `/api/auth/login` | — | Redirect to configured OAuth2 provider | `500` |
+| GET | `/api/auth/callback` | OAuth2 authorization response | `302`, session cookie | `400`, `401`, `500` |
+| POST | `/api/auth/logout` | session cookie | `204` | `401` |
+| GET | `/api/profiles/{id}` | session cookie | `200`, profile details and relationship to current user | `401`, `404`, `500` |
+| GET | `/api/admin/statistics` | session cookie | `200`, three counts | `401`, `403`, `500` |
+| GET | `/api/admin/health` | session cookie | `200`, server/database status and timestamps | `401`, `403` |
+| GET | `/api/user-profile` | session cookie | `200`, current user's profile (empty defaults until saved) | `401`, `404`, `500` |
+| PUT | `/api/user-profile` | `{ display_name, bio, cohort, interests }` | `200`, saved profile | `400`, `401`, `500` |
+| GET | `/api/conversations` | session cookie | `200`, current user's matched conversations and latest messages | `401`, `500` |
+| GET | `/api/conversations/{id}/messages` | session cookie | `200`, up to 500 messages in chronological order | `401`, `404`, `500` |
+| POST | `/api/conversations/{id}/messages` | `{ body }` (1–2000 characters) | `201`, created message | `400`, `401`, `404`, `500` |
+| GET | `/api/threads` | session cookie | `200`, newest community threads with comment counts | `401`, `500` |
+| POST | `/api/threads` | `{ title, body }` (title 1–120, body 1–3000 characters) | `201`, created thread | `400`, `401`, `500` |
+| GET | `/api/threads/{id}/comments` | session cookie | `200`, comments in chronological order | `401`, `404`, `500` |
+| POST | `/api/threads/{id}/comments` | `{ body }` (1–2000 characters) | `201`, created comment | `400`, `401`, `404`, `500` |
 
-The admin statistics endpoint intentionally returns an error object with a
-`message` instead of silently converting database failures to zero values.
-`422` (study-date input validation) and `429` (match-request daily limit) are
-new since M2. The implementation has no `/api/auth/register`,
-`/api/auth/request-otp`, or `/api/auth/verify-otp` route.
+The admin endpoints intentionally return an error object with a `message`
+instead of silently converting database failures to zero values.
+
+Chat endpoints only expose conversations to their two matched participants.
+Messages are stored in `chat_messages`; the application database notebook
+creates this table when it recreates the development schema.
+
+The signed-in `/userhome` page includes a community feed beneath the profile
+and action cards. Threads and comments are stored in `threads` and
+`thread_comments`; chat remains private one-to-one messaging between matched
+participants.
+
+User profile details are private to the signed-in account and are stored in
+`user_profiles`. The `/user_profile` page lets an account edit its display
+name, short bio, cohort label, and interests.

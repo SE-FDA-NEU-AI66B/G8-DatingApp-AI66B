@@ -10,20 +10,20 @@ pub const MAX_DURATION_MIN: i32 = 720;
 pub const MAX_DURATION_ERROR: &str = "Maximum study date duration is 12 hours";
 
 // "Active" dùng cùng định nghĩa với dashboard admin: giao với [now, now+24h].
-// Qualify `study_date_request.starts_at` trong ORDER BY để không sort theo alias dạng text.
+// Qualify `study_dates.starts_at` trong ORDER BY để không sort theo alias dạng text.
 pub const FEED_QUERY: &str = "SELECT
     id,
     creator_id,
     to_char(starts_at AT TIME ZONE 'Asia/Ho_Chi_Minh', 'YYYY-MM-DD HH24:MI') AS starts_at,
     to_char(ends_at   AT TIME ZONE 'Asia/Ho_Chi_Minh', 'YYYY-MM-DD HH24:MI') AS ends_at,
     (creator_id = $1) AS is_mine
-FROM study_date_request
+FROM study_dates
 WHERE status = 'active'
-  AND study_date_request.starts_at < now() + interval '24 hours'
-  AND study_date_request.ends_at > now()
-ORDER BY study_date_request.starts_at ASC, id ASC";
+  AND study_dates.starts_at < now() + interval '24 hours'
+  AND study_dates.ends_at > now()
+ORDER BY study_dates.starts_at ASC, id ASC";
 
-const CREATE_QUERY: &str = "INSERT INTO study_date_request
+const CREATE_QUERY: &str = "INSERT INTO study_dates
     (creator_id, starts_at, ends_at, duration_min, status)
 VALUES (
     $1,
@@ -165,7 +165,7 @@ mod tests {
 
     #[test]
     fn feed_is_sorted_chronologically_on_the_real_column() {
-        assert!(FEED_QUERY.contains("ORDER BY study_date_request.starts_at ASC"));
+        assert!(FEED_QUERY.contains("ORDER BY study_dates.starts_at ASC"));
     }
 
     #[test]

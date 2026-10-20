@@ -30,6 +30,14 @@ coverage issue is still open.
 | US12 — Restrict admin console to admins | Admin console | `/admin_console` | partly works | Implementation: [#67](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/67), [#76](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/76); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
 | US13 — View database and server status | Admin console health | `/admin_console` | partly works | Implementation: [#68](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/68); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
 
+                                            ┌─────────────┐
+                                            │      /      │
+                                            └──────┬──────┘
+                                                   │ sign in
+                                                   ▼
+                 ┌─────────────────┐if admin┌─────────────────┐    ┌─────────────────┐    ┌────────────┐
+                 │  /admin_console │────────│   /user_home     │────│  /user_profile  │────│   /chat    │
+                 └─────────────────┘        └─────────────────┘    └─────────────────┘    └────────────┘
 US01 is partial because the generated OTP is currently written to the
 development server log rather than delivered by an email provider, and there
 is no sign-in screen. US04, US05, US12, and US13 are marked partial until the
@@ -93,3 +101,4 @@ The currently registered P0 routes are `/`, `/register`, `/feed`,
 `/study-date/new`, `/profile/:id`, `/requests`, and `/admin_console`. No
 `/user_profile`, `/user_home`, or `/chat` route is included in this P0 flow;
 chat remains outside P0.
+>>>>>>> origin/main

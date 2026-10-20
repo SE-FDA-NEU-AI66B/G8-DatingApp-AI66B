@@ -1,15 +1,12 @@
-#![feature(test)]
-// #![allow(unused_crate_dependencies)]
 mod ss;
 use std::env;
 mod worker;
 pub use datingapp as lib;
+
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    if env::var_os("PGPASSPORT").is_none() {
-        env::set_var("PGPASSPORT", "5432");
-    }
+    let _ = dotenvy::dotenv();
     use actix_files::Files;
     use actix_web::*;
     use leptos::config::get_configuration;
@@ -17,46 +14,43 @@ async fn main() -> std::io::Result<()> {
     use leptos_actix::{generate_route_list, LeptosRoutes};
     use leptos_meta::MetaTags;
     use lib::app::*;
-    // if true {
-    //     use std::time::Instant;
-    //     let start = Instant::now();
-    //     let (n, m) = (40, 10000);
-    //     ss::functions::tests::database_speed5(n, m).await;
-    //     let dur = Instant::now() - start;
-    //     println!("{} in {:?}", n * m, dur);
-    //     println!(
-    //         "{:?} req/s",
-    //         (time::Duration::seconds(1) / dur) * (m * n) as f64
-    //     );
-    //     return Ok(());
-    // }
     let conf = get_configuration(None).unwrap();
     let addr = conf.leptos_options.site_addr;
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(10)
         .connect(&ss::functions::get_db_uri())
         .await
-        .expect("cannot connect to postgres (is PGPASS set and `mise run database` running?)");
-    ss::migrate::run(&pool).await.expect("migration failed");
+        .expect("cannot connect to PostgreSQL (check DATABASE_URL and `mise run database`)");
     ss::auth::configure_admin(&pool, env::var("ADMIN_EMAIL").ok().as_deref())
         .await
         .expect("admin role configuration failed");
     let pool = web::Data::new(pool);
 
-    // std::env::set_var("RUST_LOG", "debug");
-    // env_logger::init();
     let server = HttpServer::new(move || {
         // Generate the list of routes in your Leptos App
         let routes = generate_route_list(App);
         let leptos_options = &conf.leptos_options;
         let site_root = leptos_options.site_root.clone().to_string();
         println!("listening on http://{}", &addr);
+
         App::new()
             .configure(worker::config)
             .app_data(pool.clone())
             .service(
                 actix_web::web::resource("/api/auth/login")
-                    .route(actix_web::web::post().to(ss::auth::login)),
+                    .route(actix_web::web::get().to(ss::auth::login)),
+            )
+            .service(
+                actix_web::web::resource("/api/auth/password")
+                    .route(actix_web::web::post().to(ss::auth::password_login)),
+            )
+            .service(
+                actix_web::web::resource("/api/auth/session")
+                    .route(actix_web::web::get().to(ss::auth::session)),
+            )
+            .service(
+                actix_web::web::resource("/api/auth/callback")
+                    .route(actix_web::web::get().to(ss::auth::callback)),
             )
             .service(
                 actix_web::web::resource("/api/auth/logout")
@@ -71,12 +65,22 @@ async fn main() -> std::io::Result<()> {
                     .route(actix_web::web::get().to(ss::study_date::list_study_dates))
                     .route(actix_web::web::post().to(ss::study_date::create_study_date)),
             )
+            .service(ss::matching::search_profiles)
             .service(ss::matching::get_profile)
             .service(ss::matching::send_request)
             .service(ss::matching::incoming_requests)
             .service(ss::matching::matched_users)
             .service(ss::matching::accept_request)
             .service(ss::matching::decline_request)
+            .service(ss::chat::conversations)
+            .service(ss::chat::messages)
+            .service(ss::chat::send_message)
+            .service(ss::community::list_threads)
+            .service(ss::community::create_thread)
+            .service(ss::community::list_thread_comments)
+            .service(ss::community::create_thread_comment)
+            .service(ss::user_profile::get_user_profile)
+            .service(ss::user_profile::save_user_profile)
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve other assets from the `assets` directory

@@ -20,11 +20,17 @@ async fn parse<T: DeserializeOwned>(resp: Response) -> Result<T, String> {
 }
 
 pub async fn get_json<T: DeserializeOwned>(url: &str) -> Result<T, String> {
-    let resp = Request::get(url).send().await.map_err(|_| NETWORK_ERROR.to_string())?;
+    let resp = Request::get(url)
+        .send()
+        .await
+        .map_err(|_| NETWORK_ERROR.to_string())?;
     parse(resp).await
 }
 
-pub async fn post_json<B: Serialize, T: DeserializeOwned>(url: &str, body: &B) -> Result<T, String> {
+pub async fn post_json<B: Serialize, T: DeserializeOwned>(
+    url: &str,
+    body: &B,
+) -> Result<T, String> {
     let resp = Request::post(url)
         .json(body)
         .map_err(|e| e.to_string())?
@@ -34,7 +40,20 @@ pub async fn post_json<B: Serialize, T: DeserializeOwned>(url: &str, body: &B) -
     parse(resp).await
 }
 
+pub async fn put_json<B: Serialize, T: DeserializeOwned>(url: &str, body: &B) -> Result<T, String> {
+    let resp = Request::put(url)
+        .json(body)
+        .map_err(|e| e.to_string())?
+        .send()
+        .await
+        .map_err(|_| NETWORK_ERROR.to_string())?;
+    parse(resp).await
+}
+
 pub async fn post_empty<T: DeserializeOwned>(url: &str) -> Result<T, String> {
-    let resp = Request::post(url).send().await.map_err(|_| NETWORK_ERROR.to_string())?;
+    let resp = Request::post(url)
+        .send()
+        .await
+        .map_err(|_| NETWORK_ERROR.to_string())?;
     parse(resp).await
 }

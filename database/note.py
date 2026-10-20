@@ -7,7 +7,7 @@ app = marimo.App(width="full", auto_download=["html"])
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    # Setup
+    ## Setup
     """)
     return
 
@@ -16,19 +16,27 @@ def _(mo):
 def _():
     import os
     import marimo as mo
-
     # note if ur new to marimo dont worry about duckdb marimo auto useit if available;since both duckdb and and polars use arrow data format duckdb intergration with marimo can read all polars object and so is the otherway round
     import psycopg2
     import polars as pl  # arrow conpatable
 
     from psycopg2 import sql
 
-    return mo, os, pl, psycopg2
+    return mo, os, psycopg2
 
 
 @app.cell
 def _(os, psycopg2):
     PGPASS = os.environ.get("PGPASS")
+    if PGPASS is None:
+        from pathlib import Path
+
+        env_file = Path(__file__).resolve().parents[1] / ".env"
+        if env_file.exists():
+            for line in env_file.read_text(encoding="utf-8").splitlines():
+                if line.startswith("PGPASS="):
+                    PGPASS = line.partition("=")[2].strip().strip("\"'")
+                    break
     # coonect to the database
     try:
         uri = f"postgresql://postgres:{PGPASS}@localhost/userdb"
@@ -45,58 +53,6 @@ def _(os, psycopg2):
 
 
 @app.cell
-def _():
-    import clickhouse_connect
-
-    _a = "password"
-    conn2 = clickhouse_connect.create_client(host="localhost", username="username", password=_a, port="8123", database="default")
-    return (conn2,)
-
-
-@app.cell
-def _():
-    import mariadb
-    _a = "password"
-    mariadb_uri = "mariadb://root:password@0.0.0.0:3306/mysql"
-    conn3 = mariadb.connect(mariadb_uri )
-    return (conn3,)
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    _df = mo.sql(
-        f"""
-        --INSTALL mysql;
-        --LOAD mysql;
-        ATTACH 'host=localhost user=root port=3306 database=mysql password=password' AS userdb3 (TYPE mysql);
-        """
-    )
-    return
-
-
-app._unparsable_cell(
-    r"""
-    def run_db_operations():
-        conn = None
-        cursor = None
-        try:
-            # 2. Establish a Connection
-            print("Connecting to MariaDB...")
-            conn = mariadb.connect(DATABASE_URL)
-            print("Connection successful!")
-    """,
-    name="_"
-)
-
-
-@app.cell
-def _():
-    uri2 = f"clickhouse://username:password@localhost:9001/my_database"
-    # --- export CLICKHOUSE_URL="tcp://username:password@localhost:9001/?secure=true&skip_verify=true"
-    return (uri2,)
-
-
-@app.cell
 def _(mo, uri):
     _df = mo.sql(
         f"""
@@ -107,12 +63,325 @@ def _(mo, uri):
 
 
 @app.cell
-def _(mo, uri2):
-    _df = mo.sql(
-        f"""
-        ATTACH '{uri2}' AS userdb2 (TYPE		);
+def _(uri):
+    uri
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    app_database_heading = mo.md(r"""
+    ## Application database
+    Recreate the empty application schema here. This drops every table in the
+    connected database's `public` schema, then creates the tables used by the app.
+    The sample-data button below adds reusable demo records without resetting the schema.
+    """)
+    recreate_database_button = mo.ui.run_button(label="Recreate application database")
+    initialize_sample_data_button = mo.ui.run_button(label="Initialize sample data")
+    mo.vstack([app_database_heading, recreate_database_button, initialize_sample_data_button])
+    return initialize_sample_data_button, recreate_database_button
+
+
+@app.cell(hide_code=True)
+def _(conn, mo, recreate_database_button):
+    if recreate_database_button.value:
+        schema_sql = """
+        DROP SCHEMA public CASCADE;
+        CREATE SCHEMA public;
+
+        CREATE TABLE users (
+            id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+            email TEXT NOT NULL UNIQUE,
+            username TEXT UNIQUE,
+            password_hash TEXT,
+            email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+            role TEXT NOT NULL DEFAULT 'user',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT users_email_lowercase CHECK (email = lower(email)),
+            CONSTRAINT users_email_neu CHECK (
+                email ~ '^[^@]+@([a-z0-9]([a-z0-9-]*[a-z0-9])?[.])*neu[.]edu[.]vn$'
+            ),
+            CONSTRAINT users_username_valid CHECK (
+                username IS NULL OR username ~ '^[a-z0-9][a-z0-9._-]{1,30}[a-z0-9]$'
+            ),
+            CONSTRAINT users_valid_role CHECK (role IN ('user', 'admin'))
+        );
+
+        CREATE TABLE user_profiles (
+            user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+            display_name TEXT NOT NULL,
+            bio TEXT NOT NULL DEFAULT '',
+            cohort TEXT,
+            interests TEXT NOT NULL DEFAULT '',
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT user_profiles_display_name_length CHECK (char_length(display_name) BETWEEN 1 AND 60),
+            CONSTRAINT user_profiles_bio_length CHECK (char_length(bio) <= 500),
+            CONSTRAINT user_profiles_cohort_length CHECK (cohort IS NULL OR char_length(cohort) <= 24),
+            CONSTRAINT user_profiles_interests_length CHECK (char_length(interests) <= 300)
+        );
+
+        CREATE TABLE auth_cookies (
+            token_hash TEXT PRIMARY KEY,
+            user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            expires_at TIMESTAMPTZ NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT auth_cookies_sha256_token CHECK (token_hash ~ '^[0-9a-f]{64}$')
+        );
+
+        CREATE TABLE study_dates (
+            id BIGSERIAL PRIMARY KEY,
+            creator_id UUID NOT NULL REFERENCES users(id),
+            starts_at TIMESTAMPTZ NOT NULL,
+            ends_at TIMESTAMPTZ NOT NULL,
+            duration_min INTEGER NOT NULL DEFAULT 60,
+            status TEXT NOT NULL DEFAULT 'active',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT study_dates_valid_status CHECK (
+                status IN ('active', 'cancelled', 'expired', 'completed')
+            ),
+            CONSTRAINT study_dates_valid_duration CHECK (duration_min BETWEEN 1 AND 720),
+            CONSTRAINT study_dates_valid_window CHECK (ends_at > starts_at),
+            CONSTRAINT study_dates_duration_matches_window CHECK (
+                ends_at = starts_at + duration_min * interval '1 minute'
+            )
+        );
+
+        CREATE TABLE user_reports (
+            id BIGSERIAL PRIMARY KEY,
+            reporter_id UUID NOT NULL REFERENCES users(id),
+            reported_user_id UUID NOT NULL REFERENCES users(id),
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT user_reports_valid_status CHECK (
+                status IN ('pending', 'reviewed', 'dismissed')
+            ),
+            CONSTRAINT user_reports_not_self CHECK (reporter_id <> reported_user_id)
+        );
+
+        CREATE TABLE match_requests (
+            id BIGSERIAL PRIMARY KEY,
+            sender_id UUID NOT NULL REFERENCES users(id),
+            receiver_id UUID NOT NULL REFERENCES users(id),
+            status TEXT NOT NULL DEFAULT 'pending',
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            responded_at TIMESTAMPTZ,
+            CONSTRAINT match_requests_valid_status CHECK (
+                status IN ('pending', 'accepted', 'declined')
+            ),
+            CONSTRAINT match_requests_not_self CHECK (sender_id <> receiver_id),
+            CONSTRAINT match_requests_unique_pair UNIQUE (sender_id, receiver_id),
+            CONSTRAINT match_requests_response_state CHECK (
+                (status = 'pending' AND responded_at IS NULL)
+                OR (status IN ('accepted', 'declined') AND responded_at IS NOT NULL)
+            )
+        );
+
+        CREATE TABLE conversations (
+            id BIGSERIAL PRIMARY KEY,
+            user_low UUID NOT NULL REFERENCES users(id),
+            user_high UUID NOT NULL REFERENCES users(id),
+            match_request_id BIGINT UNIQUE REFERENCES match_requests(id),
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT conversations_ordered CHECK (user_low < user_high),
+            CONSTRAINT conversations_unique_pair UNIQUE (user_low, user_high)
+        );
+
+        CREATE TABLE chat_messages (
+            id BIGSERIAL PRIMARY KEY,
+            conversation_id BIGINT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+            sender_id UUID NOT NULL REFERENCES users(id),
+            body TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT chat_messages_body_length CHECK (char_length(body) BETWEEN 1 AND 2000)
+        );
+
+        CREATE TABLE threads (
+            id BIGSERIAL PRIMARY KEY,
+            author_id UUID NOT NULL REFERENCES users(id),
+            title TEXT NOT NULL,
+            body TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT threads_title_length CHECK (
+                char_length(btrim(title)) BETWEEN 1 AND 120
+            ),
+            CONSTRAINT threads_body_length CHECK (
+                char_length(btrim(body)) BETWEEN 1 AND 3000
+            )
+        );
+
+        CREATE TABLE thread_comments (
+            id BIGSERIAL PRIMARY KEY,
+            thread_id BIGINT NOT NULL REFERENCES threads(id) ON DELETE CASCADE,
+            author_id UUID NOT NULL REFERENCES users(id),
+            body TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT thread_comments_body_length CHECK (
+                char_length(btrim(body)) BETWEEN 1 AND 2000
+            )
+        );
+
+        CREATE INDEX auth_cookies_user_id_idx ON auth_cookies (user_id);
+        CREATE INDEX study_dates_creator_id_idx ON study_dates (creator_id);
+        CREATE INDEX study_dates_active_window_idx
+            ON study_dates (starts_at, ends_at) WHERE status = 'active';
+        CREATE INDEX user_reports_pending_idx
+            ON user_reports (created_at) WHERE status = 'pending';
+        CREATE INDEX user_reports_reporter_id_idx ON user_reports (reporter_id);
+        CREATE INDEX user_reports_reported_user_id_idx ON user_reports (reported_user_id);
+        CREATE INDEX match_requests_receiver_status_idx
+            ON match_requests (receiver_id, status, created_at DESC);
+        CREATE INDEX match_requests_sender_created_idx
+            ON match_requests (sender_id, created_at DESC);
+        CREATE INDEX conversations_user_high_idx ON conversations (user_high);
+        CREATE INDEX chat_messages_conversation_created_idx
+            ON chat_messages (conversation_id, created_at, id);
+        CREATE INDEX threads_created_idx ON threads (created_at DESC, id DESC);
+        CREATE INDEX thread_comments_thread_created_idx
+            ON thread_comments (thread_id, created_at, id);
         """
-    )
+        try:
+            conn.autocommit = False
+            with conn.cursor() as _cursor:
+                _cursor.execute(schema_sql)
+            conn.commit()
+            schema_status = mo.md("Application database recreated.")
+        except Exception as error:
+            conn.rollback()
+            schema_status = mo.md(f"Database recreation failed: `{error}`")
+        finally:
+            conn.autocommit = True
+    else:
+        schema_status = mo.md("Click the button above to recreate the application database.")
+    schema_status
+    return
+
+
+@app.cell(hide_code=True)
+def _(conn, initialize_sample_data_button, mo):
+    if initialize_sample_data_button.value:
+        try:
+            conn.autocommit = False
+            with conn.cursor() as _cursor:
+                sample_users = [
+                    ("alex.demo@students.neu.edu.vn", "alex_demo"),
+                    ("linh.demo@demo.neu.edu.vn", "linh_demo"),
+                    ("minh.demo@neu.edu.vn", "minh_demo"),
+                ]
+                # Demo-only Argon2id hash of the shared sample password: "password".
+                sample_password_hash = (
+                    "$argon2id$v=19$m=19456,t=2,p=1$bmV1LWRlbW8tc2VlZC1zYWx0$"
+                    "6iunv0I8Ia6ivjbSmVVs9WuhrO2AL76m8xlwdnjqv9g"
+                )
+                sample_user_ids = {}
+                for _email, _username in sample_users:
+                    _cursor.execute(
+                        """
+                        INSERT INTO users (email, username, password_hash, email_verified)
+                        VALUES (%s, %s, %s, TRUE)
+                        ON CONFLICT (email) DO UPDATE SET
+                            username = EXCLUDED.username,
+                            password_hash = EXCLUDED.password_hash,
+                            email_verified = TRUE
+                        RETURNING id
+                        """,
+                        (_email, _username, sample_password_hash),
+                    )
+                    sample_user_ids[_username] = _cursor.fetchone()[0]
+
+                # Demo-only administrator; sign in with username `admin` and password `password`.
+                _cursor.execute(
+                    """
+                    INSERT INTO users (email, username, password_hash, email_verified, role)
+                    VALUES (%s, %s, %s, TRUE, 'admin')
+                    ON CONFLICT (email) DO UPDATE SET
+                        username = EXCLUDED.username,
+                        password_hash = EXCLUDED.password_hash,
+                        email_verified = TRUE,
+                        role = 'admin'
+                    RETURNING id
+                    """,
+                    ("admin@neu.edu.vn", "admin", sample_password_hash),
+                )
+                sample_user_ids["admin"] = _cursor.fetchone()[0]
+
+                _cursor.execute(
+                    """
+                    INSERT INTO study_dates
+                        (creator_id, starts_at, ends_at, duration_min, status)
+                    SELECT user_id, start_at, start_at + interval '60 minutes', 60, 'active'
+                    FROM (VALUES
+                        (%s::uuid, date_trunc('day', now()) + interval '1 day' + interval '9 hours'),
+                        (%s::uuid, date_trunc('day', now()) + interval '1 day' + interval '14 hours'),
+                        (%s::uuid, date_trunc('day', now()) + interval '2 days' + interval '10 hours')
+                    ) AS samples(user_id, start_at)
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM study_dates existing
+                        WHERE existing.creator_id = samples.user_id
+                          AND existing.starts_at = samples.start_at
+                    )
+                    """,
+                    tuple(sample_user_ids[name] for name in ("alex_demo", "linh_demo", "minh_demo")),
+                )
+
+                _cursor.execute(
+                    """
+                    INSERT INTO user_reports (reporter_id, reported_user_id, status)
+                    SELECT %s, %s, 'pending'
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM user_reports
+                        WHERE reporter_id = %s AND reported_user_id = %s AND status = 'pending'
+                    )
+                    """,
+                    (
+                        sample_user_ids["alex_demo"], sample_user_ids["minh_demo"],
+                        sample_user_ids["alex_demo"], sample_user_ids["minh_demo"],
+                    ),
+                )
+
+                _cursor.execute(
+                    """
+                    INSERT INTO match_requests
+                        (sender_id, receiver_id, status, responded_at)
+                    VALUES (%s, %s, 'accepted', now())
+                    ON CONFLICT (sender_id, receiver_id) DO UPDATE
+                    SET status = 'accepted', responded_at = COALESCE(match_requests.responded_at, now())
+                    RETURNING id
+                    """,
+                    (sample_user_ids["alex_demo"], sample_user_ids["linh_demo"]),
+                )
+                sample_match_id = _cursor.fetchone()[0]
+                _cursor.execute(
+                    """
+                    INSERT INTO match_requests (sender_id, receiver_id, status)
+                    VALUES (%s, %s, 'pending')
+                    ON CONFLICT (sender_id, receiver_id) DO NOTHING
+                    """,
+                    (sample_user_ids["minh_demo"], sample_user_ids["alex_demo"]),
+                )
+                _cursor.execute(
+                    """
+                    INSERT INTO conversations (user_low, user_high, match_request_id)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (user_low, user_high) DO NOTHING
+                    """,
+                    (
+                        min(sample_user_ids["alex_demo"], sample_user_ids["linh_demo"]),
+                        max(sample_user_ids["alex_demo"], sample_user_ids["linh_demo"]),
+                        sample_match_id,
+                    ),
+                )
+            conn.commit()
+            sample_data_status = mo.md(
+                "Sample users, admin (`admin` / `password`), study dates, one pending report, an accepted match, and a conversation are ready."
+            )
+        except Exception as error:
+            conn.rollback()
+            sample_data_status = mo.md(f"Sample data initialization failed: `{error}`")
+        finally:
+            conn.autocommit = True
+    else:
+        sample_data_status = mo.md("Click **Initialize sample data** to add demo records.")
+    sample_data_status
     return
 
 
@@ -133,10 +402,22 @@ def _(mo):
 
 
 @app.cell
-def _(conn, mo):
+def _(conn, mo, users):
     _df = mo.sql(
         f"""
-        Select * from public.cookielogin
+        Select * from users
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell
+def _(conn, mo, users):
+    _df = mo.sql(
+        f"""
+        DELETE FROM users
+        WHERE username='quang';
         """,
         engine=conn
     )
@@ -148,203 +429,6 @@ def _(conn, mo):
     _df = mo.sql(
         f"""
         EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
-        """,
-        engine=conn
-    )
-    return
-
-
-@app.cell
-def _(conn, mo):
-    _df = mo.sql(
-        f"""
-        --DROP TABLE if  exists userdb.public.cookielogin;
-        CREATE TABLE if Not exists userdb.public.cookielogin (
-            cookie  BYTEA,
-            userid UHUGEINT,
-            start DATETIME,
-        );
-        """,
-        engine=conn
-    )
-    return
-
-
-@app.cell
-def _(mo):
-    _df = mo.sql(
-        f"""
-        INSERT INTO userdb.public.cookielogin (cookie,userid,start)
-        VALUES (from_hex('AA'),3,now())
-        """
-    )
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ###clickhouse
-    """)
-    return
-
-
-@app.cell
-def _(conn2, mo):
-    _df = mo.sql(
-        f"""
-        --DROP TABLE if  exists cookielogin2;
-        CREATE TABLE if Not exists cookielogin2 (
-            cookie  String,
-            userid UInt64,
-            start DATETIME64,
-        );
-        """,
-        engine=conn2
-    )
-    return
-
-
-@app.cell
-def _(conn2, cookielogin2, mo):
-    _df = mo.sql(
-        f"""
-        INSERT INTO cookielogin2 (cookie,userid,start)
-        VALUES (unhex('AA'),3,now64(8))
-        """,
-        engine=conn2
-    )
-    return
-
-
-@app.cell
-def _(conn2, cookielogin2, mo):
-    _df = mo.sql(
-        f"""
-        Select cookie  from cookielogin2;
-        """,
-        engine=conn2
-    )
-    return
-
-
-@app.cell
-def _(conn2, mo):
-    _df = mo.sql(
-        f"""
-        SELECT now64(9);
-        """,
-        engine=conn2
-    )
-    return
-
-
-@app.cell
-def _(mo):
-    _df = mo.sql(
-        f"""
-        EXPLAIN ANALYZE SELECT * FROM userdb.information_schema.tables WHERE table_schema = 'public'
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo):
-    aa = mo.sql(
-        f"""
-        SELECT hex(cookie) as hex, * FROM userdb.public.cookielogin
-        """
-    )
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    ###mariadb
-    """)
-    return
-
-
-@app.cell
-def _(conn, mo):
-    _df = mo.sql(
-        f"""
-        EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
-        """,
-        engine=conn
-    )
-    return
-
-
-@app.cell
-def _(conn3, mo):
-    _df = mo.sql(
-        f"""
-        EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
-        """,
-        engine=conn3
-    )
-    return
-
-
-@app.cell
-def _(mo):
-    _df = mo.sql(
-        f"""
-        --DROP TABLE if  exists userdb.public.cookielogin;
-        CREATE TABLE if Not exists userdb3.cookielogin3 (
-            cookie  BYTEA,
-            userid UHUGEINT,
-            start DATETIME,
-        );
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo):
-    _df = mo.sql(
-        f"""
-        INSERT INTO userdb3.cookielogin3 (cookie,userid,start)
-        VALUES (from_hex('AA'),3,now())
-        """
-    )
-    return
-
-
-@app.cell
-def _(conn3, cookielogin3, mo):
-    _df = mo.sql(
-        f"""
-        Select * from cookielogin3
-        """,
-        engine=conn3
-    )
-    return
-
-
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md(r"""
-    #other other
-    """)
-    return
-
-
-@app.cell
-def _(pl, uri):
-    pl.read_database_uri("select * from cookielogin", uri=uri)
-    return
-
-
-@app.cell(hide_code=True)
-def _(conn, mo):
-    a = mo.sql(
-        f"""
-        select cookie from public.cookielogin Limit 3
         """,
         engine=conn
     )
@@ -356,185 +440,6 @@ def _(mo):
     mo.md(r"""
     # Test
     """)
-    return
-
-
-@app.cell
-def _(mo):
-    _df = mo.sql(
-        f"""
-        CREATE TABLE if Not exists weather (
-            city    VARCHAR,
-            temp_lo INTEGER, -- minimum temperature on a day
-            temp_hi INTEGER, -- maximum temperature on a day
-            prcp    FLOAT,
-            date    DATE
-        );
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo):
-    _df = mo.sql(
-        f"""
-        CREATE TABLE IF Not EXISTS cities (
-            name VARCHAR,
-            lat  DECIMAL,
-            lon  DECIMAL
-        );
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo, weather):
-    _df = mo.sql(
-        f"""
-        INSERT INTO weather
-        VALUES ('San Francisco', 46, 50, 0.25, '1994-11-27');
-        """
-    )
-    return
-
-
-@app.cell
-def _(cities, mo):
-    _df = mo.sql(
-        f"""
-        INSERT INTO cities
-        VALUES ('San Francisco', -194.0, 53.0);
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo, weather):
-    _df = mo.sql(
-        f"""
-        INSERT INTO weather (city, temp_lo, temp_hi, prcp, date)
-        VALUES ('San Francisco', 43, 57, 0.0, '1994-11-29');
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo, weather):
-    _df = mo.sql(
-        f"""
-        INSERT INTO weather (date, city, temp_hi, temp_lo)
-        VALUES ('1994-11-29', 'Hayward', 54, 37);
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo, weather):
-    _df = mo.sql(
-        f"""
-        SELECT max(temp_lo)
-        FROM weather;
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo, weather):
-    _df = mo.sql(
-        f"""
-        SELECT city
-        FROM weather
-        WHERE temp_lo = (SELECT max(temp_lo) FROM weather);
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo, weather):
-    _df = mo.sql(
-        f"""
-        SELECT city, max(temp_lo)
-        FROM weather
-        GROUP BY city;
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo, weather):
-    _df = mo.sql(
-        f"""
-        SELECT city, max(temp_lo)
-        FROM weather
-        GROUP BY city
-        HAVING max(temp_lo) < 40;
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo, weather):
-    _df = mo.sql(
-        f"""
-        SELECT city, max(temp_lo)
-        FROM weather
-        WHERE city LIKE 'S%'            -- (1)
-        GROUP BY city
-        HAVING max(temp_lo) < 40;
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo, weather):
-    _df = mo.sql(
-        f"""
-        UPDATE weather
-        SET temp_hi = temp_hi - 2,  temp_lo = temp_lo - 2
-        WHERE date > '1994-11-28';
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo, weather):
-    _df = mo.sql(
-        f"""
-        SELECT city, (temp_hi + temp_lo) / 2 AS temp_avg, date
-        FROM weather;
-        """
-    )
-    return
-
-
-@app.cell
-def _(mo, weather):
-    _df = mo.sql(
-        f"""
-        select * from weather
-        """
-    )
-    return
-
-
-@app.cell
-def _(cities, mo):
-    _df = mo.sql(
-        f"""
-        select * from cities
-        """
-    )
     return
 
 

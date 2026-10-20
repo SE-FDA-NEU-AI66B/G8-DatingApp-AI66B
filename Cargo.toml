@@ -32,8 +32,6 @@ end2end-cmd = "npx playwright test"
 end2end-dir = "end2end"
 # The browserlist query used for optimizing the CSS.
 browserquery = "defaults"
-# The environment Leptos will run in, usually either "DEV" or "PROD"
-env = "DEV"
 # The features to use when compiling the bin target
 #
 # Optional. Can be over-ridden with the command line parameter --bin-features
@@ -63,51 +61,47 @@ lib-profile-dev = "wasm-dev"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-
 [dependencies]
-env_logger = "0.11"
 actix-files = { version = "0.7", optional = true }
 console_error_panic_hook = "0.1"
 # http = { version = "1.5.0", optional = true }
-itertools = "0.15.0"
 leptos = { version = "0.8.20", features = ["nightly", "delegation"] }
 leptos_actix = { version = "0.8.7", optional = true }
 leptos_meta = { version = "0.8.6" }
 leptos_router = { version = "0.8.15", features = ["nightly"] }
-leptos-use = { version = "0.19.0", features = [] }
-rayon = "1.12.0"
-serde = { version = "1.0.229", features = ["derive"] }
-wasm-bindgen = "0.2.127"
-gloo-net = "0.6"
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+serde = { version = "1.0.229" }
+wasm-bindgen = { version = "0.2.127" }
 actix-web = { version = "4", features = [
   "macros",
   "rustls-0_23",
 ], optional = true }
-# Additional server-side dependencies
-mysql_async = "0.37.1"
+
+web-sys = { version = "0.3.106", features = ["Window", "Storage"] }
+sqlx = { version = "0.9", features = ["postgres", "time", "derive", "uuid"] }
+getrandom = { version = "0.4.3", features = ["wasm_js"] }
+sha2 = "0.11.0"
+uuid = { version = "1.26", features = ["serde"] }
+gloo-net = "0.7.0"
+hex = "0.4.3"
+# rand = { version = "0.9" }
+# random = { version = "0.14.1", features = ["wasm_js"] }
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies] # server side only
+
+dotenvy = "0.15.7"
 tokio = { version = "1.53.1", features = ["full"] }
 time = { version = "0.3.55", features = ["serde", "formatting"] }
-serde_bytes = "0.11.19"
-clickhouse = { version = "0.15.2", features = ["time"] }
-sqlx = { version = "0.9", features = [
-  "postgres",
-  "mysql",
-  "runtime-tokio",
-  "tls-native-tls",
-  "time",
-  "derive",
-] }
+
+
 rustls = "0.23.43"
 rustls-pemfile = "2.2.0"
-tokio-postgres = "0.7.18"
-actix = "0.13.5"
 rand = "0.9"
-sha2 = "0.10"
+openidconnect = "4.0"
+argon2 = "0.5"
+
 [features]
-default = ["csr", "hydrate", "ssr"]
 csr = ["leptos/csr"]
-hydrate = ["leptos/hydrate"]
+default = ["csr", "hydrate", "ssr"]
+hydrate = ["leptos/hydrate", "sqlx/postgres"]
 ssr = [
   "dep:actix-files",
   "dep:actix-web",
@@ -115,8 +109,8 @@ ssr = [
   "leptos_meta/ssr",
   "leptos_router/ssr",
   "leptos/ssr",
-  "leptos-use/ssr",
-  "leptos-use/actix",
+  "sqlx/runtime-tokio",
+  "sqlx/tls-native-tls",
 ]
 
 # Defines a size-optimized profile for the WASM bundle in release mode
@@ -131,6 +125,7 @@ codegen-backend = "cranelift" #dont support webasm
 [profile.wasm-dev]
 inherits = "dev"
 codegen-backend = "llvm"
+incremental = false
 [profile.dev.package."*"]
 codegen-backend = "llvm"
 [workspace]
