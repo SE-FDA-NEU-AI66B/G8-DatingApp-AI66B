@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="510" viewBox="0 0 760 510" role="img" aria-labelledby="title desc">
+  <title id="title">Study-date feed wireframe</title>
+  <desc id="desc">Study-date feed with create link and request cards linking to profiles.</desc>
+  <rect width="760" height="390" fill="#f4f6f8"/>
+  <rect x="24" y="24" width="712" height="462" rx="12" fill="white" stroke="#52606d" stroke-width="2"/>
+  <text x="48" y="62" font-family="sans-serif" font-size="22" font-weight="bold">Study dates</text>
+  <text x="48" y="91" font-family="sans-serif" font-size="15">The user comes here to find active study sessions in the next 24 hours.</text>
+  <rect x="48" y="111" width="180" height="38" rx="5" fill="#dce8f5" stroke="#52606d"/>
+  <text x="65" y="136" font-family="sans-serif" font-size="14">Create a study date</text>
+  <rect x="48" y="164" width="664" height="63" rx="6" fill="white" stroke="#8795a1"/>
+  <text x="66" y="191" font-family="sans-serif" font-size="15">Today, 20:00 → 23:00</text>
+  <text x="66" y="214" font-family="sans-serif" font-size="14">Student #12 — open profile</text>
+  <rect x="48" y="240" width="664" height="63" rx="6" fill="white" stroke="#8795a1"/>
+  <text x="66" y="267" font-family="sans-serif" font-size="15">Today, 21:00 → 22:00</text>
+  <text x="66" y="290" font-family="sans-serif" font-size="14">Student #18 — open profile</text>
+  <rect x="48" y="343" width="664" height="35" rx="5" fill="#e9eef4" stroke="#8795a1"/>
+  <text x="60" y="366" font-family="sans-serif" font-size="13">Home | Register | Feed | Create | Requests | Admin | Sign in (planned)</text>
+  <text x="48" y="408" font-family="sans-serif" font-size="12">Loading: “Loading study dates...”</text>
+  <text x="48" y="428" font-family="sans-serif" font-size="12">Empty: “0 study dates found for today”</text>
+  <text x="48" y="448" font-family="sans-serif" font-size="12">Error: API message shown as an alert</text>
+  <text x="48" y="468" font-family="sans-serif" font-size="12">Success: active study-date cards with profile links</text>
+  <text x="48" y="498" font-family="sans-serif" font-size="13" fill="#52606d">API: GET /api/study-dates</text>
+</svg>

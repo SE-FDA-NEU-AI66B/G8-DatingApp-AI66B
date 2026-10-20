@@ -56,6 +56,7 @@ async fn main() -> std::io::Result<()> {
                 actix_web::web::resource("/api/auth/logout")
                     .route(actix_web::web::post().to(ss::auth::logout)),
             )
+            .service(ss::admin::admin_access)
             .service(ss::admin::dashboard_statistics)
             .service(ss::admin::health_status)
             .service(ss::register::register)

@@ -1,5 +1,30 @@
 # NEUDating — Milestone 2 Design
 
+## Submission cover
+
+```text
+Team:           Team 08 — QHQ
+Topic:          Walking skeleton: admin dashboard statistics and system health
+Members:        Nguyen Son Hai (hai291), Nguyen Minh Quang (iambadwithname),
+                Pham Ha (pham-ha-gif)
+Product Owner:  @hai291
+Scrum Master:   @pham-ha-gif (Sprint 2 — different from Sprint 1)
+
+Repository:     https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B
+Project board:  https://github.com/orgs/SE-FDA-NEU-AI66B/projects/20
+Setup guide:    https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/blob/main/docs/SETUP.md
+
+Submitted by:   Nguyen Son Hai (hai291)
+```
+
+## Sprint 3 documentation update
+
+The P0 entry point remains `GET /admin_console`. Sprint 3 Scrum Master is
+Nguyen Minh Quang (`iambadwithname`). The current backlog order and ownership
+are recorded in [`sprint-3-backlog.md`](sprint-3-backlog.md), while the
+observable dashboard states and browser validation are recorded in
+[`p0-dashboard-flow.md`](p0-dashboard-flow.md).
+
 ## 1. Architecture
 
 The walking skeleton is the admin console at `/admin_console`.
@@ -179,6 +204,70 @@ a separate service is unnecessary for this slice. **Change trigger:** if
 deployment requires independent scaling or a separate identity provider,
 extract the admin API behind that provider.
 
+## 5A. Phác thảo một màn hình P0
+
+### Màn hình được chọn: Admin Dashboard / System Health
+
+Đây là màn hình P0 vì quản trị viên cần biết ngay hệ thống có đang hoạt động
+không, có bao nhiêu người dùng đã đăng ký, và có báo cáo nào đang chờ xử lý.
+Mục tiêu chính là **nhìn nhanh trong vài giây và biết hành động tiếp theo**,
+không phải hiển thị toàn bộ dữ liệu quản trị trên một màn hình.
+
+```text
++----------------------------------------------------------------------------+
+| NEUDating / ADMIN                                      [Refresh] [Log out] |
++----------------------------------------------------------------------------+
+| Admin dashboard                                                           |
+| Last refreshed: 10:32:18  •  Data may be a few seconds old                |
+|                                                                            |
+| +----------------------+ +----------------------+ +----------------------+ |
+| | REGISTERED USERS     | | ACTIVE STUDY DATES  | | PENDING REPORTS      | |
+| |        128            | |          7           | |          3           | |
+| | verified accounts    | | next 24 hours        | | [Review reports ->]  | |
+| +----------------------+ +----------------------+ +----------------------+ |
+|                                                                            |
+| SYSTEM HEALTH                                                              |
+| +----------------------------------+ +----------------------------------+ |
+| | ● Server              Healthy     | | ● Database            Healthy    | |
+| |   Checked 10:32:16               | |   Checked 10:32:16               | |
+| +----------------------------------+ +----------------------------------+ |
+|                                                                            |
+| [Error area: clear explanation + Try again, never show zero as a fallback] |
++----------------------------------------------------------------------------+
+```
+
+### Vấn đề cần nghĩ khi vẽ và thiết kế
+
+1. **Ưu tiên thông tin:** ba chỉ số phải đọc được trước phần health; nếu
+   thêm biểu đồ hoặc bảng chi tiết sẽ làm loãng nhiệm vụ P0.
+2. **Trạng thái tải:** lần mở đầu cần skeleton hoặc thông báo đang tải, không
+   để khoảng trống khiến quản trị viên nghĩ dữ liệu bằng 0.
+3. **Lỗi và dữ liệu cũ:** lỗi API phải hiện thông báo rõ ràng kèm `Try again`;
+   tuyệt đối không đổi lỗi database thành các số 0. Nếu refresh thất bại sau
+   khi đã có dữ liệu, cần giữ dữ liệu cũ và ghi rõ thời điểm cập nhật cuối.
+4. **Ý nghĩa của con số:** “Registered users” chỉ đếm tài khoản đã xác thực,
+   còn “Active study dates” chỉ tính các request đang giao với 24 giờ tới.
+   Nhãn phụ phải nói rõ điều này để tránh diễn giải sai.
+5. **Màu sắc và khả năng tiếp cận:** không dùng màu xanh/đỏ làm tín hiệu duy
+   nhất; trạng thái phải có chữ và biểu tượng có nhãn, tương phản đủ cao.
+6. **Refresh và thời gian:** nút Refresh phải bị khóa trong lúc gọi API, hiển
+   thị thời điểm kiểm tra theo múi giờ dễ hiểu, và không tạo nhiều request khi
+   người dùng click liên tục.
+7. **Quyền truy cập:** đây là màn hình admin, nhưng việc ẩn nút hoặc route
+   trong UI không thay thế cho kiểm tra session và role ở server; `401/403`
+   cần có trạng thái giao diện phù hợp.
+8. **Responsive:** ba thẻ chỉ số cần xếp thành một cột trên màn hình hẹp,
+   không để số liệu hoặc nút Refresh bị cắt trên thiết bị di động.
+
+### Tiêu chí hoàn thành bản vẽ P0
+
+- Quản trị viên nhận ra trạng thái server và database trong dưới 5 giây.
+- Số liệu có nhãn và đơn vị/ngữ nghĩa rõ ràng, không phụ thuộc vào màu.
+- Có wireframe cho ít nhất bốn trạng thái: loading, success, API error và
+  unauthorized.
+- Mọi trạng thái lỗi đều có hành động khôi phục cụ thể hoặc hướng dẫn đăng
+  nhập lại.
+
 ## 6. What changed since M1
 
 1. **The product gained a concrete admin dashboard slice.** Sprint 1 defined
@@ -188,19 +277,29 @@ extract the admin API behind that provider.
    The Sprint 1 review highlighted that an admin screen must not expose counts
    to anonymous or regular users, so the session, expiry, role, `401`, and
    `403` behaviors were added to the API and tested.
+3. **M3 added P0 student workflows and endpoints** for registration, study-date
+   creation/feed, profiles, and match requests. The current auth routes are
+   `POST /api/register`, `POST /api/auth/login`, and `POST /api/auth/logout`;
+   older references to `/api/auth/register`, `/api/auth/request-otp`, and
+   `/api/auth/verify-otp` did not match the implementation and have been
+   corrected here and in `docs/api.md`.
+4. **New validation statuses:** study-date validation uses `422`, and match
+   request throttling uses `429`. These statuses were added after M2 and are
+   documented as such in `docs/ui.md`.
 
-## Verification and submission metadata
+## Cover and submission metadata
 
 | Field | Value |
 |---|---|
-| Team | QHQ |
+| Team | Team 08 — QHQ |
 | Topic | Walking skeleton: admin dashboard statistics and system health |
 | Members | Nguyen Son Hai (`hai291`), Nguyen Minh Quang (`iambadwithname`), Pham Ha (`pham-ha-gif`) |
 | Product Owner | `@hai291` |
 | Scrum Master | `@pham-ha-gif` (Sprint 2; different from Sprint 1) |
 | Repository | https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B |
 | Project board | https://github.com/orgs/SE-FDA-NEU-AI66B/projects/20 |
-| Setup guide | [docs/SETUP.md](./SETUP.md) |
+| Setup guide | https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/blob/main/docs/SETUP.md |
+| Submitted by | Nguyen Son Hai (`hai291`) |
 
 Validation: `cargo check --features ssr`, `cargo test --lib --features ssr`,
 and CI passed for the implementation PRs. The final PDF must include the

@@ -1,20 +1,137 @@
 # NEUDating
 
-A dating app for NEU students, built with Rust, Leptos, and PostgreSQL.
+NEUDating là ứng dụng hẹn hò dành cho sinh viên và người trẻ tại Việt Nam,
+giúp họ kết nối với những người có sở thích, giá trị và mục tiêu tương đồng
+trong một môi trường an toàn, nghiêm túc và tôn trọng quyền riêng tư.
 
-## Run locally
+## Bối cảnh và vấn đề
 
-Follow [docs/SETUP.md](docs/SETUP.md) to configure Microsoft sign-in and the
-database. Then start the app:
+Tỷ lệ sinh của Việt Nam đang giảm xuống dưới mức sinh thay thế. Theo
+[World Bank](https://data.worldbank.org/indicator/SP.DYN.TFRT.IN?locations=VN-KR),
+mức sinh của Việt Nam năm 2023 là khoảng 1,9 con/phụ nữ, trong khi Hàn Quốc
+đã ở mức thấp hơn rất nhiều. Số liệu chính thức của
+[Statistics Korea](https://kostat.go.kr/board.es?mid=a10301010000&bid=204&act=view&list_no=433085)
+cho thấy tổng tỷ suất sinh của Hàn Quốc năm 2023 chỉ là 0,72.
+
+Đây là lời cảnh báo về những khó khăn xã hội và kinh tế do dân số già hóa,
+thiếu lực lượng lao động và ngày càng ít gia đình trẻ. NEUDating không coi
+việc kết hôn hay sinh con là nghĩa vụ của mỗi cá nhân; sản phẩm tập trung vào
+việc giúp những người độc thân có thêm cơ hội gặp gỡ phù hợp, xây dựng các
+mối quan hệ lành mạnh và lâu dài nếu họ tự nguyện lựa chọn.
+
+## Nhóm
+
+**Nhóm:** QHQ<br>
+**Thành viên:** @Nguyễn Sơn Hải · @Nguyễn Minh Quang · @Lê Duy Quyền<br>
+**Product Owner (cố định cả kỳ):** @Nguyễn Sơn Hải<br>
+**Scrum Master (luân phiên mỗi sprint):** @Nguyễn Minh Quang (Sprint 2);
+@Nguyễn Minh Quang (`iambadwithname`) (Sprint 3)
+
+**Board:** [NEUDating GitHub Project](https://github.com/orgs/SE-FDA-NEU-AI66B/projects/20)
+
+## Chạy thử
+
+### Yêu cầu
+
+- Rust và `rustup`
+- Rust nightly toolchain
+- `cargo-leptos`
+- Target `wasm32-unknown-unknown`
+
+Hướng dẫn cài đặt đầy đủ cho máy mới được duy trì trong
+[SETUP.md](SETUP.md).
+
+### Chạy ở chế độ phát triển
 
 ```bash
+git clone https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B.git
+cd G8-DatingApp-AI66B
 cargo leptos watch
 ```
 
-Open <http://localhost:3100>.
+Sau khi lệnh chạy thành công, mở
+<http://localhost:3100>. Chế độ `watch` tự động biên dịch lại khi mã nguồn
+thay đổi.
 
-## Project docs
+P0 admin dashboard: mở
+<http://localhost:3100/admin_console> sau khi đăng nhập bằng tài khoản admin.
+Luồng, trạng thái và lệnh kiểm thử được ghi trong
+[docs/p0-dashboard-flow.md](docs/p0-dashboard-flow.md).
 
+### Admin authentication (development)
+
+The admin dashboard requires an authenticated session. Register a NEU email,
+use the six-digit OTP printed by the development mail stub to call
+`POST /api/auth/login`, and set `ADMIN_EMAIL` to the account email before
+starting the server. The server then provisions that account as an admin.
+Sessions use an HttpOnly cookie and expire after eight hours.
+
+```bash
+set ADMIN_EMAIL=admin@neu.edu.vn
+curl -i -c cookies.txt -H "Content-Type: application/json" ^
+  -d "{\"email\":\"admin@neu.edu.vn\",\"otp\":\"123456\"}" ^
+  http://localhost:3100/api/auth/login
+curl -i -b cookies.txt http://localhost:3100/api/admin/statistics
+```
+
+Do not use the development OTP stub or `ADMIN_EMAIL` provisioning as a
+production identity provider. Production deployment must replace them with the
+shared US12 authentication and admin-provisioning flow.
+
+### Chạy bản release
+
+```bash
+cargo leptos watch --release
+```
+
+### Tạo tài liệu Rust
+
+```bash
+cargo doc --open
+```
+
+## Màn hình P0: Admin Dashboard / System Health
+
+Đây là màn hình ưu tiên P0 của walking skeleton. Admin có thể xem nhanh số
+người dùng đã xác thực, study date đang hoạt động trong 24 giờ tới, report đang
+chờ xử lý, và trạng thái của server/database.
+
+```text
++--------------------------------------------------------------------------+
+| NEUDating / ADMIN                                  [Refresh] [Log out]   |
++--------------------------------------------------------------------------+
+| Admin dashboard                                                         |
+| Last refreshed: 10:32:18                                               |
+|                                                                          |
+| +------------------+ +------------------+ +------------------+           |
+| | REGISTERED USERS | | ACTIVE STUDY    | | PENDING REPORTS  |           |
+| |       128        | | DATES      7    | |        3         |           |
+| | verified         | | next 24 hours    | | [Review ->]       |           |
+| +------------------+ +------------------+ +------------------+           |
+|                                                                          |
+| SYSTEM HEALTH                                                            |
+| | Server: Healthy        | Database: Healthy                            |
+| | Checked 10:32:16       | Checked 10:32:16                              |
++--------------------------------------------------------------------------+
+```
+
+Các vấn đề UX cần xử lý: trạng thái loading không được gây hiểu nhầm là dữ
+liệu bằng 0; lỗi API phải có thông báo và nút `Try again`; refresh phải bị khóa
+trong lúc tải; trạng thái không được chỉ truyền đạt bằng màu sắc; và giao diện
+phải hiển thị phù hợp trên màn hình nhỏ. Chi tiết wireframe, các trạng thái
+loading/error/unauthorized và tiêu chí hoàn thành nằm trong
+[docs/design.md](docs/design.md).
+
+## Tài liệu dự án
+
+- [Hướng dẫn cài đặt](SETUP.md)
+- [Definition of Done](docs/definition-of-done.md)
+- [Sprint log](docs/sprint-log.md)
+- [Traceability](docs/traceability.md)
 - [Architecture](docs/architecture.md)
-- [API](docs/api.md)
-- [Setup](docs/SETUP.md)
+- [API design](docs/api.md)
+- [Walking skeleton](docs/walking-skeleton.md)
+- [Milestone 2 design](docs/design.md)
+- [Milestone 2 setup](docs/SETUP.md)
+- [Sprint 3 backlog](docs/sprint-3-backlog.md)
+- [P0 dashboard flow](docs/p0-dashboard-flow.md)

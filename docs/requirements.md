@@ -278,22 +278,17 @@ Numbered, so issues and tests can cite them.
 
 ## Screens and flow
 
-5 screens Table: Route / Purpose / Access (G, U, A) / Priority. Plus a flow diagram - every screen must appear and be reachable. Hand-drawn is fine.
-all route are assign by hash
+The routes below are registered in the application. U = authenticated user;
+A = administrator; G = public. The [Milestone 3 P0 story/status matrix and
+screen-flow diagram](./traceability.md#milestone-3-p0-storystatus-matrix)
+records each P0 story and shows the reachable screen flow.
 
-| name           | Purpose                          | Access | Priority |
-| -------------- | -------------------------------- | ------ | -------- |
-| /              | home                             | G      | P0       |
-| /user_profile  | user profile for manaing account | U      | P0       |
-| /user_home     | show status + chat iteract       | U      | P0       |
-| /chat          | for chatting                     | U      | P0       |
-| /admin_console | show server status               | A      | P0       |
-
-                                            ┌─────────────┐
-                                            │      /      │
-                                            └──────┬──────┘
-                                                   │ sign in
-                                                   ▼
-                 ┌─────────────────┐if admin┌─────────────────┐    ┌─────────────────┐    ┌────────────┐
-                 │  /admin_console │────────│   /user_hom     │────│  /user_profile  │────│   /chat    │
-                 └─────────────────┘        └─────────────────┘    └─────────────────┘    └────────────┘
+| Route | Purpose | Access | Priority |
+|---|---|---|---|
+| `/` | Home and primary navigation | G | P0 |
+| `/register` | NEU email registration | G | P0 |
+| `/study-date/new` | Create a study-date request | U | P0 |
+| `/feed` | Browse active study-date requests | U | P0 |
+| `/profile/:id` | View a profile and send a match request | U | P0 |
+| `/requests` | Accept or decline incoming match requests | U | P0 |
+| `/admin_console` | Admin dashboard and server/database health | A | P0 |

@@ -23,6 +23,15 @@ const DASHBOARD_QUERY: &str = "SELECT
       AND ends_at > now()) AS active_study_date_requests,
     (SELECT COUNT(*) FROM user_reports WHERE status = 'pending') AS pending_reports";
 
+#[get("/api/admin/access")]
+pub async fn admin_access(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
+    if let Err(response) = auth::require_admin(&request, pool.get_ref()).await {
+        return response;
+    }
+
+    HttpResponse::NoContent().finish()
+}
+
 #[get("/api/admin/statistics")]
 pub async fn dashboard_statistics(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
     if let Err(response) = auth::require_admin(&request, pool.get_ref()).await {

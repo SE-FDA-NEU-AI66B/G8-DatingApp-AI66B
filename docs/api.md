@@ -1,8 +1,8 @@
 # API design
 
-All protected endpoints require the `session` HttpOnly cookie. A successful
-response is not assumed for every request; callers must handle the documented
-error status.
+All protected endpoints require the `datingapp_session` HttpOnly cookie. A
+successful response is not assumed for every request; callers must handle the
+documented error status.
 
 | Method | Path | Input | Success | Errors |
 |---|---|---|---|---|

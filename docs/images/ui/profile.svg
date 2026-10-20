@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="510" viewBox="0 0 760 510" role="img" aria-labelledby="title desc">
+  <title id="title">Profile wireframe</title>
+  <desc id="desc">Profile summary with relationship state and Connect or Review it action.</desc>
+  <rect width="760" height="390" fill="#f4f6f8"/>
+  <rect x="24" y="24" width="712" height="462" rx="12" fill="white" stroke="#52606d" stroke-width="2"/>
+  <text x="48" y="62" font-family="sans-serif" font-size="22" font-weight="bold">Student profile</text>
+  <text x="48" y="91" font-family="sans-serif" font-size="15">The user comes here to view a student profile and send or review a match request.</text>
+  <circle cx="103" cy="171" r="36" fill="#e9eef4" stroke="#52606d"/>
+  <text x="160" y="164" font-family="sans-serif" font-size="18" font-weight="bold">Student #12</text>
+  <text x="160" y="189" font-family="sans-serif" font-size="14">Relationship: none / pending / incoming / matched</text>
+  <rect x="72" y="235" width="145" height="40" rx="5" fill="#dce8f5" stroke="#52606d"/>
+  <text x="98" y="261" font-family="sans-serif" font-size="14">Connect</text>
+  <text x="240" y="260" font-family="sans-serif" font-size="14">Pending or Review it when applicable</text>
+  <rect x="48" y="343" width="664" height="35" rx="5" fill="#e9eef4" stroke="#8795a1"/>
+  <text x="60" y="366" font-family="sans-serif" font-size="13">Home | Register | Feed | Create | Requests | Admin | Sign in (planned)</text>
+  <text x="48" y="408" font-family="sans-serif" font-size="12">Loading: “Loading profile...”</text>
+  <text x="48" y="428" font-family="sans-serif" font-size="12">Empty: missing profile is a 404 error</text>
+  <text x="48" y="448" font-family="sans-serif" font-size="12">Error: invalid profile or API message</text>
+  <text x="48" y="468" font-family="sans-serif" font-size="12">Success: profile and relationship action are shown</text>
+  <text x="48" y="498" font-family="sans-serif" font-size="13" fill="#52606d">API: GET /api/profiles/{id}; POST /api/match-requests</text>
+</svg>
