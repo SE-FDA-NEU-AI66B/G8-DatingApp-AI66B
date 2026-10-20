@@ -107,6 +107,19 @@ def _(conn, mo, recreate_database_button):
             CONSTRAINT users_valid_role CHECK (role IN ('user', 'admin'))
         );
 
+        CREATE TABLE user_profiles (
+            user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+            display_name TEXT NOT NULL,
+            bio TEXT NOT NULL DEFAULT '',
+            cohort TEXT,
+            interests TEXT NOT NULL DEFAULT '',
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT user_profiles_display_name_length CHECK (char_length(display_name) BETWEEN 1 AND 60),
+            CONSTRAINT user_profiles_bio_length CHECK (char_length(bio) <= 500),
+            CONSTRAINT user_profiles_cohort_length CHECK (cohort IS NULL OR char_length(cohort) <= 24),
+            CONSTRAINT user_profiles_interests_length CHECK (char_length(interests) <= 300)
+        );
+
         CREATE TABLE auth_cookies (
             token_hash TEXT PRIMARY KEY,
             user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -173,6 +186,40 @@ def _(conn, mo, recreate_database_button):
             CONSTRAINT conversations_unique_pair UNIQUE (user_low, user_high)
         );
 
+        CREATE TABLE chat_messages (
+            id BIGSERIAL PRIMARY KEY,
+            conversation_id BIGINT NOT NULL REFERENCES conversations(id) ON DELETE CASCADE,
+            sender_id UUID NOT NULL REFERENCES users(id),
+            body TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT chat_messages_body_length CHECK (char_length(body) BETWEEN 1 AND 2000)
+        );
+
+        CREATE TABLE threads (
+            id BIGSERIAL PRIMARY KEY,
+            author_id UUID NOT NULL REFERENCES users(id),
+            title TEXT NOT NULL,
+            body TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT threads_title_length CHECK (
+                char_length(btrim(title)) BETWEEN 1 AND 120
+            ),
+            CONSTRAINT threads_body_length CHECK (
+                char_length(btrim(body)) BETWEEN 1 AND 3000
+            )
+        );
+
+        CREATE TABLE thread_comments (
+            id BIGSERIAL PRIMARY KEY,
+            thread_id BIGINT NOT NULL REFERENCES threads(id) ON DELETE CASCADE,
+            author_id UUID NOT NULL REFERENCES users(id),
+            body TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+            CONSTRAINT thread_comments_body_length CHECK (
+                char_length(btrim(body)) BETWEEN 1 AND 2000
+            )
+        );
+
         CREATE INDEX auth_cookies_user_id_idx ON auth_cookies (user_id);
         CREATE INDEX study_dates_creator_id_idx ON study_dates (creator_id);
         CREATE INDEX study_dates_active_window_idx
@@ -186,6 +233,11 @@ def _(conn, mo, recreate_database_button):
         CREATE INDEX match_requests_sender_created_idx
             ON match_requests (sender_id, created_at DESC);
         CREATE INDEX conversations_user_high_idx ON conversations (user_high);
+        CREATE INDEX chat_messages_conversation_created_idx
+            ON chat_messages (conversation_id, created_at, id);
+        CREATE INDEX threads_created_idx ON threads (created_at DESC, id DESC);
+        CREATE INDEX thread_comments_thread_created_idx
+            ON thread_comments (thread_id, created_at, id);
         """
         try:
             conn.autocommit = False
@@ -338,6 +390,18 @@ def _(conn, mo, users):
     _df = mo.sql(
         f"""
         Select * from users
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell
+def _(conn, mo, users):
+    _df = mo.sql(
+        f"""
+        DELETE FROM users
+        WHERE username='quang';
         """,
         engine=conn
     )

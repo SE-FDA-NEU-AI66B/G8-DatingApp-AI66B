@@ -85,11 +85,14 @@ pub fn AdminDashboard() -> impl IntoView {
 
     Effect::new(load);
     view! {
-        <section aria-labelledby="admin-dashboard-title">
-            <h1 id="admin-dashboard-title">"Admin dashboard"</h1>
-            <button type="button" on:click=move |_| load() disabled=move || loading.get()>
+        <section class="admin-dashboard" aria-labelledby="admin-dashboard-title">
+            <header class="admin-dashboard-header">
+                <div><p class="section-kicker">"SITE OPERATIONS"</p><h1 id="admin-dashboard-title">"Admin console"</h1>
+                    <p>"Monitor service health and activity across Study Date."</p></div>
+                <button type="button" on:click=move |_| load() disabled=move || loading.get()>
                 {move || if loading.get() { "Refreshing..." } else { "Refresh" }}
-            </button>
+                </button>
+            </header>
             {move || {
                 if loading.get() && statistics.get().is_none() {
                     view! { <p role="status">"Loading dashboard statistics..."</p> }.into_any()
@@ -128,18 +131,20 @@ pub fn AdminDashboard() -> impl IntoView {
                     view! { <p role="alert">{message}</p> }.into_any()
                 } else if let Some(value) = health.get() {
                     view! {
-                        <section aria-labelledby="health-status-title">
-                            <h2 id="health-status-title">"System health"</h2>
-                            <p>
-                                "Server: "
-                                {if value.server.healthy { "Healthy" } else { "Unhealthy" }}
-                                " (last checked " {value.server.checked_at.clone()} ")"
-                            </p>
-                            <p>
-                                "Database: "
-                                {if value.database.healthy { "Healthy" } else { "Unhealthy" }}
-                                " (last checked " {value.database.checked_at.clone()} ")"
-                            </p>
+                        <section class="admin-health" aria-labelledby="health-status-title">
+                            <div class="admin-section-heading"><div><p class="section-kicker">"LIVE CHECKS"</p><h2 id="health-status-title">"System health"</h2></div></div>
+                            <div class="admin-health-grid">
+                                <article class=if value.server.healthy { "admin-health-card is-healthy" } else { "admin-health-card is-unhealthy" }>
+                                    <span class="admin-health-indicator" aria-hidden="true"></span><div><h3>"Application server"</h3>
+                                        <strong>{if value.server.healthy { "Healthy" } else { "Unhealthy" }}</strong>
+                                        <p>"Checked " {value.server.checked_at.clone()}</p></div>
+                                </article>
+                                <article class=if value.database.healthy { "admin-health-card is-healthy" } else { "admin-health-card is-unhealthy" }>
+                                    <span class="admin-health-indicator" aria-hidden="true"></span><div><h3>"PostgreSQL database"</h3>
+                                        <strong>{if value.database.healthy { "Healthy" } else { "Unhealthy" }}</strong>
+                                        <p>"Checked " {value.database.checked_at.clone()}</p></div>
+                                </article>
+                            </div>
                         </section>
                     }
                         .into_any()

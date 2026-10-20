@@ -32,8 +32,6 @@ end2end-cmd = "npx playwright test"
 end2end-dir = "end2end"
 # The browserlist query used for optimizing the CSS.
 browserquery = "defaults"
-# The environment Leptos will run in, usually either "DEV" or "PROD"
-env = "DEV"
 # The features to use when compiling the bin target
 #
 # Optional. Can be over-ridden with the command line parameter --bin-features
@@ -127,6 +125,7 @@ codegen-backend = "cranelift" #dont support webasm
 [profile.wasm-dev]
 inherits = "dev"
 codegen-backend = "llvm"
+incremental = false
 [profile.dev.package."*"]
 codegen-backend = "llvm"
 [workspace]

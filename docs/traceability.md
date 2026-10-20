@@ -32,5 +32,5 @@ all route are assign by hash
                                                    │ sign in
                                                    ▼
                  ┌─────────────────┐if admin┌─────────────────┐    ┌─────────────────┐    ┌────────────┐
-                 │  /admin_console │────────│   /user_hom     │────│  /user_profile  │────│   /chat    │
+                 │  /admin_console │────────│   /user_home     │────│  /user_profile  │────│   /chat    │
                  └─────────────────┘        └─────────────────┘    └─────────────────┘    └────────────┘

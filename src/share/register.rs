@@ -7,6 +7,7 @@ pub const NEU_DOMAIN: &str = "neu.edu.vn";
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct RegisterReq {
     pub email: String,
+    #[serde(alias = "display_name")]
     pub username: String,
     pub password: String,
 }

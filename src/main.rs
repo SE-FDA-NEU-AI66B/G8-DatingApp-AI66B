@@ -70,6 +70,15 @@ async fn main() -> std::io::Result<()> {
             .service(ss::matching::matched_users)
             .service(ss::matching::accept_request)
             .service(ss::matching::decline_request)
+            .service(ss::chat::conversations)
+            .service(ss::chat::messages)
+            .service(ss::chat::send_message)
+            .service(ss::community::list_threads)
+            .service(ss::community::create_thread)
+            .service(ss::community::list_thread_comments)
+            .service(ss::community::create_thread_comment)
+            .service(ss::user_profile::get_user_profile)
+            .service(ss::user_profile::save_user_profile)
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve other assets from the `assets` directory

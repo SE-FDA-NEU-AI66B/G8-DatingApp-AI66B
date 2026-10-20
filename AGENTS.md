@@ -8,6 +8,7 @@
 - Keep the notebook's embedded HTML export in `database/__marimo__/note.html` synchronized when changing notebook behavior or schema, if that export is maintained in the change.
 - Do not add Rust startup schema creation, migrations, automatic initialization, or a second database setup path. The server should connect to the schema created by the notebook.
 - Do not add database migration code or migration files. This project recreates its empty development database from the notebook.
+- There is no existing application data to preserve. Do not create or run data migrations; change the schema in `database/note.py` and recreate the database instead.
 - When changing tables or columns, update the notebook schema and the Rust queries/types that use them together. Check documentation for stale schema descriptions.
 - SQL in tests may create isolated test fixtures only when required by the test; it must not become an alternative application database initializer.
 

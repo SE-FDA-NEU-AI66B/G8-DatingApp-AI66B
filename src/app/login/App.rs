@@ -2,6 +2,7 @@ use crate::share::auth::AuthError;
 use leptos::prelude::*;
 use leptos::reactive::spawn_local;
 use leptos::tachys::html::event::SubmitEvent;
+use leptos_router::hooks::use_navigate;
 use serde::Serialize;
 
 #[derive(Serialize)]
@@ -55,31 +56,20 @@ pub fn App() -> impl IntoView {
     let (password, set_password) = signal(String::new());
     let (error, set_error) = signal(None::<String>);
     let (busy, set_busy) = signal(false);
+    let navigate = use_navigate();
 
     let on_submit = move |event: SubmitEvent| {
         event.prevent_default();
         set_error.set(None);
         let username_or_email = username_or_email.get_untracked().trim().to_lowercase();
         let password = password.get_untracked();
+        let navigate = navigate.clone();
         set_busy.set(true);
         spawn_local(async move {
             match post_password_login(username_or_email, password).await {
                 Ok(()) => {
                     auth_state.set(Some(true));
-                }
-                Err(message) => set_error.set(Some(message)),
-            }
-            set_busy.set(false);
-        });
-    };
-
-    let on_logout = move |_| {
-        set_busy.set(true);
-        set_error.set(None);
-        spawn_local(async move {
-            match post_logout().await {
-                Ok(()) => {
-                    auth_state.set(Some(false));
+                    navigate("/userhome", Default::default());
                 }
                 Err(message) => set_error.set(Some(message)),
             }
@@ -90,32 +80,19 @@ pub fn App() -> impl IntoView {
     view! {
         <section aria-labelledby="login-title">
             <h1 id="login-title">"Sign in"</h1>
-            {move || {
-                if auth_state.get() == Some(true) {
-                    view! {
-                        <p role="status">"You are signed in."</p>
-                        <button type="button" on:click=on_logout disabled=move || busy.get()>
-                            {move || if busy.get() { "Signing out…" } else { "Sign out" }}
-                        </button>
-                    }.into_any()
-                } else {
-                    view! {
-                        <form novalidate on:submit=on_submit>
-                            <label for="login-username">"Username or NEU email"</label>
-                            <input id="login-username" type="text" autocomplete="username"
-                                placeholder="username or you@neu.edu.vn" bind:value=(username_or_email, set_username_or_email) required />
-                            <label for="login-password">"Password"</label>
-                            <input id="login-password" type="password" autocomplete="current-password"
-                                bind:value=(password, set_password) required />
-                            <button type="submit" disabled=move || busy.get()>
-                                {move || if busy.get() { "Signing in…" } else { "Sign in" }}
-                            </button>
-                        </form>
-                        <p>"Or sign in and verify with NEU Outlook:"</p>
-                        <a class="button" href="/api/auth/login">"Continue with Microsoft"</a>
-                    }.into_any()
-                }
-            }}
+            <form novalidate on:submit=on_submit>
+                <label for="login-username">"Username or NEU email"</label>
+                <input id="login-username" type="text" autocomplete="username"
+                    placeholder="username or you@neu.edu.vn" bind:value=(username_or_email, set_username_or_email) required />
+                <label for="login-password">"Password"</label>
+                <input id="login-password" type="password" autocomplete="current-password"
+                    bind:value=(password, set_password) required />
+                <button type="submit" disabled=move || busy.get()>
+                    {move || if busy.get() { "Signing in…" } else { "Sign in" }}
+                </button>
+            </form>
+            <p>"Or sign in and verify with NEU Outlook:"</p>
+            <a class="button" href="/api/auth/login">"Continue with Microsoft"</a>
             <p role="alert" aria-live="polite">{move || error.get()}</p>
             <p>"New here? "<a href="/register">"Create an account"</a></p>
         </section>

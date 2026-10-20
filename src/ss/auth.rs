@@ -35,6 +35,8 @@ pub struct AuthenticatedUser {
 #[derive(Debug, Clone, FromRow)]
 pub struct CurrentUser {
     pub id: Uuid,
+    pub username: Option<String>,
+    pub email: String,
     pub role: String,
 }
 
@@ -151,10 +153,16 @@ pub async fn password_login(
     })
     .await
     .unwrap_or(false);
-    if !verified || !user.email_verified {
+    if !verified {
         return auth_error(
             actix_web::http::StatusCode::UNAUTHORIZED,
             "Invalid username/email or password.",
+        );
+    }
+    if !user.email_verified {
+        return auth_error(
+            actix_web::http::StatusCode::FORBIDDEN,
+            "Verify your NEU Outlook address with Microsoft before using username and password.",
         );
     }
     match create_session(pool.get_ref(), user.id).await {
@@ -387,11 +395,19 @@ pub async fn callback(
                 .body("Microsoft identity token validation failed.");
         }
     };
-    let Some(email_claim) = claims.email() else {
+    // Entra does not guarantee the optional `email` claim for every account.
+    // `preferred_username` is also optional, so accept it only as a fallback;
+    // normalize_email still requires an NEU domain address before provisioning.
+    let email_claim = claims.email().map(|email| email.as_str()).or_else(|| {
+        claims
+            .preferred_username()
+            .map(|username| username.as_str())
+    });
+    let Some(email_claim) = email_claim else {
         return HttpResponse::Forbidden()
             .body("Your Microsoft account did not provide an email address.");
     };
-    let email = match normalize_email(email_claim.as_str()) {
+    let email = match normalize_email(email_claim) {
         Ok(email) => email,
         Err(_) => {
             return HttpResponse::Forbidden()
@@ -428,7 +444,7 @@ pub async fn callback(
         }
     };
     let mut response = HttpResponse::Found();
-    response.append_header((actix_web::http::header::LOCATION, "/"));
+    response.append_header((actix_web::http::header::LOCATION, "/userhome"));
     let mut response = response.cookie(session_cookie(token)).finish();
     clear_oauth_cookies(&mut response);
     response
@@ -464,7 +480,13 @@ pub async fn logout(request: HttpRequest, pool: web::Data<PgPool>) -> HttpRespon
 
 pub async fn session(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
     match require_user(&request, pool.get_ref()).await {
-        Ok(user) => HttpResponse::Ok().json(SessionInfo { role: user.role }),
+        Ok(user) => HttpResponse::Ok().json(SessionInfo {
+            username: user
+                .username
+                .unwrap_or_else(|| user.email.split('@').next().unwrap_or("student").to_owned()),
+            email: user.email,
+            role: user.role,
+        }),
         Err(response) => response,
     }
 }
@@ -526,7 +548,7 @@ pub async fn require_user(
         ));
     };
     let user = sqlx::query_as::<_, CurrentUser>(
-        "SELECT u.id, u.role
+        "SELECT u.id, u.username, u.email, u.role
          FROM auth_cookies s
          JOIN users u ON u.id = s.user_id
          WHERE s.token_hash = $1 AND s.expires_at > now()",

@@ -89,10 +89,26 @@ pub async fn get_profile(
         .fetch_optional(pool.get_ref())
         .await
     {
-        Ok(Some(rel)) => HttpResponse::Ok().json(ProfileView {
-            user_id: target,
-            relation: relation_from_db(&rel),
-        }),
+        Ok(Some(rel)) => match sqlx::query_as::<_, crate::lib::share::user_profile::UserProfile>(
+            "SELECT COALESCE(p.display_name, u.username, split_part(u.email, '@', 1)) AS display_name,
+                    COALESCE(p.bio, '') AS bio, p.cohort,
+                    COALESCE(p.interests, '') AS interests
+             FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id WHERE u.id = $1",
+        )
+        .bind(target)
+        .fetch_one(pool.get_ref())
+        .await
+        {
+            Ok(details) => HttpResponse::Ok().json(ProfileView {
+                user_id: target,
+                relation: relation_from_db(&rel),
+                display_name: details.display_name,
+                bio: details.bio,
+                cohort: details.cohort,
+                interests: details.interests,
+            }),
+            Err(e) => db_error("load profile details", e),
+        },
         Ok(None) => reply(StatusCode::NOT_FOUND, "Profile not found"),
         Err(e) => db_error("get profile", e),
     }

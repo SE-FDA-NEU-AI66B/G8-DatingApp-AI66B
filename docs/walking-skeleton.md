@@ -11,7 +11,7 @@ The working slice is the admin dashboard at `/admin_console`.
 - **Failure behavior:** PostgreSQL/API failures render an explicit error state;
   missing counts are never replaced with zero.
 
-Run the database and application using the commands in [SETUP.md](../SETUP.md),
+Run the database and application using the commands in [SETUP.md](SETUP.md),
 then authenticate as the configured development admin and open
 `http://localhost:3100/admin_console`.
 

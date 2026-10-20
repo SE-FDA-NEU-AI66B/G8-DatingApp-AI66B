@@ -23,6 +23,9 @@ are labelled with the data that crosses each boundary.
 erDiagram
     users ||--o{ auth_cookies : owns
     users ||--o{ study_dates : creates
+    users ||--o{ threads : authors
+    users ||--o{ thread_comments : writes
+    threads ||--o{ thread_comments : contains
     users ||--o{ user_reports : reports
     users ||--o{ match_requests : sends
     users ||--o{ match_requests : receives
@@ -46,6 +49,20 @@ erDiagram
         timestamptz starts_at
         timestamptz ends_at
         text status
+    }
+    threads {
+        bigint id PK
+        uuid author_id FK
+        text title
+        text body
+        timestamptz created_at
+    }
+    thread_comments {
+        bigint id PK
+        bigint thread_id FK
+        uuid author_id FK
+        text body
+        timestamptz created_at
     }
     user_reports {
         bigint id PK
@@ -76,6 +93,8 @@ created and reset from the `## Application database` section in
 | `users` | `id UUID` PK; unique lowercase NEU `email`; unique nullable `username`; nullable Argon2 `password_hash`; `email_verified`, constrained `role`, `created_at` | Account identity, optional username/password login, and authorization role. |
 | `auth_cookies` | `token_hash TEXT` PK; `user_id UUID` FK to `users.id`; `expires_at`, `created_at` | Hashed server-side cookie sessions, deleted with their account. |
 | `study_dates` | `id BIGSERIAL` PK; `creator_id UUID` FK; `starts_at`, `ends_at`, `duration_min`, constrained `status`, `created_at` | Scheduled study meetups with a checked time window and duration. |
+| `threads` | `id BIGSERIAL` PK; `author_id UUID` FK; title (1–120 chars); body (1–3000 chars); `created_at` | Community posts shown in the signed-in home feed. |
+| `thread_comments` | `id BIGSERIAL` PK; `thread_id BIGINT` FK with cascade delete; `author_id UUID` FK; body (1–2000 chars); `created_at` | Comments on community threads. |
 | `user_reports` | `id BIGSERIAL` PK; `reporter_id`, `reported_user_id UUID` FKs; constrained `status`, `created_at` | Moderation reports; self reports are rejected. |
 | `match_requests` | `id BIGSERIAL` PK; sender and receiver UUID FKs; constrained `status`; `created_at`, `responded_at`; unique sender/receiver pair | Tracks requests through pending, accepted, or declined states. |
 | `conversations` | `id BIGSERIAL` PK; ordered participant UUIDs; unique `match_request_id`; `created_at` | One conversation per participant pair, linked to the accepted match request. |
@@ -94,6 +113,8 @@ created and reset from the `## Application database` section in
 | `GET` | `/api/auth/callback` | OAuth2 authorization response | `302` session cookie | `400`, `401`, `500` |
 | `POST` | `/api/match-requests` | Auth session and target user id | `201` request confirmation | `401`; `404` target missing; `409` duplicate request |
 | `GET` | `/api/profiles/{id}` | Auth session and profile id | `200` profile and relationship | `401`; `404` profile missing |
+| `GET`, `POST` | `/api/threads` | Auth session; thread creation uses title and body | `200` feed; `201` created thread | `400`; `401`; `500` |
+| `GET`, `POST` | `/api/threads/{id}/comments` | Auth session; comment creation uses body | `200` comments; `201` created comment | `400`; `401`; `404`; `500` |
 
 Statistics are queried on every request, so refresh reads current stored data.
 Database failures return an explicit error and the UI does not convert them to

@@ -73,7 +73,7 @@ pub async fn register(pool: web::Data<PgPool>, body: web::Json<RegisterReq>) -> 
         }),
         Err(sqlx::Error::Database(error)) if error.is_unique_violation() => {
             HttpResponse::Conflict().json(MessageBody {
-                message: "An account already exists for this email. Sign in with Microsoft or use password login if your email is verified.".into(),
+                message: "That email or username is already registered. Sign in or choose another username.".into(),
             })
         }
         Err(error) => {

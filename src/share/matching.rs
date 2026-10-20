@@ -5,7 +5,7 @@ pub const DAILY_LIMIT: i64 = 20;
 pub const DAILY_LIMIT_MESSAGE: &str = "Daily limit of 20 requests reached";
 pub const ALREADY_SENT_MESSAGE: &str = "Request already sent";
 
-/// Chưa có bảng profile → tên hiển thị tạm thời.
+/// Fallback display name before a user creates a profile.
 pub fn display_name(user_id: Uuid) -> String {
     format!("Student #{}", &user_id.simple().to_string()[..8])
 }
@@ -41,6 +41,10 @@ pub enum Relation {
 pub struct ProfileView {
     pub user_id: Uuid,
     pub relation: Relation,
+    pub display_name: String,
+    pub bio: String,
+    pub cohort: Option<String>,
+    pub interests: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

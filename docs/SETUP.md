@@ -28,13 +28,15 @@ cp .env.example .env
 ```
 
 Set `DATABASE_URL` to the PostgreSQL database created by Compose. Register a
-Microsoft Entra app, add `http://localhost:3100/api/auth/callback` as a Web
-redirect URI, and copy its client ID and secret into `.env`. Set
-`MICROSOFT_TENANT_ID` to NEU's Entra tenant ID from the app registration's
-directory overview. The tenant-specific endpoint keeps sign-in restricted to
-NEU's Microsoft 365 directory; the app also requires an `@neu.edu.vn` email
-claim at `neu.edu.vn` or one of its subdomains. Request the `email`, `openid`, and `profile` scopes. Set
-`MICROSOFT_REDIRECT_URI` to the exact registered callback.
+Microsoft Entra app for NEU's directory. Under **Authentication**, add the Web
+redirect URI `http://localhost:3100/api/auth/callback`. In **Token configuration**,
+add the `email` optional claim to the ID token; the app also falls back to the
+NEU email shaped `preferred_username` claim when `email` is absent. Set
+`MICROSOFT_TENANT_ID` to NEU's Entra tenant GUID from the directory overview,
+then set the application client ID, client secret, and exact callback URI in
+`.env`. The tenant-specific endpoint restricts sign-in to NEU's directory.
+For local development, `http://localhost` is supported; deployed callbacks
+must use HTTPS and exactly match the registered URI.
 Set `ADMIN_EMAIL` to the account that should receive development admin access.
 Never commit real passwords, OAuth client secrets, or keys.
 

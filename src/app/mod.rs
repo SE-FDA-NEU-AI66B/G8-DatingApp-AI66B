@@ -8,11 +8,15 @@ use leptos_router::{
 mod admin;
 mod api;
 mod auth_gate;
+mod chat;
+pub(super) mod community_feed;
 mod profile;
 mod register;
 mod requests;
 mod study_date_form;
 mod study_feed;
+mod user_profile;
+mod userhome;
 #[allow(non_snake_case)]
 #[component]
 pub fn app() -> impl IntoView {
@@ -33,11 +37,7 @@ pub fn app() -> impl IntoView {
                     <span class="brand-mark" attr:aria-hidden="true">"♡"</span>
                     <span>"studydate"</span>
                 </A>
-                <nav class="site-nav" attr:aria-label="Main navigation">
-                    <A href="/feed">"Explore"</A>
-                    <A href="/study-date/new">"Create a date"</A>
-                    <A href="/requests">"Requests"</A>
-                </nav>
+                <HeaderNav />
                 <div class="header-actions">
                     <HeaderAuthActions />
                 </div>
@@ -66,6 +66,18 @@ pub fn app() -> impl IntoView {
                     <Route path=StaticSegment("requests") view=move || view! {
                         <auth_gate::AuthGate><requests::RequestsPage /></auth_gate::AuthGate>
                     } />
+                    <Route path=StaticSegment("chat") view=move || view! {
+                        <auth_gate::AuthGate><chat::ChatInbox /></auth_gate::AuthGate>
+                    } />
+                    <Route path=(StaticSegment("chat"), ParamSegment("id")) view=move || view! {
+                        <auth_gate::AuthGate><chat::ChatRoom /></auth_gate::AuthGate>
+                    } />
+                    <Route path=StaticSegment("userhome") view=move || view! {
+                        <auth_gate::AuthGate><userhome::UserHome /></auth_gate::AuthGate>
+                    } />
+                    <Route path=StaticSegment("user_profile") view=move || view! {
+                        <auth_gate::AuthGate><user_profile::UserProfilePage /></auth_gate::AuthGate>
+                    } />
                     <Route path=StaticSegment("admin_console") view=move || view! {
                         <auth_gate::AuthGate admin_only=true><admin::AdminDashboard /></auth_gate::AuthGate>
                     } />
@@ -74,6 +86,51 @@ pub fn app() -> impl IntoView {
                 </Routes>
             </main>
         </Router>
+    }
+}
+
+#[component]
+fn HeaderNav() -> impl IntoView {
+    let auth_state = use_context::<RwSignal<Option<bool>>>().expect("auth state context");
+    let (is_admin, set_is_admin) = signal(false);
+
+    Effect::new(move |_| {
+        if auth_state.get() != Some(true) {
+            set_is_admin.set(false);
+            return;
+        }
+        spawn_local(async move {
+            use gloo_net::http::Request;
+
+            set_is_admin.set(
+                Request::get("/api/admin/health")
+                    .send()
+                    .await
+                    .is_ok_and(|response| response.status() == 200),
+            );
+        });
+    });
+
+    view! {
+        <nav class="site-nav" attr:aria-label="Main navigation">
+            {move || match auth_state.get() {
+                Some(true) => view! {
+                    <A href="/userhome">"My home"</A>
+                    <A href="/user_profile">"My profile"</A>
+                    <A href="/feed">"Explore"</A>
+                    <A href="/study-date/new">"Create a date"</A>
+                    <A href="/requests">"Requests"</A>
+                    <A href="/chat">"Chat"</A>
+                    <Show when=move || is_admin.get()>
+                        <A href="/admin_console" attr:class="admin-nav-link">"Admin console"</A>
+                    </Show>
+                }.into_any(),
+                Some(false) => view! {
+                    <A href="/">"Home"</A>
+                }.into_any(),
+                None => view! { <span aria-hidden="true"></span> }.into_any(),
+            }}
+        </nav>
     }
 }
 
