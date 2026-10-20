@@ -54,7 +54,6 @@ pub fn App() -> impl IntoView {
     let (username_or_email, set_username_or_email) = signal(String::new());
     let (password, set_password) = signal(String::new());
     let (error, set_error) = signal(None::<String>);
-    let (signed_in, set_signed_in) = signal(false);
     let (busy, set_busy) = signal(false);
 
     let on_submit = move |event: SubmitEvent| {
@@ -66,7 +65,6 @@ pub fn App() -> impl IntoView {
         spawn_local(async move {
             match post_password_login(username_or_email, password).await {
                 Ok(()) => {
-                    set_signed_in.set(true);
                     auth_state.set(Some(true));
                 }
                 Err(message) => set_error.set(Some(message)),
@@ -81,7 +79,6 @@ pub fn App() -> impl IntoView {
         spawn_local(async move {
             match post_logout().await {
                 Ok(()) => {
-                    set_signed_in.set(false);
                     auth_state.set(Some(false));
                 }
                 Err(message) => set_error.set(Some(message)),
@@ -94,7 +91,7 @@ pub fn App() -> impl IntoView {
         <section aria-labelledby="login-title">
             <h1 id="login-title">"Sign in"</h1>
             {move || {
-                if signed_in.get() {
+                if auth_state.get() == Some(true) {
                     view! {
                         <p role="status">"You are signed in."</p>
                         <button type="button" on:click=on_logout disabled=move || busy.get()>

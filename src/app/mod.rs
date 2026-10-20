@@ -89,7 +89,9 @@ fn HeaderAuthActions() -> impl IntoView {
                 .send()
                 .await
                 .is_ok_and(|response| response.status() == 200);
-            auth_state.set(Some(authenticated));
+            if auth_state.get_untracked().is_none() {
+                auth_state.set(Some(authenticated));
+            }
         });
     });
 
