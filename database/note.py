@@ -364,6 +364,17 @@ def _(mo):
 
 
 @app.cell
+def _(app_user, conn, mo):
+    _df = mo.sql(
+        f"""
+        Select * from app_user
+        """,
+        engine=conn
+    )
+    return
+
+
+@app.cell
 def _(auth_session, conn, mo):
     _df = mo.sql(
         f"""
@@ -443,11 +454,6 @@ def _(conn, load_seed_button, mo):
     else:
         seed_status = mo.md("Click the button above to load seed.sql.")
     seed_status
-    return
-
-
-@app.cell
-def _():
     return
 
 

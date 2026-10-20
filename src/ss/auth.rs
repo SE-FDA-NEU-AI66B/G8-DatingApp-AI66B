@@ -39,7 +39,7 @@ fn auth_error(status: actix_web::http::StatusCode, message: &str) -> HttpRespons
 }
 
 fn hash_token(token: &str) -> String {
-    format!("{:?}", Sha256::digest(token.as_bytes()))
+    hex::encode(Sha256::digest(token.as_bytes()))
 }
 
 fn new_token() -> String {

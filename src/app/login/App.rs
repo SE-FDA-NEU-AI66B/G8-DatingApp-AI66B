@@ -1,120 +1,151 @@
-use itertools::Itertools;
+use crate::share::auth::{AuthError, LoginRequest};
+use crate::share::register::normalize_email;
+use leptos::prelude::*;
 use leptos::reactive::spawn_local;
-use leptos::server::codee::string::FromToStringCodec;
-use leptos::{html, prelude::*};
-use leptos_use::use_cookie;
-use sqlx::types::uuid::Uuid;
-pub fn get_client_info() -> String {
-    use wasm_bindgen::prelude::*;
-    let window = web_sys::window().unwrap();
-    let navigator = window.navigator();
-    let user_agent = navigator.user_agent();
-    // let user_agent = 1;
-    format!("{user_agent:?}{window:?}")
+use leptos::tachys::html::event::SubmitEvent;
+
+async fn post_login(email: String, otp: String) -> Result<(), String> {
+    use gloo_net::http::Request;
+
+    let request = Request::post("/api/auth/login")
+        .json(&LoginRequest { email, otp })
+        .map_err(|_| "Could not prepare the login request.".to_string())?;
+    let response = request
+        .send()
+        .await
+        .map_err(|_| "Unable to reach the login service. Please try again.".to_string())?;
+
+    if response.ok() {
+        Ok(())
+    } else {
+        let error = response.json::<AuthError>().await.ok();
+        Err(error.map_or_else(
+            || "Login failed. Please check your email and OTP.".to_string(),
+            |error| error.message,
+        ))
+    }
 }
+
+async fn post_logout() -> Result<(), String> {
+    use gloo_net::http::Request;
+
+    let response = Request::post("/api/auth/logout")
+        .send()
+        .await
+        .map_err(|_| "Unable to reach the logout service. Please try again.".to_string())?;
+    if response.ok() {
+        Ok(())
+    } else {
+        Err("Unable to end the session.".to_string())
+    }
+}
+
+#[component]
 pub fn App() -> impl IntoView {
-    view! { <Forms /> }
-}
-pub fn Applogout() -> impl IntoView {
-    let login_cookie = use_cookie::<String, FromToStringCodec>("login_cookie");
-    Effect::new(move |_| {
-        login_cookie.1.set(None);
-        // navigate("/login", Default::default());
-    });
-    view! {
-        <p>"Logging out…"</p>
-        {login_cookie.0}
-    }
-}
+    let (email, set_email) = signal(String::new());
+    let (otp, set_otp) = signal(String::new());
+    let (error, set_error) = signal(None::<String>);
+    let (signed_in, set_signed_in) = signal(false);
+    let (busy, set_busy) = signal(false);
 
-#[server()]
-pub async fn login(
-    username: String,
-    password: String,
-    info: String,
-) -> Result<String, ServerFnError> {
-    use actix_web::web::Data;
-    use leptos_actix::extract;
-    let db: Data<crate::share::database::Database> = extract().await.unwrap_or_else(|i| {
-        println!("{:?}", i);
-        panic!("asdf");
-    });
-    let db = (*db).0.as_ref();
-    use sqlx::Row;
-    let mut cookie: Vec<u8> = vec![0; 32];
-    getrandom::fill(&mut cookie).unwrap();
-    println!("{:?}", cookie);
-    let username = "mq".to_string();
-    let password = "urmom_fat".to_string();
-    let userid = sqlx::query_as("SELECT id from app_user where username=$1 and password=$2")
-        .bind(username)
-        .bind(password)
-        .fetch_one(db)
-        .await;
-    if userid.is_err() {
-        panic!("what {:?}", userid.unwrap_err());
-    }
-    let userid: (Uuid,) = match userid {
-        Ok(userid) => userid,
-        e => return Err(ServerFnError::new("Wronguser name or pass")),
-    };
-    let result = match sqlx::query(
-        "INSERT INTO cookie_login (cookie,userid,info) VALUES ($1,$2,$3)
-",
-    )
-    .bind(cookie.clone())
-    .bind(userid.0)
-    .bind(info.as_bytes())
-    .execute(db)
-    .await
-    {
-        Ok(a) => a,
-        a => {
-            println!("{:?}", a);
-            return Err(ServerFnError::new("server err"));
-        }
-    };
+    let on_submit = move |event: SubmitEvent| {
+        event.prevent_default();
+        set_error.set(None);
 
-    print!("{:?}", userid);
-    // user_id(&cookie);
-    Ok(hex::encode(&cookie))
-}
-pub fn Forms() -> impl IntoView {
-    let username = signal("".to_string());
-    let password = signal("".to_string());
-    let device_info = signal("".to_string());
-    let login_cookie = use_cookie::<String, FromToStringCodec>("login_cookie");
-    use leptos::tachys::html::event::SubmitEvent;
-    let on_submit = move |ev: SubmitEvent| {
-        let login_cookie = login_cookie.clone();
-        let a = get_client_info();
-        device_info.1.set(a.clone());
-        spawn_local(async move {
-            let cookie = login(username.0.get(), password.0.get(), a).await.unwrap();
-            login_cookie.1.set(Some(cookie));
-        });
-        ev.prevent_default();
-    };
-    view! {
-        <Show
-            when=move || login_cookie.0.get().is_none()
-            fallback=move || {
-                view! {
-                    <p>"You are logged in."</p>
-                    <button on:click=move |_| login_cookie.1.set(None)>"Log out"</button>
-                }
+        let normalized_email = match normalize_email(&email.get_untracked()) {
+            Ok(email) => email,
+            Err(message) => {
+                set_error.set(Some(message.to_string()));
+                return;
             }
-        >
-            <form on:submit=on_submit>
-                <input type="text" placeholder="username" bind:value=username />
-                <br />
-                <input type="text" placeholder="password" bind:value=password />
-                <br />
-                <input type="submit" value="Submit" />
-                <br />
-                login_cookie:
-                {login_cookie.0}
-            </form>
-        </Show>
+        };
+        let otp_value = otp.get_untracked().trim().to_string();
+        if otp_value.len() != 6 || !otp_value.chars().all(|character| character.is_ascii_digit()) {
+            set_error.set(Some("Enter the six-digit OTP sent to your email.".to_string()));
+            return;
+        }
+
+        set_busy.set(true);
+        spawn_local(async move {
+            match post_login(normalized_email, otp_value).await {
+                Ok(()) => set_signed_in.set(true),
+                Err(message) => set_error.set(Some(message)),
+            }
+            set_busy.set(false);
+        });
+    };
+
+    let on_logout = move |_| {
+        set_busy.set(true);
+        set_error.set(None);
+        spawn_local(async move {
+            match post_logout().await {
+                Ok(()) => set_signed_in.set(false),
+                Err(message) => set_error.set(Some(message)),
+            }
+            set_busy.set(false);
+        });
+    };
+
+    view! {
+        <section aria-labelledby="login-title">
+            <h1 id="login-title">"Sign in"</h1>
+            {move || {
+                if signed_in.get() {
+                    view! {
+                        <p role="status">"You are signed in."</p>
+                        <button type="button" on:click=on_logout disabled=move || busy.get()>
+                            {move || if busy.get() { "Signing out…" } else { "Sign out" }}
+                        </button>
+                    }
+                        .into_any()
+                } else {
+                    view! {
+                        <form novalidate on:submit=on_submit>
+                            <label for="login-email">"NEU email"</label>
+                            <input
+                                id="login-email"
+                                type="email"
+                                autocomplete="email"
+                                placeholder="you@neu.edu.vn"
+                                bind:value=(email, set_email)
+                                required
+                            />
+                            <label for="login-otp">"Six-digit OTP"</label>
+                            <input
+                                id="login-otp"
+                                type="text"
+                                inputmode="numeric"
+                                autocomplete="one-time-code"
+                                maxlength="6"
+                                placeholder="123456"
+                                bind:value=(otp, set_otp)
+                                required
+                            />
+                            <button type="submit" disabled=move || busy.get()>
+                                {move || if busy.get() { "Signing in…" } else { "Sign in" }}
+                            </button>
+                        </form>
+                    }
+                        .into_any()
+                }
+            }}
+            <p role="alert" aria-live="polite">{move || error.get()}</p>
+            <p>"New here? "<a href="/register">"Create an account"</a></p>
+        </section>
     }
+}
+
+#[component]
+pub fn Applogout() -> impl IntoView {
+    let (message, set_message) = signal("Signing out…".to_string());
+    Effect::new(move |_| {
+        spawn_local(async move {
+            set_message.set(match post_logout().await {
+                Ok(()) => "You are signed out.".to_string(),
+                Err(error) => error,
+            });
+        });
+    });
+    view! { <p role="status">{move || message.get()}</p> }
 }

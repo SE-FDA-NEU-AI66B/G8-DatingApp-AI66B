@@ -357,7 +357,7 @@ mod tests {
         ];
 
         let token = format!("test-session-{unique}");
-        let token_hash = format!("{:x}", Sha256::digest(token.as_bytes()));
+        let token_hash = hex::encode(Sha256::digest(token.as_bytes()));
         sqlx::query(
             "INSERT INTO auth_session (token_hash, user_id, expires_at)
              VALUES ($1, $2, now() + interval '1 hour')",
