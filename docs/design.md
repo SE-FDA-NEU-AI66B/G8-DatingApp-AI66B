@@ -63,8 +63,9 @@ The ERD covers the four tables used by the walking skeleton.
 |---|---|---|---|---|
 | `GET` | `/api/admin/statistics` | Admin session cookie | `200` with three counts | `401` unauthenticated; `403` non-admin; `500` database failure |
 | `GET` | `/api/admin/health` | Admin session cookie | `200` with server/database status and timestamps | `401`; `403` |
-| `POST` | `/api/auth/request-otp` | Email | `200` message | `400` invalid email; `500` persistence failure |
-| `POST` | `/api/auth/verify-otp` | Email and six-digit OTP | `200` session cookie | `400` invalid/expired OTP; `401` mismatch |
+| `POST` | `/api/register` | Email | `201` registration message; OTP currently logged by development stub | `400` invalid email; `409` duplicate email; `500` persistence failure |
+| `POST` | `/api/auth/login` | Email and six-digit OTP | `200` session cookie | `400` invalid email; `401` invalid/expired OTP; `500` persistence failure |
+| `POST` | `/api/auth/logout` | Session cookie | `204` clears session cookie | `500` persistence failure |
 | `POST` | `/api/match-requests` | Auth session and target user id | `201` request confirmation | `401`; `404` target missing; `409` duplicate request |
 | `GET` | `/api/profiles/{id}` | Auth session and profile id | `200` profile and relationship | `401`; `404` profile missing |
 
@@ -206,6 +207,15 @@ không phải hiển thị toàn bộ dữ liệu quản trị trên một màn 
    The Sprint 1 review highlighted that an admin screen must not expose counts
    to anonymous or regular users, so the session, expiry, role, `401`, and
    `403` behaviors were added to the API and tested.
+3. **M3 added P0 student workflows and endpoints** for registration, study-date
+   creation/feed, profiles, and match requests. The current auth routes are
+   `POST /api/register`, `POST /api/auth/login`, and `POST /api/auth/logout`;
+   older references to `/api/auth/register`, `/api/auth/request-otp`, and
+   `/api/auth/verify-otp` did not match the implementation and have been
+   corrected here and in `docs/api.md`.
+4. **New validation statuses:** study-date validation uses `422`, and match
+   request throttling uses `429`. These statuses were added after M2 and are
+   documented as such in `docs/ui.md`.
 
 ## Cover and submission metadata
 

@@ -65,8 +65,60 @@ async fn fetch_health() -> Result<HealthStatus, String> {
     }
 }
 
+#[cfg(target_arch = "wasm32")]
+async fn check_admin_access() -> Result<(), String> {
+    use gloo_net::http::Request;
+
+    let response = Request::get("/api/admin/access")
+        .send()
+        .await
+        .map_err(|_| "Unable to verify administrator access.".to_string())?;
+
+    if response.ok() {
+        Ok(())
+    } else {
+        let error = response.json::<StatisticsError>().await.ok();
+        Err(error.map_or_else(
+            || "Administrator access could not be verified.".to_string(),
+            |error| error.message,
+        ))
+    }
+}
+
 #[component]
 pub fn AdminDashboard() -> impl IntoView {
+    let (access, set_access) = signal(None::<Result<(), String>>);
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let _ = &set_access;
+
+    #[cfg(target_arch = "wasm32")]
+    {
+        leptos::task::spawn_local(async move {
+            set_access.set(Some(check_admin_access().await));
+        });
+    }
+
+    view! {
+        <section aria-labelledby="admin-dashboard-title">
+            {move || match access.get() {
+                None => view! {
+                    <p role="status">"Checking administrator access..."</p>
+                }.into_any(),
+                Some(Err(message)) => view! {
+                    <h1 id="admin-dashboard-title">"Admin dashboard"</h1>
+                    <p role="alert">{message}</p>
+                }.into_any(),
+                Some(Ok(())) => view! {
+                    <AdminDashboardContent />
+                }.into_any(),
+            }}
+        </section>
+    }
+}
+
+#[component]
+fn AdminDashboardContent() -> impl IntoView {
     let (statistics, set_statistics) = signal(None::<DashboardStatistics>);
     let (health, set_health) = signal(None::<HealthStatus>);
     let (error, set_error) = signal(None::<DashboardError>);

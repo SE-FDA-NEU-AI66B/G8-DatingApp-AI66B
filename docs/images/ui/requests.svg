@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="510" viewBox="0 0 760 510" role="img" aria-labelledby="title desc">
+  <title id="title">Match requests wireframe</title>
+  <desc id="desc">Incoming requests with links to profiles and Accept/Decline controls, followed by matched users.</desc>
+  <rect width="760" height="390" fill="#f4f6f8"/>
+  <rect x="24" y="24" width="712" height="462" rx="12" fill="white" stroke="#52606d" stroke-width="2"/>
+  <text x="48" y="62" font-family="sans-serif" font-size="22" font-weight="bold">Match requests</text>
+  <text x="48" y="91" font-family="sans-serif" font-size="15">The user comes here to respond to incoming requests and see matches.</text>
+  <text x="60" y="133" font-family="sans-serif" font-size="17" font-weight="bold">Pending requests (1)</text>
+  <rect x="48" y="149" width="664" height="64" rx="6" fill="white" stroke="#8795a1"/>
+  <text x="66" y="176" font-family="sans-serif" font-size="14">Student #12 — view profile</text>
+  <rect x="400" y="160" width="105" height="38" rx="5" fill="#dce8f5" stroke="#52606d"/>
+  <text x="424" y="185" font-family="sans-serif" font-size="14">Accept</text>
+  <rect x="521" y="160" width="105" height="38" rx="5" fill="white" stroke="#52606d"/>
+  <text x="547" y="185" font-family="sans-serif" font-size="14">Decline</text>
+  <text x="60" y="250" font-family="sans-serif" font-size="17" font-weight="bold">Matched</text>
+  <text x="66" y="278" font-family="sans-serif" font-size="14">Student #7 — matched</text>
+  <rect x="48" y="343" width="664" height="35" rx="5" fill="#e9eef4" stroke="#8795a1"/>
+  <text x="60" y="366" font-family="sans-serif" font-size="13">Home | Register | Feed | Create | Requests | Admin | Sign in (planned)</text>
+  <text x="48" y="408" font-family="sans-serif" font-size="12">Loading: “Loading requests...”</text>
+  <text x="48" y="428" font-family="sans-serif" font-size="12">Empty: “No pending requests”</text>
+  <text x="48" y="448" font-family="sans-serif" font-size="12">Error: API/action message shown as an alert</text>
+  <text x="48" y="468" font-family="sans-serif" font-size="12">Success: request and matched-user lists are shown</text>
+  <text x="48" y="498" font-family="sans-serif" font-size="13" fill="#52606d">API: GET incoming/matches; POST accept/decline</text>
+</svg>
