@@ -33,14 +33,14 @@ redirect URI, and copy its client ID and secret into `.env`. Set
 `MICROSOFT_TENANT_ID` to NEU's Entra tenant ID from the app registration's
 directory overview. The tenant-specific endpoint keeps sign-in restricted to
 NEU's Microsoft 365 directory; the app also requires an `@neu.edu.vn` email
-claim. Request the `email`, `openid`, and `profile` scopes. Set
+claim at `neu.edu.vn` or one of its subdomains. Request the `email`, `openid`, and `profile` scopes. Set
 `MICROSOFT_REDIRECT_URI` to the exact registered callback.
 Set `ADMIN_EMAIL` to the account that should receive development admin access.
 Never commit real passwords, OAuth client secrets, or keys.
 
-Users register with a display name, NEU email, and password at `/register`.
+Users register with a unique username, `neu.edu.vn` email (including subdomains), and password at `/register`.
 They must complete Microsoft sign-in with that Outlook address to verify the
-account. Then they can use either Microsoft sign-in or email and password.
+account. Then they can use either Microsoft sign-in or username and password.
 Passwords are stored as Argon2 hashes; password login is disabled until the
 email has been verified.
 
@@ -57,14 +57,20 @@ cargo leptos build
 
 Open the database notebook and click **Recreate application database**. This
 drops and rebuilds the `public` schema; the server expects the notebook-created
-tables and does not create the schema itself.
+tables and does not create the schema itself. Then click **Initialize sample
+data** to add demo users, study dates, a pending report, match requests, and a
+conversation. This button is safe to click again and does not reset the schema.
+The seeded users all use the username shown in the notebook data and the shared
+demo password `password`. This intentionally weak password is for local demo
+data only; never reuse it outside the disposable development database.
 
 Windows PowerShell:
 
 ```powershell
 # The notebook reads PGPASS from .env
 uv run marimo edit database/note.py
-# Click Recreate application database, then close the notebook
+# Click Recreate application database, then Initialize sample data
+# Close the notebook when both actions finish
 # Terminal 1
 cargo leptos watch
 ```
@@ -74,7 +80,8 @@ macOS/Linux:
 ```bash
 # The notebook reads PGPASS from .env
 uv run marimo edit database/note.py
-# Click Recreate application database, then close the notebook
+# Click Recreate application database, then Initialize sample data
+# Close the notebook when both actions finish
 cargo leptos watch
 ```
 

@@ -57,7 +57,7 @@ thay đổi.
 
 ### Admin authentication (development)
 
-Registration collects a name, NEU email, and password. Verify the email by
+Registration collects a username, NEU email (including subdomains of `neu.edu.vn`), and password. Verify the email by
 continuing through NEU Outlook; after verification, sign in with the email and
 password or continue using Microsoft. Passwords are stored as Argon2 hashes.
 

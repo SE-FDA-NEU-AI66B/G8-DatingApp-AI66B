@@ -6,15 +6,18 @@ use serde::Serialize;
 
 #[derive(Serialize)]
 struct PasswordLogin {
-    email: String,
+    username_or_email: String,
     password: String,
 }
 
-async fn post_password_login(email: String, password: String) -> Result<(), String> {
+async fn post_password_login(username_or_email: String, password: String) -> Result<(), String> {
     use gloo_net::http::Request;
 
     let request = Request::post("/api/auth/password")
-        .json(&PasswordLogin { email, password })
+        .json(&PasswordLogin {
+            username_or_email,
+            password,
+        })
         .map_err(|_| "Could not prepare the sign-in request.".to_string())?;
     let response = request
         .send()
@@ -47,7 +50,8 @@ async fn post_logout() -> Result<(), String> {
 
 #[component]
 pub fn App() -> impl IntoView {
-    let (email, set_email) = signal(String::new());
+    let auth_state = use_context::<RwSignal<Option<bool>>>().expect("auth state context");
+    let (username_or_email, set_username_or_email) = signal(String::new());
     let (password, set_password) = signal(String::new());
     let (error, set_error) = signal(None::<String>);
     let (signed_in, set_signed_in) = signal(false);
@@ -56,12 +60,15 @@ pub fn App() -> impl IntoView {
     let on_submit = move |event: SubmitEvent| {
         event.prevent_default();
         set_error.set(None);
-        let email = email.get_untracked().trim().to_lowercase();
+        let username_or_email = username_or_email.get_untracked().trim().to_lowercase();
         let password = password.get_untracked();
         set_busy.set(true);
         spawn_local(async move {
-            match post_password_login(email, password).await {
-                Ok(()) => set_signed_in.set(true),
+            match post_password_login(username_or_email, password).await {
+                Ok(()) => {
+                    set_signed_in.set(true);
+                    auth_state.set(Some(true));
+                }
                 Err(message) => set_error.set(Some(message)),
             }
             set_busy.set(false);
@@ -73,7 +80,10 @@ pub fn App() -> impl IntoView {
         set_error.set(None);
         spawn_local(async move {
             match post_logout().await {
-                Ok(()) => set_signed_in.set(false),
+                Ok(()) => {
+                    set_signed_in.set(false);
+                    auth_state.set(Some(false));
+                }
                 Err(message) => set_error.set(Some(message)),
             }
             set_busy.set(false);
@@ -94,9 +104,9 @@ pub fn App() -> impl IntoView {
                 } else {
                     view! {
                         <form novalidate on:submit=on_submit>
-                            <label for="login-email">"NEU email"</label>
-                            <input id="login-email" type="email" autocomplete="username"
-                                placeholder="you@neu.edu.vn" bind:value=(email, set_email) required />
+                            <label for="login-username">"Username or NEU email"</label>
+                            <input id="login-username" type="text" autocomplete="username"
+                                placeholder="username or you@neu.edu.vn" bind:value=(username_or_email, set_username_or_email) required />
                             <label for="login-password">"Password"</label>
                             <input id="login-password" type="password" autocomplete="current-password"
                                 bind:value=(password, set_password) required />
@@ -117,13 +127,17 @@ pub fn App() -> impl IntoView {
 
 #[component]
 pub fn Applogout() -> impl IntoView {
+    let auth_state = use_context::<RwSignal<Option<bool>>>().expect("auth state context");
     let (message, set_message) = signal("Signing out…".to_string());
     Effect::new(move |_| {
         spawn_local(async move {
-            set_message.set(match post_logout().await {
-                Ok(()) => "You are signed out.".to_string(),
-                Err(error) => error,
-            });
+            match post_logout().await {
+                Ok(()) => {
+                    auth_state.set(Some(false));
+                    set_message.set("You are signed out.".to_string());
+                }
+                Err(error) => set_message.set(error),
+            }
         });
     });
     view! { <p role="status">{move || message.get()}</p> }

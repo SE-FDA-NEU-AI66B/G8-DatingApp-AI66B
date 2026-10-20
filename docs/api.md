@@ -6,8 +6,9 @@ error status.
 
 | Method | Path | Input | Success | Errors |
 |---|---|---|---|---|
-| POST | `/api/register` | `{ email, display_name, password }` | `201`, account created pending Microsoft verification | `400`, `409`, `500` |
-| POST | `/api/auth/password` | `{ email, password }` | `200`, session cookie | `401`, `500` |
+| POST | `/api/register` | `{ email, username, password }` | `201`, account created pending Microsoft verification | `400`, `409`, `500` |
+| POST | `/api/auth/password` | `{ username_or_email, password }` | `200`, session cookie | `401`, `500` |
+| GET | `/api/auth/session` | session cookie | `200`, current user's role | `401`, `500` |
 | GET | `/api/auth/login` | — | Redirect to configured OAuth2 provider | `500` |
 | GET | `/api/auth/callback` | OAuth2 authorization response | `302`, session cookie | `400`, `401`, `500` |
 | POST | `/api/auth/logout` | session cookie | `204` | `401` |

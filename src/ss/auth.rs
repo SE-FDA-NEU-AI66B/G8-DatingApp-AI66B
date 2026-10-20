@@ -1,6 +1,6 @@
 use crate::lib::share::{
-    auth::{AuthError, LoginRequest},
-    register::normalize_email,
+    auth::{AuthError, LoginRequest, SessionInfo},
+    register::{normalize_email, normalize_username},
 };
 use actix_web::{
     cookie::{Cookie, SameSite},
@@ -88,18 +88,34 @@ pub async fn password_login(
     pool: web::Data<PgPool>,
     body: web::Json<LoginRequest>,
 ) -> HttpResponse {
-    let email = match normalize_email(&body.email) {
-        Ok(email) => email,
-        Err(_) => {
-            return auth_error(
-                actix_web::http::StatusCode::UNAUTHORIZED,
-                "Invalid email or password.",
-            )
+    let identifier = body.username_or_email.trim().to_lowercase();
+    let (username, email) = if identifier.contains('@') {
+        match normalize_email(&identifier) {
+            Ok(email) => (None, Some(email)),
+            Err(_) => {
+                return auth_error(
+                    actix_web::http::StatusCode::UNAUTHORIZED,
+                    "Invalid username/email or password.",
+                )
+            }
+        }
+    } else {
+        match normalize_username(&identifier) {
+            Ok(username) => (Some(username), None),
+            Err(_) => {
+                return auth_error(
+                    actix_web::http::StatusCode::UNAUTHORIZED,
+                    "Invalid username/email or password.",
+                )
+            }
         }
     };
     let user = match sqlx::query_as::<_, PasswordLoginUser>(
-        "SELECT id, password_hash, email_verified FROM users WHERE email = $1",
+        "SELECT id, password_hash, email_verified FROM users
+         WHERE ($1::text IS NOT NULL AND username = $1)
+            OR ($2::text IS NOT NULL AND email = $2)",
     )
+    .bind(username)
     .bind(email)
     .fetch_optional(pool.get_ref())
     .await
@@ -108,7 +124,7 @@ pub async fn password_login(
         Ok(None) => {
             return auth_error(
                 actix_web::http::StatusCode::UNAUTHORIZED,
-                "Invalid email or password.",
+                "Invalid username/email or password.",
             )
         }
         Err(error) => {
@@ -122,7 +138,7 @@ pub async fn password_login(
     let Some(password_hash) = user.password_hash else {
         return auth_error(
             actix_web::http::StatusCode::UNAUTHORIZED,
-            "Invalid email or password.",
+            "Invalid username/email or password.",
         );
     };
     let password = body.password.clone();
@@ -138,7 +154,7 @@ pub async fn password_login(
     if !verified || !user.email_verified {
         return auth_error(
             actix_web::http::StatusCode::UNAUTHORIZED,
-            "Invalid email or password.",
+            "Invalid username/email or password.",
         );
     }
     match create_session(pool.get_ref(), user.id).await {
@@ -378,25 +394,22 @@ pub async fn callback(
     let email = match normalize_email(email_claim.as_str()) {
         Ok(email) => email,
         Err(_) => {
-            return HttpResponse::Forbidden().body("Use your verified @neu.edu.vn Outlook account.")
+            return HttpResponse::Forbidden()
+                .body("Use your verified NEU Outlook account (@neu.edu.vn or a subdomain).")
         }
     };
     let is_admin = std::env::var("ADMIN_EMAIL")
         .ok()
         .is_some_and(|admin_email| admin_email.trim().eq_ignore_ascii_case(&email));
-    let initial_name = email.split('@').next().unwrap_or_default().to_string();
     let user_id = match sqlx::query_scalar::<_, Uuid>(
-        "INSERT INTO users (email, display_name, email_verified, role)
-         VALUES ($1, $2, TRUE, CASE WHEN $3 THEN 'admin' ELSE 'user' END)
+        "INSERT INTO users (email, email_verified, role)
+         VALUES ($1, TRUE, CASE WHEN $2 THEN 'admin' ELSE 'user' END)
          ON CONFLICT (email) DO UPDATE SET
            email_verified = TRUE,
-           role = CASE WHEN EXCLUDED.role = 'admin' THEN 'admin' ELSE users.role END,
-           display_name = CASE WHEN users.display_name = ''
-             THEN EXCLUDED.display_name ELSE users.display_name END
+           role = CASE WHEN EXCLUDED.role = 'admin' THEN 'admin' ELSE users.role END
          RETURNING id",
     )
     .bind(email)
-    .bind(initial_name)
     .bind(is_admin)
     .fetch_one(pool.get_ref())
     .await
@@ -447,6 +460,13 @@ pub async fn logout(request: HttpRequest, pool: web::Data<PgPool>) -> HttpRespon
                 .finish(),
         )
         .finish()
+}
+
+pub async fn session(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
+    match require_user(&request, pool.get_ref()).await {
+        Ok(user) => HttpResponse::Ok().json(SessionInfo { role: user.role }),
+        Err(response) => response,
+    }
 }
 
 pub async fn require_admin(

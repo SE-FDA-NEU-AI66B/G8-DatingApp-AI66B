@@ -13,7 +13,7 @@
 
 ## Authentication and accounts
 
-- Accounts use a display name, an `@neu.edu.vn` email, and a password hash when password registration is enabled.
+- Accounts use a unique username, an NEU email, and a password hash when password registration is enabled.
 - Microsoft Outlook sign-in verifies the NEU email address. Password login must require a verified email.
 - Store password hashes only; never store or log plaintext passwords.
 - Do not reintroduce OTP or email-verification-code flows.

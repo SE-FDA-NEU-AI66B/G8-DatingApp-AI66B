@@ -27,7 +27,7 @@ async fn post_register(body: RegisterReq) -> Result<String, String> {
 
 #[component]
 pub fn RegisterPage() -> impl IntoView {
-    let (display_name, set_display_name) = signal(String::new());
+    let (username, set_username) = signal(String::new());
     let (email, set_email) = signal(String::new());
     let (password, set_password) = signal(String::new());
     let (error, set_error) = signal(None::<String>);
@@ -47,7 +47,7 @@ pub fn RegisterPage() -> impl IntoView {
         };
         let body = RegisterReq {
             email,
-            display_name: display_name.get_untracked(),
+            username: username.get_untracked(),
             password: password.get_untracked(),
         };
         set_busy.set(true);
@@ -64,12 +64,12 @@ pub fn RegisterPage() -> impl IntoView {
         <section aria-labelledby="register-title">
             <h1 id="register-title">"Create your account"</h1>
             <form novalidate on:submit=on_submit>
-                <label for="register-name">"Name"</label>
-                <input id="register-name" type="text" autocomplete="name" maxlength="80"
-                    bind:value=(display_name, set_display_name) required />
+                <label for="register-username">"Username"</label>
+                <input id="register-username" type="text" autocomplete="username" minlength="3" maxlength="32"
+                    bind:value=(username, set_username) required />
                 <label for="register-email">"NEU Outlook email"</label>
                 <input id="register-email" type="email" autocomplete="email"
-                    placeholder="you@neu.edu.vn" bind:value=(email, set_email) required />
+                    placeholder="you@neu.edu.vn or you@dept.neu.edu.vn" bind:value=(email, set_email) required />
                 <label for="register-password">"Password"</label>
                 <input id="register-password" type="password" autocomplete="new-password"
                     minlength="12" maxlength="1024" bind:value=(password, set_password) required />

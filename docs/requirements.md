@@ -109,8 +109,8 @@ Target Audience: National Economics University (NEU) students.
 As Minh Chau, I want to register using my @neu.edu.vn email so that I am verified as a real NEU student.
 
 - **Acceptance criteria**
-  - Given I register with a name, an "@neu.edu.vn" email, and a password, then an account is created pending email verification.
-  - Given I verify that email through Microsoft Outlook, then I can sign in with my email and password or Microsoft.
+  - Given I register with a username, an email at `neu.edu.vn` or any of its subdomains, and a password, then an account is created pending email verification.
+  - Given I verify that email through Microsoft Outlook, then I can sign in with my username and password or Microsoft.
   - Given I enter the email "minhchau@gmail.com", when I submit the form, then it is rejected with the exact message "Please use a valid @neu.edu.vn email address".
 - **Tasks**
   - Registration UI and input validation - @quang

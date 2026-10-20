@@ -30,7 +30,7 @@ erDiagram
     users {
         uuid id PK
         text email UK
-        text display_name
+        text username UK "nullable for Microsoft-only accounts"
         text password_hash "nullable Argon2 hash"
         boolean email_verified
         text role
@@ -73,7 +73,7 @@ created and reset from the `## Application database` section in
 
 | Table | Columns and constraints | Purpose and M1 rule |
 |---|---|---|
-| `users` | `id UUID` PK; unique lowercase NEU `email`; `display_name`; nullable Argon2 `password_hash`; `email_verified`, constrained `role`, `created_at` | Account identity, optional password login, and authorization role. |
+| `users` | `id UUID` PK; unique lowercase NEU `email`; unique nullable `username`; nullable Argon2 `password_hash`; `email_verified`, constrained `role`, `created_at` | Account identity, optional username/password login, and authorization role. |
 | `auth_cookies` | `token_hash TEXT` PK; `user_id UUID` FK to `users.id`; `expires_at`, `created_at` | Hashed server-side cookie sessions, deleted with their account. |
 | `study_dates` | `id BIGSERIAL` PK; `creator_id UUID` FK; `starts_at`, `ends_at`, `duration_min`, constrained `status`, `created_at` | Scheduled study meetups with a checked time window and duration. |
 | `user_reports` | `id BIGSERIAL` PK; `reporter_id`, `reported_user_id UUID` FKs; constrained `status`, `created_at` | Moderation reports; self reports are rejected. |

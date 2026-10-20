@@ -1,4 +1,5 @@
 use leptos::prelude::*;
+use leptos::reactive::spawn_local;
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{
     components::{Route, Router, Routes, A},
@@ -6,6 +7,7 @@ use leptos_router::{
 };
 mod admin;
 mod api;
+mod auth_gate;
 mod profile;
 mod register;
 mod requests;
@@ -16,6 +18,8 @@ mod study_feed;
 pub fn app() -> impl IntoView {
     // Provides context that manages stylesheets, titles, meta tags, etc.
     provide_meta_context();
+    let auth_state = RwSignal::new(None::<bool>);
+    provide_context(auth_state);
     view! {
         // injects a stylesheet into the document <head>
         // id=leptos means cargo-leptos will hot-reload this stylesheet
@@ -35,8 +39,7 @@ pub fn app() -> impl IntoView {
                     <A href="/requests">"Requests"</A>
                 </nav>
                 <div class="header-actions">
-                    <A href="/login" attr:class="login-link">"Log in"</A>
-                    <A href="/register" attr:class="button button-small">"Join free"</A>
+                    <HeaderAuthActions />
                 </div>
             </header>
             <main class="site-main">
@@ -45,22 +48,62 @@ pub fn app() -> impl IntoView {
                     <Route path=StaticSegment("logout") view=login::App::Applogout />
 
                     <Route path=StaticSegment("register") view=register::RegisterPage />
-                    <Route path=StaticSegment("feed") view=study_feed::StudyFeed />
+                    <Route path=StaticSegment("feed") view=move || view! {
+                        <auth_gate::AuthGate><study_feed::StudyFeed /></auth_gate::AuthGate>
+                    } />
                     <Route
                         path=(StaticSegment("study-date"), StaticSegment("new"))
-                        view=study_date_form::StudyDateForm
+                        view=move || view! {
+                            <auth_gate::AuthGate><study_date_form::StudyDateForm /></auth_gate::AuthGate>
+                        }
                     />
                     <Route
                         path=(StaticSegment("profile"), ParamSegment("id"))
-                        view=profile::ProfilePage
+                        view=move || view! {
+                            <auth_gate::AuthGate><profile::ProfilePage /></auth_gate::AuthGate>
+                        }
                     />
-                    <Route path=StaticSegment("requests") view=requests::RequestsPage />
-                    <Route path=StaticSegment("admin_console") view=admin::AdminDashboard />
+                    <Route path=StaticSegment("requests") view=move || view! {
+                        <auth_gate::AuthGate><requests::RequestsPage /></auth_gate::AuthGate>
+                    } />
+                    <Route path=StaticSegment("admin_console") view=move || view! {
+                        <auth_gate::AuthGate admin_only=true><admin::AdminDashboard /></auth_gate::AuthGate>
+                    } />
                     <Route path=StaticSegment("") view=HomePage />
                     <Route path=WildcardSegment("any") view=NotFound />
                 </Routes>
             </main>
         </Router>
+    }
+}
+
+#[component]
+fn HeaderAuthActions() -> impl IntoView {
+    let auth_state = use_context::<RwSignal<Option<bool>>>().expect("auth state context");
+
+    Effect::new(move |_| {
+        spawn_local(async move {
+            use gloo_net::http::Request;
+
+            let authenticated = Request::get("/api/auth/session")
+                .send()
+                .await
+                .is_ok_and(|response| response.status() == 200);
+            auth_state.set(Some(authenticated));
+        });
+    });
+
+    view! {
+        {move || match auth_state.get() {
+            Some(true) => view! {
+                <A href="/logout" attr:class="login-link">"Log out"</A>
+            }.into_any(),
+            Some(false) => view! {
+                <A href="/login" attr:class="login-link">"Log in"</A>
+                <A href="/register" attr:class="button button-small">"Join free"</A>
+            }.into_any(),
+            None => view! { <span aria-hidden="true"></span> }.into_any(),
+        }}
     }
 }
 #[allow(non_snake_case)]

@@ -74,10 +74,12 @@ def _(mo):
     ## Application database
     Recreate the empty application schema here. This drops every table in the
     connected database's `public` schema, then creates the tables used by the app.
+    The sample-data button below adds reusable demo records without resetting the schema.
     """)
     recreate_database_button = mo.ui.run_button(label="Recreate application database")
-    mo.vstack([app_database_heading, recreate_database_button])
-    return (recreate_database_button,)
+    initialize_sample_data_button = mo.ui.run_button(label="Initialize sample data")
+    mo.vstack([app_database_heading, recreate_database_button, initialize_sample_data_button])
+    return initialize_sample_data_button, recreate_database_button
 
 
 @app.cell(hide_code=True)
@@ -90,11 +92,18 @@ def _(conn, mo, recreate_database_button):
         CREATE TABLE users (
             id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
             email TEXT NOT NULL UNIQUE,
+            username TEXT UNIQUE,
+            password_hash TEXT,
             email_verified BOOLEAN NOT NULL DEFAULT FALSE,
             role TEXT NOT NULL DEFAULT 'user',
             created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
             CONSTRAINT users_email_lowercase CHECK (email = lower(email)),
-            CONSTRAINT users_email_neu CHECK (email LIKE '%@neu.edu.vn'),
+            CONSTRAINT users_email_neu CHECK (
+                email ~ '^[^@]+@([a-z0-9]([a-z0-9-]*[a-z0-9])?[.])*neu[.]edu[.]vn$'
+            ),
+            CONSTRAINT users_username_valid CHECK (
+                username IS NULL OR username ~ '^[a-z0-9][a-z0-9._-]{1,30}[a-z0-9]$'
+            ),
             CONSTRAINT users_valid_role CHECK (role IN ('user', 'admin'))
         );
 
@@ -192,6 +201,119 @@ def _(conn, mo, recreate_database_button):
     else:
         schema_status = mo.md("Click the button above to recreate the application database.")
     schema_status
+    return
+
+
+@app.cell(hide_code=True)
+def _(conn, initialize_sample_data_button, mo):
+    if initialize_sample_data_button.value:
+        try:
+            conn.autocommit = False
+            with conn.cursor() as _cursor:
+                sample_users = [
+                    ("alex.demo@students.neu.edu.vn", "alex_demo"),
+                    ("linh.demo@demo.neu.edu.vn", "linh_demo"),
+                    ("minh.demo@neu.edu.vn", "minh_demo"),
+                ]
+                # Demo-only Argon2id hash of the shared sample password: "password".
+                sample_password_hash = (
+                    "$argon2id$v=19$m=19456,t=2,p=1$bmV1LWRlbW8tc2VlZC1zYWx0$"
+                    "6iunv0I8Ia6ivjbSmVVs9WuhrO2AL76m8xlwdnjqv9g"
+                )
+                sample_user_ids = {}
+                for _email, _username in sample_users:
+                    _cursor.execute(
+                        """
+                        INSERT INTO users (email, username, password_hash, email_verified)
+                        VALUES (%s, %s, %s, TRUE)
+                        ON CONFLICT (email) DO UPDATE SET
+                            username = EXCLUDED.username,
+                            password_hash = EXCLUDED.password_hash,
+                            email_verified = TRUE
+                        RETURNING id
+                        """,
+                        (_email, _username, sample_password_hash),
+                    )
+                    sample_user_ids[_username] = _cursor.fetchone()[0]
+
+                _cursor.execute(
+                    """
+                    INSERT INTO study_dates
+                        (creator_id, starts_at, ends_at, duration_min, status)
+                    SELECT user_id, start_at, start_at + interval '60 minutes', 60, 'active'
+                    FROM (VALUES
+                        (%s::uuid, date_trunc('day', now()) + interval '1 day' + interval '9 hours'),
+                        (%s::uuid, date_trunc('day', now()) + interval '1 day' + interval '14 hours'),
+                        (%s::uuid, date_trunc('day', now()) + interval '2 days' + interval '10 hours')
+                    ) AS samples(user_id, start_at)
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM study_dates existing
+                        WHERE existing.creator_id = samples.user_id
+                          AND existing.starts_at = samples.start_at
+                    )
+                    """,
+                    tuple(sample_user_ids[name] for name in ("alex_demo", "linh_demo", "minh_demo")),
+                )
+
+                _cursor.execute(
+                    """
+                    INSERT INTO user_reports (reporter_id, reported_user_id, status)
+                    SELECT %s, %s, 'pending'
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM user_reports
+                        WHERE reporter_id = %s AND reported_user_id = %s AND status = 'pending'
+                    )
+                    """,
+                    (
+                        sample_user_ids["alex_demo"], sample_user_ids["minh_demo"],
+                        sample_user_ids["alex_demo"], sample_user_ids["minh_demo"],
+                    ),
+                )
+
+                _cursor.execute(
+                    """
+                    INSERT INTO match_requests
+                        (sender_id, receiver_id, status, responded_at)
+                    VALUES (%s, %s, 'accepted', now())
+                    ON CONFLICT (sender_id, receiver_id) DO UPDATE
+                    SET status = 'accepted', responded_at = COALESCE(match_requests.responded_at, now())
+                    RETURNING id
+                    """,
+                    (sample_user_ids["alex_demo"], sample_user_ids["linh_demo"]),
+                )
+                sample_match_id = _cursor.fetchone()[0]
+                _cursor.execute(
+                    """
+                    INSERT INTO match_requests (sender_id, receiver_id, status)
+                    VALUES (%s, %s, 'pending')
+                    ON CONFLICT (sender_id, receiver_id) DO NOTHING
+                    """,
+                    (sample_user_ids["minh_demo"], sample_user_ids["alex_demo"]),
+                )
+                _cursor.execute(
+                    """
+                    INSERT INTO conversations (user_low, user_high, match_request_id)
+                    VALUES (%s, %s, %s)
+                    ON CONFLICT (user_low, user_high) DO NOTHING
+                    """,
+                    (
+                        min(sample_user_ids["alex_demo"], sample_user_ids["linh_demo"]),
+                        max(sample_user_ids["alex_demo"], sample_user_ids["linh_demo"]),
+                        sample_match_id,
+                    ),
+                )
+            conn.commit()
+            sample_data_status = mo.md(
+                "Sample users, study dates, one pending report, an accepted match, and a conversation are ready."
+            )
+        except Exception as error:
+            conn.rollback()
+            sample_data_status = mo.md(f"Sample data initialization failed: `{error}`")
+        finally:
+            conn.autocommit = True
+    else:
+        sample_data_status = mo.md("Click **Initialize sample data** to add demo records.")
+    sample_data_status
     return
 
 
