@@ -41,6 +41,10 @@ async fn main() -> std::io::Result<()> {
                     .route(actix_web::web::get().to(ss::auth::login)),
             )
             .service(
+                actix_web::web::resource("/api/auth/password")
+                    .route(actix_web::web::post().to(ss::auth::password_login)),
+            )
+            .service(
                 actix_web::web::resource("/api/auth/callback")
                     .route(actix_web::web::get().to(ss::auth::callback)),
             )
@@ -50,6 +54,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(ss::admin::dashboard_statistics)
             .service(ss::admin::health_status)
+            .service(ss::register::register)
             .service(
                 actix_web::web::resource("/api/study-dates")
                     .route(actix_web::web::get().to(ss::study_date::list_study_dates))

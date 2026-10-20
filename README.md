@@ -57,11 +57,15 @@ thay đổi.
 
 ### Admin authentication (development)
 
+Registration collects a name, NEU email, and password. Verify the email by
+continuing through NEU Outlook; after verification, sign in with the email and
+password or continue using Microsoft. Passwords are stored as Argon2 hashes.
+
 The admin dashboard requires an authenticated session. Configure a Microsoft
 Entra app using the callback URL `http://localhost:3100/api/auth/callback`, set
 its tenant ID, client ID, and secret in `.env`, and set `ADMIN_EMAIL` to the NEU
-Outlook account that should receive admin access. Sign in through `/login`;
-sessions use an HttpOnly cookie and expire after eight hours.
+Outlook account that should receive admin access. Sessions use an HttpOnly
+cookie and expire after eight hours.
 
 ### Chạy bản release
 

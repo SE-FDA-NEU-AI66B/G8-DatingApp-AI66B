@@ -38,6 +38,12 @@ claim. Request the `email`, `openid`, and `profile` scopes. Set
 Set `ADMIN_EMAIL` to the account that should receive development admin access.
 Never commit real passwords, OAuth client secrets, or keys.
 
+Users register with a display name, NEU email, and password at `/register`.
+They must complete Microsoft sign-in with that Outlook address to verify the
+account. Then they can use either Microsoft sign-in or email and password.
+Passwords are stored as Argon2 hashes; password login is disabled until the
+email has been verified.
+
 ## Create and start the database
 
 ```bash

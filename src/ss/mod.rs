@@ -6,4 +6,6 @@ pub mod functions;
 #[cfg(feature = "ssr")]
 pub mod matching;
 #[cfg(feature = "ssr")]
+pub mod register;
+#[cfg(feature = "ssr")]
 pub mod study_date;

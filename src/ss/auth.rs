@@ -1,7 +1,14 @@
-use crate::lib::share::{auth::AuthError, register::normalize_email};
+use crate::lib::share::{
+    auth::{AuthError, LoginRequest},
+    register::normalize_email,
+};
 use actix_web::{
     cookie::{Cookie, SameSite},
     web, HttpRequest, HttpResponse,
+};
+use argon2::{
+    password_hash::{PasswordHash, PasswordVerifier},
+    Argon2,
 };
 use openidconnect::{
     core::{CoreClient, CoreProviderMetadata},
@@ -31,6 +38,13 @@ pub struct CurrentUser {
     pub role: String,
 }
 
+#[derive(Debug, FromRow)]
+struct PasswordLoginUser {
+    id: Uuid,
+    password_hash: Option<String>,
+    email_verified: bool,
+}
+
 fn auth_error(status: actix_web::http::StatusCode, message: &str) -> HttpResponse {
     HttpResponse::build(status).json(AuthError {
         message: message.to_string(),
@@ -45,6 +59,98 @@ fn new_token() -> String {
     let mut bytes = [0_u8; 32];
     rand::rng().fill(&mut bytes);
     bytes.iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+fn session_cookie(token: String) -> Cookie<'static> {
+    Cookie::build(SESSION_COOKIE, token)
+        .http_only(true)
+        .secure(!cfg!(debug_assertions))
+        .same_site(SameSite::Lax)
+        .path("/")
+        .max_age(actix_web::cookie::time::Duration::hours(8))
+        .finish()
+}
+
+async fn create_session(pool: &PgPool, user_id: Uuid) -> Result<String, sqlx::Error> {
+    let token = new_token();
+    sqlx::query(
+        "INSERT INTO auth_cookies (token_hash, user_id, expires_at)
+         VALUES ($1, $2, now() + interval '8 hours')",
+    )
+    .bind(hash_token(&token))
+    .bind(user_id)
+    .execute(pool)
+    .await?;
+    Ok(token)
+}
+
+pub async fn password_login(
+    pool: web::Data<PgPool>,
+    body: web::Json<LoginRequest>,
+) -> HttpResponse {
+    let email = match normalize_email(&body.email) {
+        Ok(email) => email,
+        Err(_) => {
+            return auth_error(
+                actix_web::http::StatusCode::UNAUTHORIZED,
+                "Invalid email or password.",
+            )
+        }
+    };
+    let user = match sqlx::query_as::<_, PasswordLoginUser>(
+        "SELECT id, password_hash, email_verified FROM users WHERE email = $1",
+    )
+    .bind(email)
+    .fetch_optional(pool.get_ref())
+    .await
+    {
+        Ok(Some(user)) => user,
+        Ok(None) => {
+            return auth_error(
+                actix_web::http::StatusCode::UNAUTHORIZED,
+                "Invalid email or password.",
+            )
+        }
+        Err(error) => {
+            eprintln!("password login lookup failed: {error}");
+            return auth_error(
+                actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
+                "Authentication service is temporarily unavailable.",
+            );
+        }
+    };
+    let Some(password_hash) = user.password_hash else {
+        return auth_error(
+            actix_web::http::StatusCode::UNAUTHORIZED,
+            "Invalid email or password.",
+        );
+    };
+    let password = body.password.clone();
+    let verified = tokio::task::spawn_blocking(move || {
+        PasswordHash::new(&password_hash).ok().is_some_and(|hash| {
+            Argon2::default()
+                .verify_password(password.as_bytes(), &hash)
+                .is_ok()
+        })
+    })
+    .await
+    .unwrap_or(false);
+    if !verified || !user.email_verified {
+        return auth_error(
+            actix_web::http::StatusCode::UNAUTHORIZED,
+            "Invalid email or password.",
+        );
+    }
+    match create_session(pool.get_ref(), user.id).await {
+        Ok(token) => HttpResponse::Ok().cookie(session_cookie(token)).finish(),
+        Err(error) => {
+            eprintln!("password login session creation failed: {error}");
+            auth_error(
+                actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
+                "Authentication service is temporarily unavailable.",
+            )
+        }
+    }
 }
 
 /// Begin Microsoft's OAuth2/OIDC authorization-code flow with PKCE.
@@ -278,15 +384,19 @@ pub async fn callback(
     let is_admin = std::env::var("ADMIN_EMAIL")
         .ok()
         .is_some_and(|admin_email| admin_email.trim().eq_ignore_ascii_case(&email));
+    let initial_name = email.split('@').next().unwrap_or_default().to_string();
     let user_id = match sqlx::query_scalar::<_, Uuid>(
-        "INSERT INTO users (email, email_verified, role)
-         VALUES ($1, TRUE, CASE WHEN $2 THEN 'admin' ELSE 'user' END)
+        "INSERT INTO users (email, display_name, email_verified, role)
+         VALUES ($1, $2, TRUE, CASE WHEN $3 THEN 'admin' ELSE 'user' END)
          ON CONFLICT (email) DO UPDATE SET
            email_verified = TRUE,
-           role = CASE WHEN EXCLUDED.role = 'admin' THEN 'admin' ELSE users.role END
+           role = CASE WHEN EXCLUDED.role = 'admin' THEN 'admin' ELSE users.role END,
+           display_name = CASE WHEN users.display_name = ''
+             THEN EXCLUDED.display_name ELSE users.display_name END
          RETURNING id",
     )
     .bind(email)
+    .bind(initial_name)
     .bind(is_admin)
     .fetch_one(pool.get_ref())
     .await
@@ -297,26 +407,16 @@ pub async fn callback(
             return HttpResponse::InternalServerError().body("Unable to create your account.");
         }
     };
-    let token = new_token();
-    if let Err(error) = sqlx::query(
-        "INSERT INTO auth_cookies (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval '8 hours')",
-    ).bind(hash_token(&token)).bind(user_id).execute(pool.get_ref()).await {
-        eprintln!("OAuth session creation failed: {error}");
-        return HttpResponse::InternalServerError().body("Unable to create your session.");
-    }
+    let token = match create_session(pool.get_ref(), user_id).await {
+        Ok(token) => token,
+        Err(error) => {
+            eprintln!("OAuth session creation failed: {error}");
+            return HttpResponse::InternalServerError().body("Unable to create your session.");
+        }
+    };
     let mut response = HttpResponse::Found();
     response.append_header((actix_web::http::header::LOCATION, "/"));
-    let mut response = response
-        .cookie(
-            Cookie::build(SESSION_COOKIE, token)
-                .http_only(true)
-                .secure(!cfg!(debug_assertions))
-                .same_site(SameSite::Lax)
-                .path("/")
-                .max_age(actix_web::cookie::time::Duration::hours(8))
-                .finish(),
-        )
-        .finish();
+    let mut response = response.cookie(session_cookie(token)).finish();
     clear_oauth_cookies(&mut response);
     response
 }

@@ -212,10 +212,10 @@ def _(mo):
 
 
 @app.cell
-def _(conn, mo):
+def _(conn, mo, users):
     _df = mo.sql(
         f"""
-        SELECT user_id, expires_at, created_at FROM public.auth_cookies
+        Select * from users
         """,
         engine=conn
     )

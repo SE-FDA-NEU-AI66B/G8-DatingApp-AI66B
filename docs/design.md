@@ -30,6 +30,8 @@ erDiagram
     users {
         uuid id PK
         text email UK
+        text display_name
+        text password_hash "nullable Argon2 hash"
         boolean email_verified
         text role
     }
@@ -71,7 +73,7 @@ created and reset from the `## Application database` section in
 
 | Table | Columns and constraints | Purpose and M1 rule |
 |---|---|---|
-| `users` | `id UUID` PK; unique lowercase NEU `email`; `email_verified`, constrained `role`, `created_at` | Account identity and authorization role. |
+| `users` | `id UUID` PK; unique lowercase NEU `email`; `display_name`; nullable Argon2 `password_hash`; `email_verified`, constrained `role`, `created_at` | Account identity, optional password login, and authorization role. |
 | `auth_cookies` | `token_hash TEXT` PK; `user_id UUID` FK to `users.id`; `expires_at`, `created_at` | Hashed server-side cookie sessions, deleted with their account. |
 | `study_dates` | `id BIGSERIAL` PK; `creator_id UUID` FK; `starts_at`, `ends_at`, `duration_min`, constrained `status`, `created_at` | Scheduled study meetups with a checked time window and duration. |
 | `user_reports` | `id BIGSERIAL` PK; `reporter_id`, `reported_user_id UUID` FKs; constrained `status`, `created_at` | Moderation reports; self reports are rejected. |
@@ -82,6 +84,10 @@ created and reset from the `## Application database` section in
 
 | Method | Path | Input | Success output | Error codes |
 |---|---|---|---|---|
+| `POST` | `/api/register` | Email, display name, password | `201`; account pending Microsoft verification | `400` invalid input; `409` existing account |
+| `POST` | `/api/auth/password` | Email and password | `200`; session cookie | `401` invalid credentials or unverified email |
+| `GET` | `/api/auth/login` | — | Redirect to Microsoft sign-in | `500` configuration/provider failure |
+| `GET` | `/api/auth/callback` | Microsoft authorization response | `302`; verified account and session cookie | `400`, `401`, `500` |
 | `GET` | `/api/admin/statistics` | Admin session cookie | `200` with three counts | `401` unauthenticated; `403` non-admin; `500` database failure |
 | `GET` | `/api/admin/health` | Admin session cookie | `200` with server/database status and timestamps | `401`; `403` |
 | `GET` | `/api/auth/login` | — | Redirect to configured OAuth2 provider | `500` provider configuration failure |
