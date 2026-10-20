@@ -15,16 +15,19 @@ Numbered, so issues and tests can cite them.
 
 ## Screens and flow
 
-5 screens Table: Route / Purpose / Access (G, U, A) / Priority. Plus a flow diagram - every screen must appear and be reachable. Hand-drawn is fine.
-all route are assign by hash
+The route table below is the source of truth for the implemented screens.
+Every route must be reachable from the application entry point or its
+documented authenticated flow.
 
 | name           | Purpose                          | Access | Priority |
 | -------------- | -------------------------------- | ------ | -------- |
 | /              | home                             | G      | P0       |
-| /user_profile  | user profile for manaing account | U      | P0       |
-| /user_home     | show status + chat iteract       | U      | P0       |
-| /chat          | for chatting                     | U      | P0       |
-| /admin_console | show server status               | A      | P0       |
+| /register      | register a campus account        | G      | P0       |
+| /feed          | discover profiles                | U      | P0       |
+| /study-date/new| create a study-date request     | U      | P0       |
+| /profile/:id   | view a profile                   | U      | P0       |
+| /requests      | manage incoming requests        | U      | P0       |
+| /admin_console | show statistics and system health | A      | P0       |
 
                                             ┌─────────────┐
                                             │      /      │
@@ -32,5 +35,5 @@ all route are assign by hash
                                                    │ sign in
                                                    ▼
                  ┌─────────────────┐if admin┌─────────────────┐    ┌─────────────────┐    ┌────────────┐
-                 │  /admin_console │────────│   /user_hom     │────│  /user_profile  │────│   /chat    │
+                 │  /admin_console │
                  └─────────────────┘        └─────────────────┘    └─────────────────┘    └────────────┘
