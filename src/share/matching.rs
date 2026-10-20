@@ -60,7 +60,7 @@ pub struct IncomingRequest {
 #[cfg_attr(not(target_arch = "wasm32"), derive(sqlx::FromRow))]
 pub struct MatchedUser {
     pub user_id: Uuid,
-    pub chat_room_id: i64,
+    pub conversation_id: i64,
 }
 
 #[cfg(test)]

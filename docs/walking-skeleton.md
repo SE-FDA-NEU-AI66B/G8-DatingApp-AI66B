@@ -5,7 +5,7 @@ The working slice is the admin dashboard at `/admin_console`.
 - **Route:** `/admin_console`
 - **Server endpoint:** `GET /api/admin/statistics`
 - **Health endpoint:** `GET /api/admin/health`
-- **Database tables:** `app_user`, `study_date_request`, `report`
+- **Database tables:** `users`, `study_dates`, and `user_reports`
 - **Statistics query:** `src/ss/admin.rs` reads verified users, active
   study-date requests overlapping the next 24 hours, and pending reports.
 - **Failure behavior:** PostgreSQL/API failures render an explicit error state;

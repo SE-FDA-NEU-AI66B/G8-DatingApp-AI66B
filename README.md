@@ -39,6 +39,9 @@ mối quan hệ lành mạnh và lâu dài nếu họ tự nguyện lựa chọn
 
 Hướng dẫn cài đặt đầy đủ cho máy mới được duy trì trong
 [SETUP.md](SETUP.md).
+```bash
+cd database;docker compose up -d
+```
 
 ### Chạy ở chế độ phát triển
 
@@ -54,23 +57,11 @@ thay đổi.
 
 ### Admin authentication (development)
 
-The admin dashboard requires an authenticated session. Register a NEU email,
-use the six-digit OTP printed by the development mail stub to call
-`POST /api/auth/login`, and set `ADMIN_EMAIL` to the account email before
-starting the server. The server then provisions that account as an admin.
-Sessions use an HttpOnly cookie and expire after eight hours.
-
-```bash
-set ADMIN_EMAIL=admin@neu.edu.vn
-curl -i -c cookies.txt -H "Content-Type: application/json" ^
-  -d "{\"email\":\"admin@neu.edu.vn\",\"otp\":\"123456\"}" ^
-  http://localhost:3100/api/auth/login
-curl -i -b cookies.txt http://localhost:3100/api/admin/statistics
-```
-
-Do not use the development OTP stub or `ADMIN_EMAIL` provisioning as a
-production identity provider. Production deployment must replace them with the
-shared US12 authentication and admin-provisioning flow.
+The admin dashboard requires an authenticated session. Configure a Microsoft
+Entra app using the callback URL `http://localhost:3100/api/auth/callback`, set
+its tenant ID, client ID, and secret in `.env`, and set `ADMIN_EMAIL` to the NEU
+Outlook account that should receive admin access. Sign in through `/login`;
+sessions use an HttpOnly cookie and expire after eight hours.
 
 ### Chạy bản release
 

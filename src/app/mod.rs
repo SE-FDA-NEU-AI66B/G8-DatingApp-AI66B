@@ -1,7 +1,7 @@
 use leptos::prelude::*;
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{
-    components::{A, Route, Router, Routes},
+    components::{Route, Router, Routes, A},
     ParamSegment, StaticSegment, WildcardSegment,
 };
 mod admin;

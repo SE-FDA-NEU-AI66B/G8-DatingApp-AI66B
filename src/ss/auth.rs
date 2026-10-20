@@ -1,17 +1,23 @@
-use crate::lib::share::{
-    auth::{AuthError, LoginRequest},
-    register::normalize_email,
-};
+use crate::lib::share::{auth::AuthError, register::normalize_email};
 use actix_web::{
     cookie::{Cookie, SameSite},
     web, HttpRequest, HttpResponse,
 };
+use openidconnect::{
+    core::{CoreClient, CoreProviderMetadata},
+    reqwest, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
+    PkceCodeChallenge, PkceCodeVerifier, RedirectUrl, Scope, TokenResponse,
+};
 use rand::Rng;
+use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
 
 const SESSION_COOKIE: &str = "datingapp_session";
+const OAUTH_STATE_COOKIE: &str = "oauth_state";
+const OAUTH_NONCE_COOKIE: &str = "oauth_nonce";
+const OAUTH_VERIFIER_COOKIE: &str = "oauth_verifier";
 
 #[derive(Debug, Clone, FromRow)]
 pub struct AuthenticatedUser {
@@ -23,13 +29,6 @@ pub struct AuthenticatedUser {
 pub struct CurrentUser {
     pub id: Uuid,
     pub role: String,
-}
-
-#[derive(Debug, FromRow)]
-struct LoginUser {
-    id: Uuid,
-    otp_code: Option<String>,
-    otp_expires_at: Option<time::OffsetDateTime>,
 }
 
 fn auth_error(status: actix_web::http::StatusCode, message: &str) -> HttpResponse {
@@ -48,102 +47,266 @@ fn new_token() -> String {
     bytes.iter().map(|byte| format!("{byte:02x}")).collect()
 }
 
-pub async fn login(pool: web::Data<PgPool>, body: web::Json<LoginRequest>) -> HttpResponse {
-    let email = match normalize_email(&body.email) {
-        Ok(email) => email,
-        Err(message) => return auth_error(actix_web::http::StatusCode::BAD_REQUEST, message),
-    };
-
-    let user = sqlx::query_as::<_, LoginUser>(
-        "SELECT id, role, otp_code, otp_expires_at
-         FROM app_user
-         WHERE email = $1",
-    )
-    .bind(email)
-    .fetch_optional(pool.get_ref())
+/// Begin Microsoft's OAuth2/OIDC authorization-code flow with PKCE.
+pub async fn login() -> HttpResponse {
+    let result = async {
+        let tenant = std::env::var("MICROSOFT_TENANT_ID")
+            .map_err(|_| "MICROSOFT_TENANT_ID is not configured")?;
+        let client_id =
+            std::env::var("MICROSOFT_CLIENT_ID").map_err(|_| "OAuth2 is not configured")?;
+        let redirect_uri =
+            std::env::var("MICROSOFT_REDIRECT_URI").map_err(|_| "OAuth2 is not configured")?;
+        let tenant =
+            Uuid::parse_str(&tenant).map_err(|_| "MICROSOFT_TENANT_ID must be a tenant GUID")?;
+        let issuer = IssuerUrl::new(format!("https://login.microsoftonline.com/{tenant}/v2.0"))
+            .map_err(|_| "Invalid Microsoft tenant configuration")?;
+        let http_client = reqwest::ClientBuilder::new()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .map_err(|_| "OAuth2 client initialization failed")?;
+        let metadata = CoreProviderMetadata::discover_async(issuer, &http_client)
+            .await
+            .map_err(|_| "Could not load Microsoft sign-in configuration")?;
+        let client = CoreClient::from_provider_metadata(metadata, ClientId::new(client_id), None)
+            .set_redirect_uri(
+                RedirectUrl::new(redirect_uri).map_err(|_| "Invalid OAuth callback URL")?,
+            );
+        let (challenge, verifier) = PkceCodeChallenge::new_random_sha256();
+        let (url, state, nonce) = client
+            .authorize_url(
+                openidconnect::core::CoreAuthenticationFlow::AuthorizationCode,
+                CsrfToken::new_random,
+                Nonce::new_random,
+            )
+            .add_scope(Scope::new("openid".into()))
+            .add_scope(Scope::new("profile".into()))
+            .add_scope(Scope::new("email".into()))
+            .set_pkce_challenge(challenge)
+            .url();
+        Ok::<_, &'static str>((url, state, nonce, verifier))
+    }
     .await;
 
-    let Some(user) = (match user {
-        Ok(user) => user,
-        Err(error) => {
-            eprintln!("login lookup failed: {error}");
-            return auth_error(
-                actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
-                "Authentication service is temporarily unavailable.",
-            );
+    match result {
+        Ok((url, state, nonce, verifier)) => {
+            let secure = !cfg!(debug_assertions);
+            let lifetime = actix_web::cookie::time::Duration::minutes(10);
+            HttpResponse::Found()
+                .append_header((actix_web::http::header::LOCATION, url.to_string()))
+                .cookie(
+                    Cookie::build(OAUTH_STATE_COOKIE, state.secret().clone())
+                        .http_only(true)
+                        .secure(secure)
+                        .same_site(SameSite::Lax)
+                        .path("/api/auth")
+                        .max_age(lifetime)
+                        .finish(),
+                )
+                .cookie(
+                    Cookie::build(OAUTH_NONCE_COOKIE, nonce.secret().clone())
+                        .http_only(true)
+                        .secure(secure)
+                        .same_site(SameSite::Lax)
+                        .path("/api/auth")
+                        .max_age(lifetime)
+                        .finish(),
+                )
+                .cookie(
+                    Cookie::build(OAUTH_VERIFIER_COOKIE, verifier.secret().clone())
+                        .http_only(true)
+                        .secure(secure)
+                        .same_site(SameSite::Lax)
+                        .path("/api/auth")
+                        .max_age(lifetime)
+                        .finish(),
+                )
+                .finish()
         }
-    }) else {
-        return auth_error(
-            actix_web::http::StatusCode::UNAUTHORIZED,
-            "Invalid email or OTP.",
-        );
-    };
+        Err(message) => HttpResponse::ServiceUnavailable().body(message),
+    }
+}
 
-    let valid_otp = user.otp_code.as_deref() == Some(body.otp.trim())
-        && user
-            .otp_expires_at
-            .is_some_and(|expires_at| expires_at > time::OffsetDateTime::now_utc());
-    if !valid_otp {
-        return auth_error(
-            actix_web::http::StatusCode::UNAUTHORIZED,
-            "Invalid email or OTP.",
-        );
+#[derive(Deserialize)]
+pub struct OAuthCallback {
+    code: Option<String>,
+    state: Option<String>,
+    error: Option<String>,
+}
+
+fn clear_oauth_cookies(response: &mut HttpResponse) {
+    let secure = !cfg!(debug_assertions);
+    for name in [
+        OAUTH_STATE_COOKIE,
+        OAUTH_NONCE_COOKIE,
+        OAUTH_VERIFIER_COOKIE,
+    ] {
+        let cookie = Cookie::build(name, "")
+            .http_only(true)
+            .secure(secure)
+            .same_site(SameSite::Lax)
+            .path("/api/auth")
+            .max_age(actix_web::cookie::time::Duration::ZERO)
+            .finish();
+        let _ = response.add_removal_cookie(&cookie);
+    }
+}
+
+pub async fn callback(
+    request: HttpRequest,
+    query: web::Query<OAuthCallback>,
+    pool: web::Data<PgPool>,
+) -> HttpResponse {
+    if query.error.is_some() {
+        return HttpResponse::Unauthorized().body("Microsoft sign-in was cancelled or denied.");
+    }
+    let (
+        Some(code),
+        Some(returned_state),
+        Some(state_cookie),
+        Some(nonce_cookie),
+        Some(verifier_cookie),
+    ) = (
+        query.code.as_deref(),
+        query.state.as_deref(),
+        request.cookie(OAUTH_STATE_COOKIE),
+        request.cookie(OAUTH_NONCE_COOKIE),
+        request.cookie(OAUTH_VERIFIER_COOKIE),
+    )
+    else {
+        return HttpResponse::BadRequest().body("Invalid or expired Microsoft sign-in response.");
+    };
+    let expected_hash = Sha256::digest(state_cookie.value().as_bytes());
+    let actual_hash = Sha256::digest(returned_state.as_bytes());
+    if expected_hash != actual_hash {
+        return HttpResponse::BadRequest().body("Invalid Microsoft sign-in state.");
     }
 
+    let tenant = match std::env::var("MICROSOFT_TENANT_ID") {
+        Ok(tenant) => tenant,
+        Err(_) => {
+            return HttpResponse::ServiceUnavailable().body("Microsoft tenant is not configured.")
+        }
+    };
+    let (client_id, client_secret, redirect_uri) = match (
+        std::env::var("MICROSOFT_CLIENT_ID"),
+        std::env::var("MICROSOFT_CLIENT_SECRET"),
+        std::env::var("MICROSOFT_REDIRECT_URI"),
+    ) {
+        (Ok(id), Ok(secret), Ok(uri)) => (id, secret, uri),
+        _ => {
+            return HttpResponse::ServiceUnavailable().body("Microsoft sign-in is not configured.")
+        }
+    };
+    let tenant = match Uuid::parse_str(&tenant) {
+        Ok(tenant) => tenant,
+        Err(_) => {
+            return HttpResponse::ServiceUnavailable().body("Microsoft tenant ID must be a GUID.")
+        }
+    };
+    let issuer = match IssuerUrl::new(format!("https://login.microsoftonline.com/{tenant}/v2.0")) {
+        Ok(issuer) => issuer,
+        Err(_) => {
+            return HttpResponse::ServiceUnavailable()
+                .body("Invalid Microsoft tenant configuration.")
+        }
+    };
+    let http_client = match reqwest::ClientBuilder::new()
+        .redirect(reqwest::redirect::Policy::none())
+        .build()
+    {
+        Ok(client) => client,
+        Err(_) => {
+            return HttpResponse::ServiceUnavailable().body("Microsoft sign-in is unavailable.")
+        }
+    };
+    let metadata = match CoreProviderMetadata::discover_async(issuer, &http_client).await {
+        Ok(metadata) => metadata,
+        Err(error) => {
+            eprintln!("Microsoft discovery failed: {error}");
+            return HttpResponse::ServiceUnavailable().body("Microsoft sign-in is unavailable.");
+        }
+    };
+    let client = CoreClient::from_provider_metadata(
+        metadata,
+        ClientId::new(client_id),
+        Some(ClientSecret::new(client_secret)),
+    )
+    .set_redirect_uri(match RedirectUrl::new(redirect_uri) {
+        Ok(uri) => uri,
+        Err(_) => return HttpResponse::ServiceUnavailable().body("Invalid OAuth callback URL."),
+    });
+    let exchange = match client.exchange_code(AuthorizationCode::new(code.to_owned())) {
+        Ok(exchange) => exchange,
+        Err(error) => {
+            eprintln!("OAuth code request creation failed: {error}");
+            return HttpResponse::Unauthorized().body("Microsoft sign-in could not be completed.");
+        }
+    };
+    let token_response = match exchange
+        .set_pkce_verifier(PkceCodeVerifier::new(verifier_cookie.value().to_owned()))
+        .request_async(&http_client)
+        .await
+    {
+        Ok(tokens) => tokens,
+        Err(error) => {
+            eprintln!("OAuth code exchange failed: {error}");
+            return HttpResponse::Unauthorized().body("Microsoft sign-in could not be completed.");
+        }
+    };
+    let Some(id_token) = token_response.id_token() else {
+        return HttpResponse::Unauthorized().body("Microsoft did not return an identity token.");
+    };
+    let nonce = Nonce::new(nonce_cookie.value().to_owned());
+    let claims = match id_token.claims(&client.id_token_verifier(), &nonce) {
+        Ok(claims) => claims,
+        Err(error) => {
+            eprintln!("Microsoft identity token validation failed: {error}");
+            return HttpResponse::Unauthorized()
+                .body("Microsoft identity token validation failed.");
+        }
+    };
+    let Some(email_claim) = claims.email() else {
+        return HttpResponse::Forbidden()
+            .body("Your Microsoft account did not provide an email address.");
+    };
+    let email = match normalize_email(email_claim.as_str()) {
+        Ok(email) => email,
+        Err(_) => {
+            return HttpResponse::Forbidden().body("Use your verified @neu.edu.vn Outlook account.")
+        }
+    };
+    let is_admin = std::env::var("ADMIN_EMAIL")
+        .ok()
+        .is_some_and(|admin_email| admin_email.trim().eq_ignore_ascii_case(&email));
+    let user_id = match sqlx::query_scalar::<_, Uuid>(
+        "INSERT INTO users (email, email_verified, role)
+         VALUES ($1, TRUE, CASE WHEN $2 THEN 'admin' ELSE 'user' END)
+         ON CONFLICT (email) DO UPDATE SET
+           email_verified = TRUE,
+           role = CASE WHEN EXCLUDED.role = 'admin' THEN 'admin' ELSE users.role END
+         RETURNING id",
+    )
+    .bind(email)
+    .bind(is_admin)
+    .fetch_one(pool.get_ref())
+    .await
+    {
+        Ok(id) => id,
+        Err(error) => {
+            eprintln!("OAuth account provisioning failed: {error}");
+            return HttpResponse::InternalServerError().body("Unable to create your account.");
+        }
+    };
     let token = new_token();
-    let token_hash = hash_token(&token);
-    let mut transaction = match pool.begin().await {
-        Ok(transaction) => transaction,
-        Err(error) => {
-            eprintln!("login transaction failed: {error}");
-            return auth_error(
-                actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
-                "Authentication service is temporarily unavailable.",
-            );
-        }
-    };
-
     if let Err(error) = sqlx::query(
-        "UPDATE app_user
-         SET email_verified = TRUE, otp_code = NULL, otp_expires_at = NULL
-         WHERE id = $1",
-    )
-    .bind(user.id)
-    .execute(&mut *transaction)
-    .await
-    {
-        eprintln!("login verification update failed: {error}");
-        return auth_error(
-            actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
-            "Authentication service is temporarily unavailable.",
-        );
+        "INSERT INTO auth_cookies (token_hash, user_id, expires_at) VALUES ($1, $2, now() + interval '8 hours')",
+    ).bind(hash_token(&token)).bind(user_id).execute(pool.get_ref()).await {
+        eprintln!("OAuth session creation failed: {error}");
+        return HttpResponse::InternalServerError().body("Unable to create your session.");
     }
-
-    if let Err(error) = sqlx::query(
-        "INSERT INTO auth_session (token_hash, user_id, expires_at)
-         VALUES ($1, $2, now() + interval '8 hours')",
-    )
-    .bind(token_hash)
-    .bind(user.id)
-    .execute(&mut *transaction)
-    .await
-    {
-        eprintln!("login session creation failed: {error}");
-        return auth_error(
-            actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
-            "Authentication service is temporarily unavailable.",
-        );
-    }
-
-    if let Err(error) = transaction.commit().await {
-        eprintln!("login transaction commit failed: {error}");
-        return auth_error(
-            actix_web::http::StatusCode::INTERNAL_SERVER_ERROR,
-            "Authentication service is temporarily unavailable.",
-        );
-    }
-
-    HttpResponse::Ok()
+    let mut response = HttpResponse::Found();
+    response.append_header((actix_web::http::header::LOCATION, "/"));
+    let mut response = response
         .cookie(
             Cookie::build(SESSION_COOKIE, token)
                 .http_only(true)
@@ -153,12 +316,14 @@ pub async fn login(pool: web::Data<PgPool>, body: web::Json<LoginRequest>) -> Ht
                 .max_age(actix_web::cookie::time::Duration::hours(8))
                 .finish(),
         )
-        .finish()
+        .finish();
+    clear_oauth_cookies(&mut response);
+    response
 }
 
 pub async fn logout(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
     if let Some(cookie) = request.cookie(SESSION_COOKIE) {
-        if let Err(error) = sqlx::query("DELETE FROM auth_session WHERE token_hash = $1")
+        if let Err(error) = sqlx::query("DELETE FROM auth_cookies WHERE token_hash = $1")
             .bind(hash_token(cookie.value()))
             .execute(pool.get_ref())
             .await
@@ -197,8 +362,8 @@ pub async fn require_admin(
 
     let user = sqlx::query_as::<_, AuthenticatedUser>(
         "SELECT u.role
-         FROM auth_session s
-         JOIN app_user u ON u.id = s.user_id
+         FROM auth_cookies s
+         JOIN users u ON u.id = s.user_id
          WHERE s.token_hash = $1
            AND s.expires_at > now()",
     )
@@ -242,8 +407,8 @@ pub async fn require_user(
     };
     let user = sqlx::query_as::<_, CurrentUser>(
         "SELECT u.id, u.role
-         FROM auth_session s
-         JOIN app_user u ON u.id = s.user_id
+         FROM auth_cookies s
+         JOIN users u ON u.id = s.user_id
          WHERE s.token_hash = $1 AND s.expires_at > now()",
     )
     .bind(hash_token(cookie.value()))
@@ -269,7 +434,7 @@ pub async fn configure_admin(pool: &PgPool, email: Option<&str>) -> Result<(), s
         return Ok(());
     };
 
-    sqlx::query("UPDATE app_user SET role = 'admin' WHERE email = $1")
+    sqlx::query("UPDATE users SET role = 'admin' WHERE email = $1")
         .bind(email.trim().to_lowercase())
         .execute(pool)
         .await?;

@@ -5,11 +5,6 @@ pub const EMAIL_ERROR: &str = "Please use a valid @neu.edu.vn email address";
 pub const NEU_DOMAIN: &str = "neu.edu.vn";
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct RegisterReq {
-    pub email: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct MessageBody {
     pub message: String,
 }

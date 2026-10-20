@@ -9,10 +9,8 @@ flowchart LR
     Browser[Browser / Leptos WASM]
     Web[Actix Web server]
     DB[(PostgreSQL)]
-    Mail[Development mail stub]
     Browser -->|HTTP requests and HTML/WASM assets| Web
     Web -->|SQL queries and transactions| DB
-    Web -->|OTP message text| Mail
 ```
 
 The browser never connects directly to PostgreSQL. The server owns routing,
@@ -21,16 +19,64 @@ are labelled with the data that crosses each boundary.
 
 ## 2. Data model
 
-![ERD](./images/erd.png)
+```mermaid
+erDiagram
+    users ||--o{ auth_cookies : owns
+    users ||--o{ study_dates : creates
+    users ||--o{ user_reports : reports
+    users ||--o{ match_requests : sends
+    users ||--o{ match_requests : receives
+    match_requests ||--o| conversations : opens
+    users {
+        uuid id PK
+        text email UK
+        boolean email_verified
+        text role
+    }
+    auth_cookies {
+        text token_hash PK
+        uuid user_id FK
+        timestamptz expires_at
+    }
+    study_dates {
+        bigint id PK
+        uuid creator_id FK
+        timestamptz starts_at
+        timestamptz ends_at
+        text status
+    }
+    user_reports {
+        bigint id PK
+        uuid reporter_id FK
+        uuid reported_user_id FK
+        text status
+    }
+    match_requests {
+        bigint id PK
+        uuid sender_id FK
+        uuid receiver_id FK
+        text status
+    }
+    conversations {
+        bigint id PK
+        uuid user_low FK
+        uuid user_high FK
+        bigint match_request_id FK
+    }
+```
 
-The ERD covers the four tables used by the walking skeleton.
+The schema uses consistent plural domain names. The application schema is
+created and reset from the `## Application database` section in
+`database/note.py`. The server connects to those tables directly.
 
 | Table | Columns and constraints | Purpose and M1 rule |
 |---|---|---|
-| `app_user` | `id BIGSERIAL` PK; `email TEXT` UNIQUE NOT NULL; `email_verified BOOLEAN` NOT NULL; `role TEXT` NOT NULL; `created_at TIMESTAMPTZ` NOT NULL | Stores accounts. Lowercase `@neu.edu.vn` emails and verified status enforce the M1 campus-account rule. |
-| `auth_session` | `token_hash TEXT` PK; `user_id BIGINT` FK to `app_user.id`; `expires_at TIMESTAMPTZ` NOT NULL; `created_at TIMESTAMPTZ` NOT NULL | Stores opaque login sessions and enforces expiry and account ownership. |
-| `study_date_request` | `id BIGSERIAL` PK; `creator_id BIGINT` FK to `app_user.id`; `starts_at`, `ends_at TIMESTAMPTZ` NOT NULL; `status TEXT` NOT NULL; `created_at TIMESTAMPTZ` NOT NULL | Stores study-date requests. The status and `ends_at > starts_at` checks enforce valid lifecycle windows. |
-| `report` | `id BIGSERIAL` PK; `reporter_id`, `reported_user_id BIGINT` FKs to `app_user.id`; `status TEXT` NOT NULL; `created_at TIMESTAMPTZ` NOT NULL | Stores moderation reports. `reporter_id <> reported_user_id` enforces the M1 no-self-report rule. |
+| `users` | `id UUID` PK; unique lowercase NEU `email`; `email_verified`, constrained `role`, `created_at` | Account identity and authorization role. |
+| `auth_cookies` | `token_hash TEXT` PK; `user_id UUID` FK to `users.id`; `expires_at`, `created_at` | Hashed server-side cookie sessions, deleted with their account. |
+| `study_dates` | `id BIGSERIAL` PK; `creator_id UUID` FK; `starts_at`, `ends_at`, `duration_min`, constrained `status`, `created_at` | Scheduled study meetups with a checked time window and duration. |
+| `user_reports` | `id BIGSERIAL` PK; `reporter_id`, `reported_user_id UUID` FKs; constrained `status`, `created_at` | Moderation reports; self reports are rejected. |
+| `match_requests` | `id BIGSERIAL` PK; sender and receiver UUID FKs; constrained `status`; `created_at`, `responded_at`; unique sender/receiver pair | Tracks requests through pending, accepted, or declined states. |
+| `conversations` | `id BIGSERIAL` PK; ordered participant UUIDs; unique `match_request_id`; `created_at` | One conversation per participant pair, linked to the accepted match request. |
 
 ## 3. API design
 
@@ -38,8 +84,8 @@ The ERD covers the four tables used by the walking skeleton.
 |---|---|---|---|---|
 | `GET` | `/api/admin/statistics` | Admin session cookie | `200` with three counts | `401` unauthenticated; `403` non-admin; `500` database failure |
 | `GET` | `/api/admin/health` | Admin session cookie | `200` with server/database status and timestamps | `401`; `403` |
-| `POST` | `/api/auth/request-otp` | Email | `200` message | `400` invalid email; `500` persistence failure |
-| `POST` | `/api/auth/verify-otp` | Email and six-digit OTP | `200` session cookie | `400` invalid/expired OTP; `401` mismatch |
+| `GET` | `/api/auth/login` | — | Redirect to configured OAuth2 provider | `500` provider configuration failure |
+| `GET` | `/api/auth/callback` | OAuth2 authorization response | `302` session cookie | `400`, `401`, `500` |
 | `POST` | `/api/match-requests` | Auth session and target user id | `201` request confirmation | `401`; `404` target missing; `409` duplicate request |
 | `GET` | `/api/profiles/{id}` | Auth session and profile id | `200` profile and relationship | `401`; `404` profile missing |
 
@@ -51,20 +97,19 @@ zero-valued counts.
 
 **Route:** `GET /admin_console`.
 
-**Database tables:** `app_user`, `auth_session`, `study_date_request`, and
-`report`. `database/seed.sql` creates ten users, two active requests, and one
-pending report after migrations.
+**Database tables:** `users`, `auth_cookies`,
+`study_dates`, `user_reports`, `match_requests`, and `conversations`.
 
 The statistics query is:
 
 ```sql
 SELECT
-  (SELECT COUNT(*) FROM app_user WHERE email_verified = TRUE),
-  (SELECT COUNT(*) FROM study_date_request
+  (SELECT COUNT(*) FROM users WHERE email_verified = TRUE),
+  (SELECT COUNT(*) FROM study_dates
    WHERE status = 'active'
      AND starts_at < now() + interval '24 hours'
      AND ends_at > now()),
-  (SELECT COUNT(*) FROM report WHERE status = 'pending');
+  (SELECT COUNT(*) FROM user_reports WHERE status = 'pending');
 ```
 
 The end-to-end execution is:
@@ -83,8 +128,7 @@ The end-to-end execution is:
 | 10 | Browser | Repeat the request when Refresh is clicked. |
 | 11 | Browser | Display an error and Retry action if the request fails. |
 
-Database migrations create the schema and `database/seed.sql` supplies the
-fixture rows. The reproducible URL is
+The database notebook creates the schema. The reproducible URL is
 `http://localhost:3100/admin_console`. A screenshot of the running route with
 the browser address bar visible is included in the final submitted PDF.
 

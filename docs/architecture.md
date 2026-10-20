@@ -7,11 +7,12 @@ flowchart LR
     Browser[Browser / Leptos WASM]
     Web[Actix Web server]
     DB[(PostgreSQL)]
-    Mail[Development mail stub]
+    IdP[OAuth2 identity provider]
 
     Browser -->|HTTP JSON requests and HTML/WASM assets| Web
     Web -->|SQL queries and transactions| DB
-    Web -->|OTP message in development| Mail
+    Browser -->|Authorization redirect| IdP
+    IdP -->|Authorization response| Web
 ```
 
 The browser never connects directly to PostgreSQL. The Actix server owns

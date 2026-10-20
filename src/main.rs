@@ -1,23 +1,12 @@
-#![feature(test)]
-#![allow(unused_imports)]
-// #![allow(unused_crate_dependencies)]
 mod ss;
-use std::cell::Cell;
 use std::env;
 mod worker;
-use actix_web::web::Data;
 pub use datingapp as lib;
 
-use sqlx::postgres::PgPoolOptions;
-use sqlx::Pool;
-use sqlx::Postgres;
-use std::sync::Arc;
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    if env::var_os("PGPASSPORT").is_none() {
-        env::set_var("PGPASSPORT", "5432");
-    }
+    let _ = dotenvy::dotenv();
     use actix_files::Files;
     use actix_web::*;
     use leptos::config::get_configuration;
@@ -31,17 +20,12 @@ async fn main() -> std::io::Result<()> {
         .max_connections(10)
         .connect(&ss::functions::get_db_uri())
         .await
-        .expect("cannot connect to postgres (is PGPASS set and `mise run database` running?)");
+        .expect("cannot connect to PostgreSQL (check DATABASE_URL and `mise run database`)");
     ss::auth::configure_admin(&pool, env::var("ADMIN_EMAIL").ok().as_deref())
         .await
         .expect("admin role configuration failed");
     let pool = web::Data::new(pool);
 
-    // std::env::set_var("RUST_LOG", "debug");
-    // env_logger::init();
-
-    let db = ss::database::get_database_pool().await;
-    let db = crate::lib::share::database::Database(db);
     let server = HttpServer::new(move || {
         // Generate the list of routes in your Leptos App
         let routes = generate_route_list(App);
@@ -51,11 +35,14 @@ async fn main() -> std::io::Result<()> {
 
         App::new()
             .configure(worker::config)
-            .app_data(Data::new(db.clone()))
             .app_data(pool.clone())
             .service(
                 actix_web::web::resource("/api/auth/login")
-                    .route(actix_web::web::post().to(ss::auth::login)),
+                    .route(actix_web::web::get().to(ss::auth::login)),
+            )
+            .service(
+                actix_web::web::resource("/api/auth/callback")
+                    .route(actix_web::web::get().to(ss::auth::callback)),
             )
             .service(
                 actix_web::web::resource("/api/auth/logout")
@@ -63,7 +50,6 @@ async fn main() -> std::io::Result<()> {
             )
             .service(ss::admin::dashboard_statistics)
             .service(ss::admin::health_status)
-            .service(ss::register::register)
             .service(
                 actix_web::web::resource("/api/study-dates")
                     .route(actix_web::web::get().to(ss::study_date::list_study_dates))

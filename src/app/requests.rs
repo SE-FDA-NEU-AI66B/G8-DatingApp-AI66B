@@ -101,7 +101,7 @@ pub fn RequestsPage() -> impl IntoView {
                         .map(|m| {
                             view! {
                                 <li>
-                                    {display_name(m.user_id)} " · chat room #" {m.chat_room_id}
+                                    {display_name(m.user_id)} " · conversation #" {m.conversation_id}
                                 </li>
                             }
                         })

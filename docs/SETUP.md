@@ -27,11 +27,18 @@ macOS/Linux:
 cp .env.example .env
 ```
 
-Set `DATABASE_URL` to the PostgreSQL database created by Compose and set
-`ADMIN_EMAIL` to the email that will receive development admin access. Never
-commit real passwords, OTPs, or keys.
+Set `DATABASE_URL` to the PostgreSQL database created by Compose. Register a
+Microsoft Entra app, add `http://localhost:3100/api/auth/callback` as a Web
+redirect URI, and copy its client ID and secret into `.env`. Set
+`MICROSOFT_TENANT_ID` to NEU's Entra tenant ID from the app registration's
+directory overview. The tenant-specific endpoint keeps sign-in restricted to
+NEU's Microsoft 365 directory; the app also requires an `@neu.edu.vn` email
+claim. Request the `email`, `openid`, and `profile` scopes. Set
+`MICROSOFT_REDIRECT_URI` to the exact registered callback.
+Set `ADMIN_EMAIL` to the account that should receive development admin access.
+Never commit real passwords, OAuth client secrets, or keys.
 
-## Start, migrate, and seed the database
+## Create and start the database
 
 ```bash
 docker compose -f database/compose.yaml up -d db
@@ -42,43 +49,35 @@ cargo install cargo-leptos
 cargo leptos build
 ```
 
-Run the migration cell in `database/note.py` with Marimo before starting the
-server. It creates and upgrades the application tables. Then seed ten users,
-two active requests, and one pending report. Use two terminals because the
-development server must remain running while `psql` connects:
-
-```bash
-uv run marimo edit database/note.py
-```
-
-Run the notebook cell labeled for the application migration, then close Marimo.
-Start the server in the first terminal and seed in the second:
+Open the database notebook and click **Recreate application database**. This
+drops and rebuilds the `public` schema; the server expects the notebook-created
+tables and does not create the schema itself.
 
 Windows PowerShell:
 
 ```powershell
+# The notebook reads PGPASS from .env
+uv run marimo edit database/note.py
+# Click Recreate application database, then close the notebook
 # Terminal 1
 cargo leptos watch
-# Terminal 2
-psql $env:DATABASE_URL -f database/seed.sql
 ```
 
 macOS/Linux:
 
 ```bash
-# Terminal 1
+# The notebook reads PGPASS from .env
+uv run marimo edit database/note.py
+# Click Recreate application database, then close the notebook
 cargo leptos watch
-# Terminal 2
-psql "$DATABASE_URL" -f database/seed.sql
 ```
 
-Stop the watcher with `Ctrl+C` only after the seed command completes. The
-seed file is idempotent for its named fixture rows.
+The configured `ADMIN_EMAIL` is promoted to admin on server startup. Sign in
+through Microsoft using that account to use the dashboard.
 
 ## How to know it worked
 
-Open <http://localhost:3100>, complete the development OTP flow for the
-configured admin email, then open
+Open <http://localhost:3100>, sign in with the configured admin account, then open
 <http://localhost:3100/admin_console>. The page shows non-zero values for
 registered users, active study-date requests, and pending reports, plus
 separate server and database health statuses.

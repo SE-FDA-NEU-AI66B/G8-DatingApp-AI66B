@@ -1,10 +1,8 @@
 # Admin dashboard statistics
 
 The **Registered users** metric counts only accounts whose NEU email has been
-verified (`app_user.email_verified = TRUE`). An account created during the OTP
-registration flow is not included until the OTP is accepted. This keeps the
-dashboard aligned with the product definition of a registered NEU member rather
-than counting incomplete sign-ups.
+verified (`users.email_verified = TRUE`) by a valid Microsoft identity token
+with an `@neu.edu.vn` email claim.
 
 The other US14 metrics are:
 
