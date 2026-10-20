@@ -65,6 +65,53 @@ const RELATION_QUERY: &str = "SELECT CASE
 FROM users u
 WHERE u.id = $2 AND u.email_verified";
 
+#[derive(serde::Deserialize)]
+pub struct ProfileSearchQuery {
+    q: String,
+}
+
+#[get("/api/profiles/search")]
+pub async fn search_profiles(
+    request: HttpRequest,
+    pool: web::Data<PgPool>,
+    query: web::Query<ProfileSearchQuery>,
+) -> HttpResponse {
+    let me = current_user!(request, pool);
+    let term = query.q.trim();
+    let pattern = if term.is_empty() {
+        "%".to_string()
+    } else {
+        format!("%{term}%")
+    };
+    match sqlx::query_as::<_, ProfileSearchResult>(
+        "SELECT u.id AS user_id,
+                COALESCE(NULLIF(btrim(p.display_name), ''), NULLIF(btrim(u.username), ''), split_part(u.email, '@', 1)) AS display_name,
+                p.cohort,
+                COALESCE(p.bio, '') AS bio,
+                COALESCE(p.interests, '') AS interests
+         FROM users u LEFT JOIN user_profiles p ON p.user_id = u.id
+         WHERE u.email_verified AND u.id <> $1
+           AND ($3::boolean OR COALESCE(NULLIF(btrim(p.display_name), ''), '') ILIKE $2
+                OR COALESCE(u.username, '') ILIKE $2)
+           AND NOT EXISTS (
+               SELECT 1 FROM match_requests m
+               WHERE (m.sender_id = $1 AND m.receiver_id = u.id)
+                  OR (m.sender_id = u.id AND m.receiver_id = $1 AND m.status IN ('pending', 'accepted'))
+           )
+         ORDER BY u.created_at DESC, display_name ASC
+         LIMIT 25",
+    )
+    .bind(me.id)
+    .bind(pattern)
+    .bind(term.is_empty())
+    .fetch_all(pool.get_ref())
+    .await
+    {
+        Ok(profiles) => HttpResponse::Ok().json(profiles),
+        Err(error) => db_error("search profiles", error),
+    }
+}
+
 fn relation_from_db(value: &str) -> Relation {
     match value {
         "self" => Relation::SelfProfile,
@@ -205,10 +252,12 @@ pub async fn incoming_requests(request: HttpRequest, pool: web::Data<PgPool>) ->
     let me = current_user!(request, pool);
     match sqlx::query_as::<_, IncomingRequest>(
         "SELECT id, sender_id,
-                to_char(created_at AT TIME ZONE 'Asia/Ho_Chi_Minh', 'YYYY-MM-DD HH24:MI') AS created_at
+                to_char(created_at AT TIME ZONE 'Asia/Ho_Chi_Minh', 'YYYY-MM-DD HH24:MI') AS created_at,
+                status
          FROM match_requests
-         WHERE receiver_id = $1 AND status = 'pending'
-         ORDER BY match_requests.created_at DESC, id DESC",
+         WHERE receiver_id = $1 AND status IN ('pending', 'declined')
+         ORDER BY CASE WHEN status = 'pending' THEN 0 ELSE 1 END,
+                  match_requests.created_at DESC, id DESC",
     )
     .bind(me.id)
     .fetch_all(pool.get_ref())

@@ -10,6 +10,7 @@ mod api;
 mod auth_gate;
 mod chat;
 pub(super) mod community_feed;
+mod explore;
 mod profile;
 mod register;
 mod requests;
@@ -51,6 +52,9 @@ pub fn app() -> impl IntoView {
                     <Route path=StaticSegment("register") view=register::RegisterPage />
                     <Route path=StaticSegment("feed") view=move || view! {
                         <auth_gate::AuthGate><signed_in_layout::SignedInLayout><study_feed::StudyFeed /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
+                    } />
+                    <Route path=StaticSegment("explore") view=move || view! {
+                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><explore::ExplorePage /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                     } />
                     <Route
                         path=(StaticSegment("study-date"), StaticSegment("new"))
@@ -118,7 +122,7 @@ fn HeaderNav() -> impl IntoView {
                 Some(true) => view! {
                     <A href="/userhome">"My home"</A>
                     <A href="/user_profile">"My profile"</A>
-                    <A href="/feed">"Explore"</A>
+                    <A href="/explore">"Explore"</A>
                     <Show when=move || is_admin.get()>
                         <A href="/admin_console" attr:class="admin-nav-link">"Admin console"</A>
                     </Show>

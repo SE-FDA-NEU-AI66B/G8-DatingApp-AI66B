@@ -47,6 +47,16 @@ pub struct ProfileView {
     pub interests: String,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[cfg_attr(not(target_arch = "wasm32"), derive(sqlx::FromRow))]
+pub struct ProfileSearchResult {
+    pub user_id: Uuid,
+    pub display_name: String,
+    pub cohort: Option<String>,
+    pub bio: String,
+    pub interests: String,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct SendMatchRequest {
     pub to_user_id: Uuid,
@@ -58,6 +68,7 @@ pub struct IncomingRequest {
     pub id: i64,
     pub sender_id: Uuid,
     pub created_at: String,
+    pub status: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]

@@ -288,6 +288,22 @@ def _(conn, initialize_sample_data_button, mo):
                     )
                     sample_user_ids[_username] = _cursor.fetchone()[0]
 
+                # Demo-only administrator; sign in with username `admin` and password `password`.
+                _cursor.execute(
+                    """
+                    INSERT INTO users (email, username, password_hash, email_verified, role)
+                    VALUES (%s, %s, %s, TRUE, 'admin')
+                    ON CONFLICT (email) DO UPDATE SET
+                        username = EXCLUDED.username,
+                        password_hash = EXCLUDED.password_hash,
+                        email_verified = TRUE,
+                        role = 'admin'
+                    RETURNING id
+                    """,
+                    ("admin@neu.edu.vn", "admin", sample_password_hash),
+                )
+                sample_user_ids["admin"] = _cursor.fetchone()[0]
+
                 _cursor.execute(
                     """
                     INSERT INTO study_dates
@@ -356,7 +372,7 @@ def _(conn, initialize_sample_data_button, mo):
                 )
             conn.commit()
             sample_data_status = mo.md(
-                "Sample users, study dates, one pending report, an accepted match, and a conversation are ready."
+                "Sample users, admin (`admin` / `password`), study dates, one pending report, an accepted match, and a conversation are ready."
             )
         except Exception as error:
             conn.rollback()

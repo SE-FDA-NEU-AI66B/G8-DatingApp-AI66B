@@ -5,6 +5,7 @@
 - Git 2.40+
 - Rust 1.85+ with `rustup`; the repository pins the nightly toolchain
 - Docker Desktop 4.30+ and Docker Compose
+- `uv` for the database notebook
 - Node.js 20+ and npm 10+ for browser checks
 - Windows 10/11, macOS 13+, or a current Linux distribution
 
@@ -46,46 +47,41 @@ account. Then they can use either Microsoft sign-in or username and password.
 Passwords are stored as Argon2 hashes; password login is disabled until the
 email has been verified.
 
-## Create and start the database
+## Install build tools
 
 ```bash
-docker compose -f database/compose.yaml up -d db
 rustup toolchain install nightly
 rustup default nightly
 rustup target add wasm32-unknown-unknown
 cargo install cargo-leptos
-cargo leptos build
 ```
 
-Open the database notebook and click **Recreate application database**. This
-drops and rebuilds the `public` schema; the server expects the notebook-created
-tables and does not create the schema itself. Then click **Initialize sample
-data** to add demo users, study dates, a pending report, match requests, and a
-conversation. This button is safe to click again and does not reset the schema.
-The seeded users all use the username shown in the notebook data and the shared
-demo password `password`. This intentionally weak password is for local demo
-data only; never reuse it outside the disposable development database.
+## Set up the database
 
-Windows PowerShell:
-
-```powershell
-# The notebook reads PGPASS from .env
-uv run marimo edit database/note.py
-# Click Recreate application database, then Initialize sample data
-# Close the notebook when both actions finish
-# Terminal 1
-cargo leptos watch
-```
-
-macOS/Linux:
+Set `PGPASS` in `.env` to a local password. Keep the password in
+`DATABASE_URL` the same; the database name is `userdb`.
 
 ```bash
-# The notebook reads PGPASS from .env
+docker compose --env-file .env -f database/compose.yaml up -d db
 uv run marimo edit database/note.py
-# Click Recreate application database, then Initialize sample data
-# Close the notebook when both actions finish
+```
+
+In the notebook, click **Recreate application database** once to create the
+application tables, then click **Initialize sample data** if you want demo
+accounts and records. Recreating drops and replaces every table in the
+database's `public` schema, so only use it to reset this development database.
+The server does not create the schema; the notebook owns that step.
+
+Keep the notebook open only while setting up the database. Start the app in a
+separate terminal after closing it:
+
+```bash
 cargo leptos watch
 ```
+
+The notebook and server both read their connection settings from `.env`.
+Compose persists database files in a Docker volume, so stopping the container
+does not reset the database.
 
 The configured `ADMIN_EMAIL` is promoted to admin on server startup. Sign in
 through Microsoft using that account to use the dashboard.
@@ -119,8 +115,8 @@ PostgreSQL integration tests require an isolated `TEST_DATABASE_URL`.
 ## Troubleshooting
 
 **`connection refused` or `database does not exist`:** confirm Docker Desktop
-is running, run `docker compose -f database/compose.yaml up -d db`, and make
-sure `.env` uses the PostgreSQL port `5432` and database `datingapp`.
+is running, start the `db` service with the command above, and check that
+`.env` uses port `5432` and database `userdb`.
 
 **`psql is not recognized`:** install PostgreSQL client tools and add their
 `bin` directory to `PATH`, or run `psql` using its full installation path.

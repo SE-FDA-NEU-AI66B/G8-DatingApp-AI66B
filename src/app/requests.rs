@@ -47,7 +47,13 @@ pub fn RequestsPage() -> impl IntoView {
             } else {
                 let url = format!("/api/match-requests/{id}/decline");
                 match api::post_empty::<MessageBody>(&url).await {
-                    Ok(_) => remove(id),
+                    Ok(_) => set_incoming.update(|items| {
+                        if let Some(items) = items {
+                            if let Some(item) = items.iter_mut().find(|item| item.id == id) {
+                                item.status = "declined".to_string();
+                            }
+                        }
+                    }),
                     Err(m) => set_error.set(Some(m)),
                 }
             }
@@ -60,13 +66,13 @@ pub fn RequestsPage() -> impl IntoView {
             {move || error.get().map(|m| view! { <p role="alert">{m}</p> })}
             <h2>
                 {move || {
-                    format!("Pending requests ({})", incoming.get().map_or(0, |l| l.len()))
+                    format!("Pending requests ({})", incoming.get().map_or(0, |list| list.iter().filter(|item| item.status == "pending").count()))
                 }}
             </h2>
             {move || match incoming.get() {
                 None => view! { <p role="status">"Loading requests..."</p> }.into_any(),
                 Some(list) if list.is_empty() => {
-                    view! { <p role="status">"No pending requests"</p> }.into_any()
+                    view! { <p role="status">"No pending or declined requests"</p> }.into_any()
                 }
                 Some(list) => {
                     view! {
@@ -75,14 +81,18 @@ pub fn RequestsPage() -> impl IntoView {
                                 .into_iter()
                                 .map(|r| {
                                     let id = r.id;
+                                    let is_pending = r.status == "pending";
                                     view! {
                                         <li>
                                             <A href=format!("/profile/{}", r.sender_id)>
                                                 {display_name(r.sender_id)}
                                             </A>
                                             " · " {r.created_at}
-                                            <button on:click=move |_| respond(id, true)>"Accept"</button>
-                                            <button on:click=move |_| respond(id, false)>"Decline"</button>
+                                            " · " {if is_pending { "Pending" } else { "Declined" }}
+                                            {if is_pending { view! {
+                                                <button on:click=move |_| respond(id, true)>"Accept"</button>
+                                                <button on:click=move |_| respond(id, false)>"Decline"</button>
+                                            }.into_any() } else { ().into_any() }}
                                         </li>
                                     }
                                 })
