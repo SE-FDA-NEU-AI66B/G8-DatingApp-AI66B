@@ -13,6 +13,7 @@ pub(super) mod community_feed;
 mod profile;
 mod register;
 mod requests;
+mod signed_in_layout;
 mod study_date_form;
 mod study_feed;
 mod user_profile;
@@ -49,37 +50,37 @@ pub fn app() -> impl IntoView {
 
                     <Route path=StaticSegment("register") view=register::RegisterPage />
                     <Route path=StaticSegment("feed") view=move || view! {
-                        <auth_gate::AuthGate><study_feed::StudyFeed /></auth_gate::AuthGate>
+                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><study_feed::StudyFeed /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                     } />
                     <Route
                         path=(StaticSegment("study-date"), StaticSegment("new"))
                         view=move || view! {
-                            <auth_gate::AuthGate><study_date_form::StudyDateForm /></auth_gate::AuthGate>
+                            <auth_gate::AuthGate><signed_in_layout::SignedInLayout><study_date_form::StudyDateForm /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                         }
                     />
                     <Route
                         path=(StaticSegment("profile"), ParamSegment("id"))
                         view=move || view! {
-                            <auth_gate::AuthGate><profile::ProfilePage /></auth_gate::AuthGate>
+                            <auth_gate::AuthGate><signed_in_layout::SignedInLayout><profile::ProfilePage /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                         }
                     />
                     <Route path=StaticSegment("requests") view=move || view! {
-                        <auth_gate::AuthGate><requests::RequestsPage /></auth_gate::AuthGate>
+                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><requests::RequestsPage /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                     } />
                     <Route path=StaticSegment("chat") view=move || view! {
-                        <auth_gate::AuthGate><chat::ChatInbox /></auth_gate::AuthGate>
+                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><chat::ChatInbox /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                     } />
                     <Route path=(StaticSegment("chat"), ParamSegment("id")) view=move || view! {
-                        <auth_gate::AuthGate><chat::ChatRoom /></auth_gate::AuthGate>
+                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><chat::ChatRoom /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                     } />
                     <Route path=StaticSegment("userhome") view=move || view! {
-                        <auth_gate::AuthGate><userhome::UserHome /></auth_gate::AuthGate>
+                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><userhome::UserHome /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                     } />
                     <Route path=StaticSegment("user_profile") view=move || view! {
-                        <auth_gate::AuthGate><user_profile::UserProfilePage /></auth_gate::AuthGate>
+                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><user_profile::UserProfilePage /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                     } />
                     <Route path=StaticSegment("admin_console") view=move || view! {
-                        <auth_gate::AuthGate admin_only=true><admin::AdminDashboard /></auth_gate::AuthGate>
+                        <auth_gate::AuthGate admin_only=true><signed_in_layout::SignedInLayout><admin::AdminDashboard /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                     } />
                     <Route path=StaticSegment("") view=HomePage />
                     <Route path=WildcardSegment("any") view=NotFound />
@@ -118,9 +119,6 @@ fn HeaderNav() -> impl IntoView {
                     <A href="/userhome">"My home"</A>
                     <A href="/user_profile">"My profile"</A>
                     <A href="/feed">"Explore"</A>
-                    <A href="/study-date/new">"Create a date"</A>
-                    <A href="/requests">"Requests"</A>
-                    <A href="/chat">"Chat"</A>
                     <Show when=move || is_admin.get()>
                         <A href="/admin_console" attr:class="admin-nav-link">"Admin console"</A>
                     </Show>

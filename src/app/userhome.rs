@@ -38,6 +38,7 @@ pub fn UserHome() -> impl IntoView {
         <section class="user-home" aria-labelledby="user-home-title">
             {move || match (account.get(), error.get()) {
                 (Some(session), _) => view! {
+                    <div class="user-home-content">
                     <div class="user-home-welcome">
                         <div class="user-home-welcome-copy">
                             <p class="section-kicker">"YOUR CAMPUS, YOUR PEOPLE"</p>
@@ -91,6 +92,7 @@ pub fn UserHome() -> impl IntoView {
                         </A>
                     </div>
                     <community_feed::CommunityFeed />
+                    </div>
                 }.into_any(),
                 (None, Some(message)) => view! {
                     <div class="user-home-message" role="alert">

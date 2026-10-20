@@ -150,6 +150,8 @@ fn ThreadPost(thread: ThreadCard) -> impl IntoView {
 #[component]
 pub fn CommunityFeed() -> impl IntoView {
     let (threads, set_threads) = signal(Vec::<ThreadCard>::new());
+    let (filter_text, set_filter_text) = signal(String::new());
+    let (commented_only, set_commented_only) = signal(false);
     let (title, set_title) = signal(String::new());
     let (body, set_body) = signal(String::new());
     let (error, set_error) = signal(None::<String>);
@@ -214,6 +216,22 @@ pub fn CommunityFeed() -> impl IntoView {
         });
     };
 
+    let visible_threads = move || {
+        let query = filter_text.get().trim().to_lowercase();
+        let commented_only = commented_only.get();
+        threads
+            .get()
+            .into_iter()
+            .filter(|thread| {
+                (!commented_only || thread.comments_count > 0)
+                    && (query.is_empty()
+                        || thread.title.to_lowercase().contains(&query)
+                        || thread.body.to_lowercase().contains(&query)
+                        || thread.author_name.to_lowercase().contains(&query))
+            })
+            .collect::<Vec<_>>()
+    };
+
     view! {
         <section class="community-feed" aria-labelledby="community-feed-title">
             <header class="community-feed-heading">
@@ -235,14 +253,30 @@ pub fn CommunityFeed() -> impl IntoView {
                     {move || if busy.get() { "Starting thread…" } else { "Start a thread" }}
                 </button>
             </form>
+            <div class="community-filter" role="search">
+                <label for="community-feed-search">"Filter threads"</label>
+                <input id="community-feed-search" type="search" placeholder="Search titles, posts, or authors…"
+                    bind:value=(filter_text, set_filter_text) />
+                <label class="community-sr-only" for="community-comment-filter">"Thread activity"</label>
+                <select id="community-comment-filter" on:change=move |event| {
+                    set_commented_only.set(event_target_value(&event) == "commented");
+                }>
+                    <option value="all">"All threads"</option>
+                    <option value="commented">"With comments"</option>
+                </select>
+            </div>
             <div class="community-thread-list" aria-live="polite">
                 <Show when=move || loading.get()>
                     <p class="community-status" role="status">"Loading conversations…"</p>
                 </Show>
-                <Show when=move || !loading.get() && threads.get().is_empty() && error.get().is_none()>
-                    <p class="community-empty">"No threads yet. Start the first conversation."</p>
+                <Show when=move || !loading.get() && visible_threads().is_empty() && error.get().is_none()>
+                    <p class="community-empty">{move || if threads.get().is_empty() {
+                        "No threads yet. Start the first conversation."
+                    } else {
+                        "No threads match these filters."
+                    }}</p>
                 </Show>
-                <For each=move || threads.get() key=|thread| thread.id children=move |thread| view! {
+                <For each=move || visible_threads() key=|thread| thread.id children=move |thread| view! {
                     <ThreadPost thread=thread />
                 } />
             </div>
