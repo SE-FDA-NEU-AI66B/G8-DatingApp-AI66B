@@ -51,10 +51,10 @@ pub fn app() -> impl IntoView {
 
                     <Route path=StaticSegment("register") view=register::RegisterPage />
                     <Route path=StaticSegment("feed") view=move || view! {
-                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><study_feed::StudyFeed /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
+                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><userhome::UserHome section="dates" /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                     } />
                     <Route path=StaticSegment("explore") view=move || view! {
-                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><explore::ExplorePage /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
+                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><userhome::UserHome section="explore" /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
                     } />
                     <Route
                         path=(StaticSegment("study-date"), StaticSegment("new"))

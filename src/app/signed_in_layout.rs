@@ -244,7 +244,7 @@ pub fn SignedInLayout(children: ChildrenFn) -> impl IntoView {
                                     let can_move_down = pin_position.is_some_and(|position| position + 1 < pins.len());
                                     view! { <li class="signed-in-panel-row">
                                         <div class="signed-in-chat-person">
-                                            <A href=format!("/profile/{}", item.user_id) attr:class="signed-in-panel-link signed-in-chat-profile">
+                                            <A href=format!("/chat/{id}") attr:class="signed-in-panel-link signed-in-chat-profile">
                                                 <span class="signed-in-panel-avatar">{item.display_name.chars().next().unwrap_or('S').to_uppercase().to_string()}</span>
                                                 <strong>{item.display_name}</strong>
                                             </A>

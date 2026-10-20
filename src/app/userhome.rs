@@ -21,7 +21,7 @@ async fn load_session() -> Result<SessionInfo, String> {
 }
 
 #[component]
-pub fn UserHome() -> impl IntoView {
+pub fn UserHome(#[prop(default = "home")] section: &'static str) -> impl IntoView {
     let (account, set_account) = signal(None::<SessionInfo>);
     let (error, set_error) = signal(None::<String>);
 
@@ -35,10 +35,19 @@ pub fn UserHome() -> impl IntoView {
     });
 
     view! {
-        <section class="user-home" aria-labelledby="user-home-title">
+        <section class="user-home" aria-label="Your home">
             {move || match (account.get(), error.get()) {
                 (Some(session), _) => view! {
                     <div class="user-home-content">
+                    <nav class="user-home-section-nav" aria-label="Your home sections">
+                        <A href="/userhome" attr:class=if section == "home" { "is-selected" } else { "" }>"Home"</A>
+                        <A href="/explore" attr:class=if section == "explore" { "is-selected" } else { "" }>"Explore people"</A>
+                        <A href="/feed" attr:class=if section == "dates" { "is-selected" } else { "" }>"Study dates"</A>
+                    </nav>
+                    {match section {
+                        "explore" => view! { <super::explore::ExplorePage /> }.into_any(),
+                        "dates" => view! { <super::study_feed::StudyFeed /> }.into_any(),
+                        _ => view! {
                     <div class="user-home-welcome">
                         <div class="user-home-welcome-copy">
                             <p class="section-kicker">"YOUR CAMPUS, YOUR PEOPLE"</p>
@@ -92,6 +101,8 @@ pub fn UserHome() -> impl IntoView {
                         </A>
                     </div>
                     <community_feed::CommunityFeed />
+                        }.into_any(),
+                    }}
                     </div>
                 }.into_any(),
                 (None, Some(message)) => view! {

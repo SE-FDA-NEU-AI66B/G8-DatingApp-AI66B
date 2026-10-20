@@ -20,13 +20,21 @@ pub fn ChatInbox() -> impl IntoView {
     });
     view! {
         <section class="chat-page">
-            <div class="chat-heading"><div><p class="section-kicker">"YOUR MATCHES"</p><h1>"Chat"</h1></div><p>"Every accepted match appears here, even before the first message."</p></div>
+            <div class="chat-heading"><div><p class="section-kicker">"YOUR MATCHES"</p><h1>"Chat"</h1></div><p>"People you match with appear here. Select someone to open your conversation."</p></div>
             {move || error.get().map(|e| view! { <p role="alert">{e}</p> })}
             {move || match conversations.get() {
                 None => view! { <p role="status">"Loading conversations…"</p> }.into_any(),
-                Some(items) if items.is_empty() => view! { <div class="chat-empty"><span>"♡"</span><h2>"No matches yet"</h2><p>"Accepted match requests will appear here. You can start chatting with any match."</p><A href="/explore" attr:class="button button-primary">"Explore students"</A></div> }.into_any(),
+                Some(items) if items.is_empty() => view! { <div class="chat-empty"><span>"♡"</span><h2>"No matches yet"</h2><p>"People appear here after you accept a match request."</p><A href="/feed" attr:class="button button-primary">"Explore students"</A></div> }.into_any(),
                 Some(items) => view! { <ul class="conversation-list">{items.into_iter().map(|item| view! {
-                    <li><A href=format!("/chat/{}", item.conversation_id) attr:class="conversation-link"><span class="conversation-avatar">{item.display_name.chars().next().unwrap_or('S').to_uppercase().to_string()}</span><span class="conversation-copy"><strong>{item.display_name}</strong><span>{item.last_message.unwrap_or_else(|| "Start the conversation".into())}</span></span><span class="conversation-arrow">"↗"</span></A></li>
+                    <li class="conversation-item">
+                        <A href=format!("/chat/{}", item.conversation_id) attr:class="conversation-person">
+                            <span class="conversation-avatar">{item.display_name.chars().next().unwrap_or('S').to_uppercase().to_string()}</span>
+                            <span class="conversation-copy"><strong>{item.display_name}</strong><span>"Matched with you"</span></span>
+                        </A>
+                        <A href=format!("/chat/{}", item.conversation_id) attr:class="conversation-open">
+                            <span>{item.last_message.unwrap_or_else(|| "Start chatting".into())}</span><span class="conversation-arrow">"↗"</span>
+                        </A>
+                    </li>
                 }).collect_view()}</ul> }.into_any()
             }}
         </section>
