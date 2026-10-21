@@ -1,4 +1,4 @@
-use super::api;
+use super::super::api;
 use crate::share::{
     chat::ConversationCard,
     matching::{
@@ -9,7 +9,10 @@ use crate::share::{
 };
 use leptos::prelude::*;
 use leptos::serde_json;
-use leptos_router::{components::A, hooks::use_location};
+use leptos_router::{
+    components::{Outlet, A},
+    hooks::use_location,
+};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum SidePanel {
@@ -388,5 +391,16 @@ pub fn SignedInLayout(children: ChildrenFn) -> impl IntoView {
 
             <div class="signed-in-content">{children()}</div>
         </div>
+    }
+}
+
+#[component]
+pub fn UserHomeLayout() -> impl IntoView {
+    view! {
+        <super::super::auth_gate::AuthGate>
+            <SignedInLayout>
+                <Outlet />
+            </SignedInLayout>
+        </super::super::auth_gate::AuthGate>
     }
 }

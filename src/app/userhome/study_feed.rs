@@ -1,4 +1,4 @@
-use super::api;
+use super::super::api;
 use crate::share::matching::{display_name, StudyDateCard};
 use leptos::prelude::*;
 use leptos_router::components::A;

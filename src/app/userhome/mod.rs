@@ -1,3 +1,10 @@
+pub(super) mod chat;
+pub(super) mod explore;
+pub(super) mod layout;
+pub(super) mod requests;
+pub(super) mod study_date_form;
+pub(super) mod study_feed;
+
 use super::community_feed;
 use crate::share::auth::SessionInfo;
 use leptos::prelude::*;
@@ -40,8 +47,8 @@ pub fn UserHome(#[prop(default = "home")] section: &'static str) -> impl IntoVie
                 (Some(session), _) => view! {
                     <div class="user-home-content">
                     {match section {
-                        "explore" => view! { <super::explore::ExplorePage /> }.into_any(),
-                        "dates" => view! { <super::study_feed::StudyFeed /> }.into_any(),
+                        "explore" => view! { <explore::ExplorePage /> }.into_any(),
+                        "dates" => view! { <study_feed::StudyFeed /> }.into_any(),
                         _ => view! {
                     <div class="user-home-welcome">
                         <div class="user-home-welcome-copy">

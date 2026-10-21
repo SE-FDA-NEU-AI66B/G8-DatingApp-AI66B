@@ -2,21 +2,15 @@ use leptos::prelude::*;
 use leptos::reactive::spawn_local;
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{
-    components::{Outlet, ParentRoute, Route, Router, Routes, A},
+    components::{ParentRoute, Route, Router, Routes, A},
     ParamSegment, StaticSegment, WildcardSegment,
 };
 mod admin;
 mod api;
 mod auth_gate;
-mod chat;
 pub(super) mod community_feed;
-mod explore;
 mod profile;
 mod register;
-mod requests;
-mod signed_in_layout;
-mod study_date_form;
-mod study_feed;
 mod user_profile;
 mod userhome;
 #[allow(non_snake_case)]
@@ -50,7 +44,7 @@ pub fn app() -> impl IntoView {
                     <Route path=StaticSegment("logout") view=login::App::Applogout />
 
                     <Route path=StaticSegment("register") view=register::RegisterPage />
-                    <ParentRoute path=StaticSegment("userhome") view=UserHomeLayout>
+                    <ParentRoute path=StaticSegment("userhome") view=userhome::layout::UserHomeLayout>
                         <Route path=StaticSegment("") view=|| view! { <userhome::UserHome /> } />
                         <Route path=StaticSegment("explore") view=move || view! {
                             <userhome::UserHome section="explore" />
@@ -58,10 +52,10 @@ pub fn app() -> impl IntoView {
                         <Route path=StaticSegment("study-dates") view=move || view! {
                             <userhome::UserHome section="dates" />
                         } />
-                        <Route path=(StaticSegment("study-date"), StaticSegment("new")) view=study_date_form::StudyDateForm />
-                        <Route path=StaticSegment("requests") view=requests::RequestsPage />
-                        <Route path=StaticSegment("chat") view=chat::ChatInbox />
-                        <Route path=(StaticSegment("chat"), ParamSegment("id")) view=chat::ChatRoom />
+                        <Route path=(StaticSegment("study-date"), StaticSegment("new")) view=userhome::study_date_form::StudyDateForm />
+                        <Route path=StaticSegment("requests") view=userhome::requests::RequestsPage />
+                        <Route path=StaticSegment("chat") view=userhome::chat::ChatInbox />
+                        <Route path=(StaticSegment("chat"), ParamSegment("id")) view=userhome::chat::ChatRoom />
                     </ParentRoute>
                     <Route
                         path=(StaticSegment("profile"), ParamSegment("id"))
@@ -80,17 +74,6 @@ pub fn app() -> impl IntoView {
                 </Routes>
             </main>
         </Router>
-    }
-}
-
-#[component]
-fn UserHomeLayout() -> impl IntoView {
-    view! {
-        <auth_gate::AuthGate>
-            <signed_in_layout::SignedInLayout>
-                <Outlet />
-            </signed_in_layout::SignedInLayout>
-        </auth_gate::AuthGate>
     }
 }
 
