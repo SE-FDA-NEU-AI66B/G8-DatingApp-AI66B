@@ -2,7 +2,7 @@ use leptos::prelude::*;
 use leptos::reactive::spawn_local;
 use leptos_meta::{provide_meta_context, Stylesheet, Title};
 use leptos_router::{
-    components::{Route, Router, Routes, A},
+    components::{Outlet, ParentRoute, Route, Router, Routes, A},
     ParamSegment, StaticSegment, WildcardSegment,
 };
 mod admin;
@@ -50,47 +50,47 @@ pub fn app() -> impl IntoView {
                     <Route path=StaticSegment("logout") view=login::App::Applogout />
 
                     <Route path=StaticSegment("register") view=register::RegisterPage />
-                    <Route path=StaticSegment("feed") view=move || view! {
-                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><userhome::UserHome section="dates" /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
-                    } />
-                    <Route path=StaticSegment("explore") view=move || view! {
-                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><userhome::UserHome section="explore" /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
-                    } />
-                    <Route
-                        path=(StaticSegment("study-date"), StaticSegment("new"))
-                        view=move || view! {
-                            <auth_gate::AuthGate><signed_in_layout::SignedInLayout><study_date_form::StudyDateForm /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
-                        }
-                    />
+                    <ParentRoute path=StaticSegment("userhome") view=UserHomeLayout>
+                        <Route path=StaticSegment("") view=|| view! { <userhome::UserHome /> } />
+                        <Route path=StaticSegment("explore") view=move || view! {
+                            <userhome::UserHome section="explore" />
+                        } />
+                        <Route path=StaticSegment("study-dates") view=move || view! {
+                            <userhome::UserHome section="dates" />
+                        } />
+                        <Route path=(StaticSegment("study-date"), StaticSegment("new")) view=study_date_form::StudyDateForm />
+                        <Route path=StaticSegment("requests") view=requests::RequestsPage />
+                        <Route path=StaticSegment("chat") view=chat::ChatInbox />
+                        <Route path=(StaticSegment("chat"), ParamSegment("id")) view=chat::ChatRoom />
+                    </ParentRoute>
                     <Route
                         path=(StaticSegment("profile"), ParamSegment("id"))
                         view=move || view! {
-                            <auth_gate::AuthGate><signed_in_layout::SignedInLayout><profile::ProfilePage /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
+                            <auth_gate::AuthGate><profile::ProfilePage /></auth_gate::AuthGate>
                         }
                     />
-                    <Route path=StaticSegment("requests") view=move || view! {
-                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><requests::RequestsPage /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
-                    } />
-                    <Route path=StaticSegment("chat") view=move || view! {
-                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><chat::ChatInbox /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
-                    } />
-                    <Route path=(StaticSegment("chat"), ParamSegment("id")) view=move || view! {
-                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><chat::ChatRoom /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
-                    } />
-                    <Route path=StaticSegment("userhome") view=move || view! {
-                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><userhome::UserHome /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
-                    } />
                     <Route path=StaticSegment("user_profile") view=move || view! {
-                        <auth_gate::AuthGate><signed_in_layout::SignedInLayout><user_profile::UserProfilePage /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
+                        <auth_gate::AuthGate><user_profile::UserProfilePage /></auth_gate::AuthGate>
                     } />
                     <Route path=StaticSegment("admin_console") view=move || view! {
-                        <auth_gate::AuthGate admin_only=true><signed_in_layout::SignedInLayout><admin::AdminDashboard /></signed_in_layout::SignedInLayout></auth_gate::AuthGate>
+                        <auth_gate::AuthGate admin_only=true><admin::AdminDashboard /></auth_gate::AuthGate>
                     } />
                     <Route path=StaticSegment("") view=HomePage />
                     <Route path=WildcardSegment("any") view=NotFound />
                 </Routes>
             </main>
         </Router>
+    }
+}
+
+#[component]
+fn UserHomeLayout() -> impl IntoView {
+    view! {
+        <auth_gate::AuthGate>
+            <signed_in_layout::SignedInLayout>
+                <Outlet />
+            </signed_in_layout::SignedInLayout>
+        </auth_gate::AuthGate>
     }
 }
 
@@ -122,7 +122,7 @@ fn HeaderNav() -> impl IntoView {
                 Some(true) => view! {
                     <A href="/userhome">"My home"</A>
                     <A href="/user_profile">"My profile"</A>
-                    <A href="/explore">"Explore"</A>
+                    <A href="/userhome/explore">"Explore"</A>
                     <Show when=move || is_admin.get()>
                         <A href="/admin_console" attr:class="admin-nav-link">"Admin console"</A>
                     </Show>
@@ -180,7 +180,7 @@ fn HomePage() -> impl IntoView {
                     "Find your next favorite person over coffee, a study session, or a walk across campus. Made for the NEU community."
                 </p>
                 <div class="hero-actions">
-                    <A href="/feed" attr:class="button button-primary">
+                    <A href="/userhome/study-dates" attr:class="button button-primary">
                         "Find a study date "<span attr:aria-hidden="true">"↗"</span>
                     </A>
                     <A href="/register" attr:class="button button-quiet">"Create your account"</A>

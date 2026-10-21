@@ -13,10 +13,10 @@ For the story-level matrix and reachable-screen flow, see
 |---|---|---|---|
 | Home and navigation | `/` | works | None |
 | Register with NEU email (US01) | `/register` | partly works | `POST /api/register` |
-| Browse active study dates (US03) | `/feed` | works | `GET /api/study-dates` |
-| Create a study date (US02) | `/study-date/new` | works | `POST /api/study-dates` |
+| Browse active study dates (US03) | `/userhome/study-dates` | works | `GET /api/study-dates` |
+| Create a study date (US02) | `/userhome/study-date/new` | works | `POST /api/study-dates` |
 | View profile / send match request (US04) | `/profile/:id` | partly works | `GET /api/profiles/{id}`, `POST /api/match-requests` |
-| Accept or decline incoming request (US05) | `/requests` | partly works | `GET /api/match-requests/incoming`, `GET /api/matches`, `POST /api/match-requests/{id}/accept`, `POST /api/match-requests/{id}/decline` |
+| Accept or decline incoming request (US05) | `/userhome/requests` | partly works | `GET /api/match-requests/incoming`, `GET /api/matches`, `POST /api/match-requests/{id}/accept`, `POST /api/match-requests/{id}/decline` |
 | Admin console access (US12), dashboard flow, health (US13) | `/admin_console` | partly works | `GET /api/admin/access`, `GET /api/admin/statistics`, `GET /api/admin/health` |
 
 US01 stores a generated OTP and currently prints it to the development server
@@ -48,7 +48,7 @@ API endpoints: `POST /api/register`.
 
 ![Registration wireframe](./images/ui/register.svg)
 
-### Study-date feed — `/feed`
+### Study-date feed — `/userhome/study-dates`
 
 The user comes here to browse active study dates and open a creator's profile.
 
@@ -56,7 +56,7 @@ API endpoints: `GET /api/study-dates`.
 
 ![Study-date feed wireframe](./images/ui/study-feed.svg)
 
-### Create study date — `/study-date/new`
+### Create study date — `/userhome/study-date/new`
 
 The user comes here to publish a study date with a start time and duration.
 
@@ -73,7 +73,7 @@ API endpoints: `GET /api/profiles/{id}`, `POST /api/match-requests`.
 
 ![Profile wireframe](./images/ui/profile.svg)
 
-### Incoming requests — `/requests`
+### Incoming requests — `/userhome/requests`
 
 The user comes here to accept or decline incoming match requests and see
 matched users.
@@ -105,7 +105,7 @@ state.
 |---|---|---|---|---|
 | Home | Not applicable | Not applicable | Not applicable | Navigation and home content are rendered |
 | Registration | Submit button is disabled while registering | Not applicable (form) | Inline validation or API message | Account creation confirmation; OTP is currently printed to the development server log rather than emailed |
-| Study-date feed | “Loading study dates...” | “0 study dates found for today” | API message shown as an alert | Active study-date cards; creator links open profiles |
+| Study dates | “Loading study dates...” | “0 study dates found for today” | API message shown as an alert | Active study-date cards; creator links open profiles |
 | Create study date | Submit button reads “Publishing...” during submission | Not applicable (form) | Validation or API message shown as an alert | “Study date published.” with a link to the feed |
 | Profile | “Loading profile...” | No separate empty state; a missing profile is an API error | Invalid profile or API message shown as an alert | Profile and relationship action: Connect, Pending, Review it, Matched, or self profile |
 | Incoming requests | “Loading requests...” | “No pending requests” | API/action message shown as an alert | Incoming request rows and matched-user list; accept/decline updates the lists |

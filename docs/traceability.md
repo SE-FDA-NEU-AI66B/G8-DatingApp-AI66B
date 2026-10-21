@@ -23,10 +23,10 @@ coverage issue is still open.
 | Story | Screen(s) | Route | Status | Issue |
 |---|---|---|---|---|
 | US01 — Register with NEU email | Registration | `/register` | partly works | Implementation: [#58](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/58); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
-| US02 — Create a study date request | Create study date | `/study-date/new` | works | Implementation: [#57](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/57); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
-| US03 — Browse active study date requests | Study-date feed | `/feed` | works | Implementation: [#56](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/56); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
+| US02 — Create a study date request | Create study date | `/userhome/study-date/new` | works | Implementation: [#57](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/57); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
+| US03 — Browse active study date requests | Study dates | `/userhome/study-dates` | works | Implementation: [#56](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/56); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
 | US04 — Send a match request | Profile | `/profile/:id` | partly works | Implementation: [#59](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/59); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
-| US05 — Accept or decline a match request | Incoming requests | `/requests` | partly works | Implementation: [#60](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/60); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
+| US05 — Accept or decline a match request | Incoming requests | `/userhome/requests` | partly works | Implementation: [#60](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/60); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
 | US12 — Restrict admin console to admins | Admin console | `/admin_console` | partly works | Implementation: [#67](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/67), [#76](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/76); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
 | US13 — View database and server status | Admin console health | `/admin_console` | partly works | Implementation: [#68](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/68); tests: [#95](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/95) |
 
@@ -72,10 +72,10 @@ the Leptos demo rather than the designed P0 home screen.
 flowchart TD
     Home["/ — Home"]
     Register["/register — Registration"]
-    Feed["/feed — Study-date feed"]
-    Create["/study-date/new — Create study date"]
+    Feed["/userhome/study-dates — Study-date feed"]
+    Create["/userhome/study-date/new — Create study date"]
     Profile["/profile/:id — Profile"]
-    Requests["/requests — Incoming requests"]
+    Requests["/userhome/requests — Incoming requests"]
     Admin["/admin_console — Admin console"]
 
     Feed -->|create a request| Create
@@ -97,8 +97,8 @@ flowchart TD
     SignIn -. authenticate before protected screens .-> Admin
 ```
 
-The currently registered P0 routes are `/`, `/register`, `/feed`,
-`/study-date/new`, `/profile/:id`, `/requests`, and `/admin_console`. No
+The currently registered P0 routes are `/`, `/register`, `/userhome/study-dates`,
+`/userhome/study-date/new`, `/profile/:id`, `/userhome/requests`, and `/admin_console`. No
 `/user_profile`, `/user_home`, or `/chat` route is included in this P0 flow;
 chat remains outside P0.
 >>>>>>> origin/main

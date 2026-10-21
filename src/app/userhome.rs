@@ -39,11 +39,6 @@ pub fn UserHome(#[prop(default = "home")] section: &'static str) -> impl IntoVie
             {move || match (account.get(), error.get()) {
                 (Some(session), _) => view! {
                     <div class="user-home-content">
-                    <nav class="user-home-section-nav" aria-label="Your home sections">
-                        <A href="/userhome" attr:class=if section == "home" { "is-selected" } else { "" }>"Home"</A>
-                        <A href="/explore" attr:class=if section == "explore" { "is-selected" } else { "" }>"Explore people"</A>
-                        <A href="/feed" attr:class=if section == "dates" { "is-selected" } else { "" }>"Study dates"</A>
-                    </nav>
                     {match section {
                         "explore" => view! { <super::explore::ExplorePage /> }.into_any(),
                         "dates" => view! { <super::study_feed::StudyFeed /> }.into_any(),
@@ -74,7 +69,7 @@ pub fn UserHome(#[prop(default = "home")] section: &'static str) -> impl IntoVie
                             <p class="section-kicker">"MAKE TODAY A LITTLE MORE INTERESTING"</p>
                             <h2>"A good connection can start with one small plan."</h2>
                             <p>"Find someone to study with, grab a coffee, and see where the conversation goes."</p>
-                            <A href="/feed" attr:class="button button-primary">"Explore study dates "<span>"↗"</span></A>
+                            <A href="/userhome/study-dates" attr:class="button button-primary">"Explore study dates "<span>"↗"</span></A>
                         </div>
                         <div class="home-date-stamp"><span>"TODAY"</span><strong>"♡"</strong><small>"could be the day"</small></div>
                     </div>
@@ -89,12 +84,12 @@ pub fn UserHome(#[prop(default = "home")] section: &'static str) -> impl IntoVie
                             <span class="action-card-copy"><strong>"Complete your profile"</strong><small>"Add a bio, cohort, and interests."</small></span>
                             <span class="action-arrow">"↗"</span>
                         </A>
-                        <A href="/study-date/new" attr:class="home-action-card action-create">
+                        <A href="/userhome/study-date/new" attr:class="home-action-card action-create">
                             <span class="action-icon">"＋"</span>
                             <span class="action-card-copy"><strong>"Post a study date"</strong><small>"Set a time and invite someone along."</small></span>
                             <span class="action-arrow">"↗"</span>
                         </A>
-                        <A href="/requests" attr:class="home-action-card action-requests">
+                        <A href="/userhome/requests" attr:class="home-action-card action-requests">
                             <span class="action-icon">"♡"</span>
                             <span class="action-card-copy"><strong>"Check your requests"</strong><small>"See who would like to meet."</small></span>
                             <span class="action-arrow">"↗"</span>
