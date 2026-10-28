@@ -16,6 +16,15 @@ git clone https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B.git
 cd G8-DatingApp-AI66B
 ```
 
+## Load env
+
+```powershell
+Get-Content .env | Where-Object { $_ -match '^\s*[^#][^=]*=' } | ForEach-Object {
+    $name, $value = $_ -split '=', 2
+    Set-Item -Path "Env:$($name.Trim())" -Value $value.Trim().Trim('"').Trim("'")
+}
+```
+
 ## Install build tools
 
 ```bash
