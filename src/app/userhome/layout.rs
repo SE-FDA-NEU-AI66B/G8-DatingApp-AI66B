@@ -1,4 +1,4 @@
-use super::api;
+use super::super::api;
 use crate::share::{
     chat::ConversationCard,
     matching::{
@@ -9,7 +9,10 @@ use crate::share::{
 };
 use leptos::prelude::*;
 use leptos::serde_json;
-use leptos_router::{components::A, hooks::use_location};
+use leptos_router::{
+    components::{Outlet, A},
+    hooks::use_location,
+};
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum SidePanel {
@@ -198,18 +201,18 @@ pub fn SignedInLayout(children: ChildrenFn) -> impl IntoView {
                     <A href="/userhome" attr:class=move || if expanded.get().is_none() && pathname.get() == "/userhome" { "signed-in-nav-link is-active" } else { "signed-in-nav-link" } attr:title="Home" attr:aria-label="Home" on:click=move |_| set_expanded.set(None)>
                         <span aria-hidden="true">"⌂"</span><span class="signed-in-nav-label">"Home"</span>
                     </A>
-                    <A href="/explore" attr:class=move || if expanded.get().is_none() && pathname.get() == "/explore" { "signed-in-nav-link is-active" } else { "signed-in-nav-link" } attr:title="Explore" attr:aria-label="Explore potential matches" on:click=move |_| set_expanded.set(None)>
+                    <A href="/userhome/explore" attr:class=move || if expanded.get().is_none() && pathname.get() == "/userhome/explore" { "signed-in-nav-link is-active" } else { "signed-in-nav-link" } attr:title="Explore" attr:aria-label="Explore potential matches" on:click=move |_| set_expanded.set(None)>
                         <span aria-hidden="true">"⌕"</span><span class="signed-in-nav-label">"Explore"</span>
                     </A>
-                    <button type="button" class="signed-in-nav-link" class:panel-active=move || if let Some(panel) = expanded.get() { panel == SidePanel::Chat } else { pathname.get().starts_with("/chat") } title="Chat" aria-label="Chat"
+                    <button type="button" class="signed-in-nav-link" class:panel-active=move || if let Some(panel) = expanded.get() { panel == SidePanel::Chat } else { pathname.get().starts_with("/userhome/chat") } title="Chat" aria-label="Chat"
                         aria-expanded=move || expanded.get() == Some(SidePanel::Chat) on:click=open_chat>
                         <span aria-hidden="true">"✉"</span>
                     </button>
-                    <button type="button" class="signed-in-nav-link" class:panel-active=move || if let Some(panel) = expanded.get() { panel == SidePanel::Dates } else { pathname.get().starts_with("/study-date") || pathname.get() == "/feed" } title="Study date" aria-label="Study date"
+                    <button type="button" class="signed-in-nav-link" class:panel-active=move || if let Some(panel) = expanded.get() { panel == SidePanel::Dates } else { pathname.get().starts_with("/userhome/study-date") || pathname.get() == "/userhome/study-dates" } title="Study date" aria-label="Study date"
                         aria-expanded=move || expanded.get() == Some(SidePanel::Dates) on:click=open_dates>
                         <span aria-hidden="true">"＋"</span>
                     </button>
-                    <button type="button" class="signed-in-nav-link" class:panel-active=move || if let Some(panel) = expanded.get() { panel == SidePanel::Requests } else { pathname.get() == "/requests" } title="Requests" aria-label="Requests"
+                    <button type="button" class="signed-in-nav-link" class:panel-active=move || if let Some(panel) = expanded.get() { panel == SidePanel::Requests } else { pathname.get() == "/userhome/requests" } title="Requests" aria-label="Requests"
                         aria-expanded=move || expanded.get() == Some(SidePanel::Requests) on:click=open_requests>
                         <span aria-hidden="true">"♡"</span>
                     </button>
@@ -244,11 +247,11 @@ pub fn SignedInLayout(children: ChildrenFn) -> impl IntoView {
                                     let can_move_down = pin_position.is_some_and(|position| position + 1 < pins.len());
                                     view! { <li class="signed-in-panel-row">
                                         <div class="signed-in-chat-person">
-                                            <A href=format!("/chat/{id}") attr:class="signed-in-panel-link signed-in-chat-profile">
+                                            <A href=format!("/userhome/chat/{id}") attr:class="signed-in-panel-link signed-in-chat-profile">
                                                 <span class="signed-in-panel-avatar">{item.display_name.chars().next().unwrap_or('S').to_uppercase().to_string()}</span>
                                                 <strong>{item.display_name}</strong>
                                             </A>
-                                            <A href=format!("/chat/{id}") attr:class="signed-in-chat-open">{item.last_message.unwrap_or_else(|| "Open conversation".into())}</A>
+                                            <A href=format!("/userhome/chat/{id}") attr:class="signed-in-chat-open">{item.last_message.unwrap_or_else(|| "Open conversation".into())}</A>
                                         </div>
                                         <div class="panel-item-actions">
                                             {if is_pinned { view! { <div class="panel-reorder">
@@ -268,7 +271,7 @@ pub fn SignedInLayout(children: ChildrenFn) -> impl IntoView {
                     <Show when=move || expanded.get() == Some(SidePanel::Dates) fallback=|| ()>
                         <div class="signed-in-panel-heading signed-in-date-heading">
                             <h2>"Study dates"</h2>
-                            <A href="/study-date/new" attr:class="signed-in-create-date">"＋ Create new date"</A>
+                            <A href="/userhome/study-date/new" attr:class="signed-in-create-date">"＋ Create new date"</A>
                         </div>
                         {move || panel_error.get().map(|error| view! { <p role="alert">{error}</p> })}
                         {move || match dates.get() {
@@ -288,7 +291,7 @@ pub fn SignedInLayout(children: ChildrenFn) -> impl IntoView {
                                 let can_move_up = pin_position.is_some_and(|position| position > 0);
                                 let can_move_down = pin_position.is_some_and(|position| position + 1 < pins.len());
                                 view! { <li class="signed-in-panel-row">
-                                    <A href="/feed" attr:class="signed-in-panel-link signed-in-date-link">
+                                    <A href="/userhome/study-dates" attr:class="signed-in-panel-link signed-in-date-link">
                                         <strong>{item.starts_at}</strong><small>{if item.is_mine { "Your study date".to_string() } else { "Open study date feed".to_string() }}</small>
                                     </A>
                                     <div class="panel-item-actions">
@@ -388,5 +391,16 @@ pub fn SignedInLayout(children: ChildrenFn) -> impl IntoView {
 
             <div class="signed-in-content">{children()}</div>
         </div>
+    }
+}
+
+#[component]
+pub fn UserHomeLayout() -> impl IntoView {
+    view! {
+        <super::super::auth_gate::AuthGate>
+            <SignedInLayout>
+                <Outlet />
+            </SignedInLayout>
+        </super::super::auth_gate::AuthGate>
     }
 }

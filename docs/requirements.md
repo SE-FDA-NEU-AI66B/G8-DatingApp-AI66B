@@ -117,7 +117,7 @@ As Minh Chau, I want to register using my @neu.edu.vn email so that I am verifie
   - OAuth2 authentication and account provisioning - @hai
   - Automated tests for domain rejections - @quyen
 
-**US02 - Create a study date request · P0 · 8 points · Screen: /study-date/new**
+**US02 - Create a study date request · P0 · 8 points · Screen: /userhome/study-date/new**
 As Tuan Kiet, I want to create a "study date" request with a specific time slot so that others can join me for a deadline session.
 
 - **Acceptance criteria**
@@ -128,7 +128,7 @@ As Tuan Kiet, I want to create a "study date" request with a specific time slot 
   - Database schema for study sessions - @hai
   - Validation logic for maximum duration rules - @quyen
 
-**US03 - Browse active study date requests · P0 · 5 points · Screen: /feed**
+**US03 - Browse active study date requests · P0 · 5 points · Screen: /userhome/study-dates**
 As Minh Chau, I want to browse active study date requests within a 24-hour window so I can find a study partner today.
 
 - **Acceptance criteria**
@@ -150,7 +150,7 @@ As Hoang Anh, I want to send a match request to a specific profile so that we ca
   - Matchmaking logic and daily limit constraints - @hai
   - Test cases for button state changes - @quyen
 
-**US05 - Accept or decline a match request · P0 · 3 points · Screen: /requests**
+**US05 - Accept or decline a match request · P0 · 3 points · Screen: /userhome/requests**
 As Hoang Anh, I want to accept or decline an incoming match request so that I can control who messages me.
 
 - **Acceptance criteria**
@@ -161,7 +161,7 @@ As Hoang Anh, I want to accept or decline an incoming match request so that I ca
   - State update logic (Accept/Decline handling) - @hai
   - Tests for list rendering updates - @quyen
 
-**US06 - Real-time chat messaging · P1 · 8 points · Screen: /chat/:id**
+**US06 - Real-time chat messaging · P1 · 8 points · Screen: /userhome/chat/:id**
 As Tuan Kiet, I want to send text messages via the web interface so we can coordinate our meeting.
 
 - **Acceptance criteria**
@@ -287,8 +287,8 @@ records each P0 story and shows the reachable screen flow.
 |---|---|---|---|
 | `/` | Home and primary navigation | G | P0 |
 | `/register` | NEU email registration | G | P0 |
-| `/study-date/new` | Create a study-date request | U | P0 |
-| `/feed` | Browse active study-date requests | U | P0 |
+| `/userhome/study-date/new` | Create a study-date request | U | P0 |
+| `/userhome/study-dates` | Browse active study-date requests | U | P0 |
 | `/profile/:id` | View a profile and send a match request | U | P0 |
-| `/requests` | Accept or decline incoming match requests | U | P0 |
+| `/userhome/requests` | Accept or decline incoming match requests | U | P0 |
 | `/admin_console` | Admin dashboard and server/database health | A | P0 |

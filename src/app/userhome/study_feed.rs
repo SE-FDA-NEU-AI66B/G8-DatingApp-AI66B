@@ -1,4 +1,4 @@
-use super::api;
+use super::super::api;
 use crate::share::matching::{display_name, StudyDateCard};
 use leptos::prelude::*;
 use leptos_router::components::A;
@@ -20,7 +20,7 @@ pub fn StudyFeed() -> impl IntoView {
     view! {
         <section aria-labelledby="feed-title">
             <h1 id="feed-title">"Study dates"</h1>
-            <A href="/study-date/new">"Create a study date"</A>
+            <A href="/userhome/study-date/new">"Create a study date"</A>
             {move || {
                 if let Some(message) = error.get() {
                     return view! { <p role="alert">{message}</p> }.into_any();

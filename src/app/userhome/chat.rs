@@ -1,4 +1,4 @@
-use super::api;
+use super::super::api;
 use crate::share::{
     auth::SessionInfo,
     chat::{ChatMessage, ConversationCard, SendMessage},
@@ -24,14 +24,14 @@ pub fn ChatInbox() -> impl IntoView {
             {move || error.get().map(|e| view! { <p role="alert">{e}</p> })}
             {move || match conversations.get() {
                 None => view! { <p role="status">"Loading conversations…"</p> }.into_any(),
-                Some(items) if items.is_empty() => view! { <div class="chat-empty"><span>"♡"</span><h2>"No matches yet"</h2><p>"People appear here after you accept a match request."</p><A href="/feed" attr:class="button button-primary">"Explore students"</A></div> }.into_any(),
+                Some(items) if items.is_empty() => view! { <div class="chat-empty"><span>"♡"</span><h2>"No matches yet"</h2><p>"People appear here after you accept a match request."</p><A href="/userhome/study-dates" attr:class="button button-primary">"Explore students"</A></div> }.into_any(),
                 Some(items) => view! { <ul class="conversation-list">{items.into_iter().map(|item| view! {
                     <li class="conversation-item">
-                        <A href=format!("/chat/{}", item.conversation_id) attr:class="conversation-person">
+                        <A href=format!("/userhome/chat/{}", item.conversation_id) attr:class="conversation-person">
                             <span class="conversation-avatar">{item.display_name.chars().next().unwrap_or('S').to_uppercase().to_string()}</span>
                             <span class="conversation-copy"><strong>{item.display_name}</strong><span>"Matched with you"</span></span>
                         </A>
-                        <A href=format!("/chat/{}", item.conversation_id) attr:class="conversation-open">
+                        <A href=format!("/userhome/chat/{}", item.conversation_id) attr:class="conversation-open">
                             <span>{item.last_message.unwrap_or_else(|| "Start chatting".into())}</span><span class="conversation-arrow">"↗"</span>
                         </A>
                     </li>
@@ -100,7 +100,7 @@ pub fn ChatRoom() -> impl IntoView {
     };
     view! {
         <section class="chat-page chat-room">
-            <div class="chat-room-heading"><A href="/chat" attr:class="chat-back">"← All messages"</A><h1>"Conversation"</h1><button class="chat-refresh" on:click=move |_| if let Some(id) = conversation_id() { load(id); } aria-label="Refresh messages">"↻"</button></div>
+            <div class="chat-room-heading"><A href="/userhome/chat" attr:class="chat-back">"← All messages"</A><h1>"Conversation"</h1><button class="chat-refresh" on:click=move |_| if let Some(id) = conversation_id() { load(id); } aria-label="Refresh messages">"↻"</button></div>
             {move || error.get().map(|e| view! { <p role="alert">{e}</p> })}
             <div class="chat-messages" aria-live="polite">
                 {move || messages.get().into_iter().map(|message| {

@@ -1,4 +1,4 @@
-use super::api;
+use super::super::api;
 use crate::share::matching::{CreateStudyDateRequest, StudyDateCard};
 use leptos::prelude::*;
 use leptos::tachys::html::event::SubmitEvent;
@@ -80,7 +80,7 @@ pub fn StudyDateForm() -> impl IntoView {
                 success.get().then(|| {
                     view! {
                         <p role="status">"Study date published."</p>
-                        <A href="/feed">"View study dates"</A>
+                        <A href="/userhome/study-dates">"View study dates"</A>
                     }
                 })
             }}

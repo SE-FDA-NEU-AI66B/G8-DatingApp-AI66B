@@ -77,7 +77,7 @@ pub fn ProfilePage() -> impl IntoView {
                             view! {
                                 <p>
                                     "This user sent you a request. "
-                                    <A href="/requests">"Review it"</A>
+                                    <A href="/userhome/requests">"Review it"</A>
                                 </p>
                             }
                                 .into_any()

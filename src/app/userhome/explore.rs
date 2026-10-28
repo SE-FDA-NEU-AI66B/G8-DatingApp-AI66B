@@ -1,4 +1,4 @@
-use super::api;
+use super::super::api;
 use crate::share::{
     matching::{ProfileSearchResult, SendMatchRequest},
     register::MessageBody,
