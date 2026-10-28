@@ -33,50 +33,13 @@ mối quan hệ lành mạnh và lâu dài nếu họ tự nguyện lựa chọn
 
 ### Yêu cầu
 
-- Rust và `rustup`
-- Rust nightly toolchain
-- `cargo-leptos`
-- Target `wasm32-unknown-unknown`
-
-Hướng dẫn cài đặt đầy đủ cho máy mới được duy trì trong
 [SETUP.md](SETUP.md).
 
 ### Chạy ở chế độ phát triển
 
 ```bash
-git clone https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B.git
-cd G8-DatingApp-AI66B
 cargo leptos watch
 ```
-
-Sau khi lệnh chạy thành công, mở
-<http://localhost:3100>. Chế độ `watch` tự động biên dịch lại khi mã nguồn
-thay đổi.
-
-P0 admin dashboard: mở
-<http://localhost:3100/admin_console> sau khi đăng nhập bằng tài khoản admin.
-Luồng, trạng thái và lệnh kiểm thử được ghi trong
-[docs/p0-dashboard-flow.md](docs/p0-dashboard-flow.md).
-
-### Admin authentication (development)
-
-The admin dashboard requires an authenticated session. Register a NEU email,
-use the six-digit OTP printed by the development mail stub to call
-`POST /api/auth/login`, and set `ADMIN_EMAIL` to the account email before
-starting the server. The server then provisions that account as an admin.
-Sessions use an HttpOnly cookie and expire after eight hours.
-
-```bash
-set ADMIN_EMAIL=admin@neu.edu.vn
-curl -i -c cookies.txt -H "Content-Type: application/json" ^
-  -d "{\"email\":\"admin@neu.edu.vn\",\"otp\":\"123456\"}" ^
-  http://localhost:3100/api/auth/login
-curl -i -b cookies.txt http://localhost:3100/api/admin/statistics
-```
-
-Do not use the development OTP stub or `ADMIN_EMAIL` provisioning as a
-production identity provider. Production deployment must replace them with the
-shared US12 authentication and admin-provisioning flow.
 
 ### Chạy bản release
 
@@ -90,48 +53,9 @@ cargo leptos watch --release
 cargo doc --open
 ```
 
-## Màn hình P0: Admin Dashboard / System Health
-
-Đây là màn hình ưu tiên P0 của walking skeleton. Admin có thể xem nhanh số
-người dùng đã xác thực, study date đang hoạt động trong 24 giờ tới, report đang
-chờ xử lý, và trạng thái của server/database.
-
-```text
-+--------------------------------------------------------------------------+
-| NEUDating / ADMIN                                  [Refresh] [Log out]   |
-+--------------------------------------------------------------------------+
-| Admin dashboard                                                         |
-| Last refreshed: 10:32:18                                               |
-|                                                                          |
-| +------------------+ +------------------+ +------------------+           |
-| | REGISTERED USERS | | ACTIVE STUDY    | | PENDING REPORTS  |           |
-| |       128        | | DATES      7    | |        3         |           |
-| | verified         | | next 24 hours    | | [Review ->]       |           |
-| +------------------+ +------------------+ +------------------+           |
-|                                                                          |
-| SYSTEM HEALTH                                                            |
-| | Server: Healthy        | Database: Healthy                            |
-| | Checked 10:32:16       | Checked 10:32:16                              |
-+--------------------------------------------------------------------------+
-```
-
-Các vấn đề UX cần xử lý: trạng thái loading không được gây hiểu nhầm là dữ
-liệu bằng 0; lỗi API phải có thông báo và nút `Try again`; refresh phải bị khóa
-trong lúc tải; trạng thái không được chỉ truyền đạt bằng màu sắc; và giao diện
-phải hiển thị phù hợp trên màn hình nhỏ. Chi tiết wireframe, các trạng thái
-loading/error/unauthorized và tiêu chí hoàn thành nằm trong
-[docs/design.md](docs/design.md).
-
 ## Tài liệu dự án
 
 - [Hướng dẫn cài đặt](SETUP.md)
-- [Definition of Done](docs/definition-of-done.md)
 - [Sprint log](docs/sprint-log.md)
 - [Traceability](docs/traceability.md)
-- [Architecture](docs/architecture.md)
 - [API design](docs/api.md)
-- [Walking skeleton](docs/walking-skeleton.md)
-- [Milestone 2 design](docs/design.md)
-- [Milestone 2 setup](docs/SETUP.md)
-- [Sprint 3 backlog](docs/sprint-3-backlog.md)
-- [P0 dashboard flow](docs/p0-dashboard-flow.md)
