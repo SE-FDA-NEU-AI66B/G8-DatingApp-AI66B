@@ -105,7 +105,6 @@ fn HeaderNav() -> impl IntoView {
                 Some(true) => view! {
                     <A href="/userhome">"My home"</A>
                     <A href="/user_profile">"My profile"</A>
-                    <A href="/userhome/explore">"Explore"</A>
                     <Show when=move || is_admin.get()>
                         <A href="/admin_console" attr:class="admin-nav-link">"Admin console"</A>
                     </Show>

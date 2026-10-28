@@ -1,0 +1,25 @@
+One new document: docs/testing.md in your team repository. Markdown only. The tests themselves go in tests/.
+
+docs/SETUP.md must still work — add how to run the tests.
+
+Four sections, in this order. Numbers in bold are minimums.
+
+| Section                          | Minimum                          | What it must contain                                                                                                                                                                                                                                                                                                          |
+| -------------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1. What we test, and why         | 1 table                          | For each layer (services, repository, routes, interface): what kind of test it gets, or why it gets none. Then two or three sentences on risk: which parts you tested most, and why those.                                                                                                                                    |
+| 2. Test cases for every P0 story | every P0 story 3 test cases each | A table: ID · Story · Input · Expected result · Kind. Every P0 story has at least three test cases: at least one normal case that succeeds, at least one error case where a business rule refuses the input, and — if the rule has a number in it (a limit, a time, an amount) — boundary cases on both sides of that number. |
+| 3. Automated tests               | every test case in section 2     | Every test case in section 2 is a pytest test in tests/, with its ID in the test name or a comment. One command runs them all. Tests run without a server and without your real database (use a fake repository or a temporary database). Show the command and a screenshot of the output.                                    |
+| 4. What the tests found          | 1 entry                          | A bug your tests found: the issue, the fix, and the test that now guards it. If your tests found none, show one rule you broke on purpose and the red test output it produced.                                                                                                                                                |
+
+The rule that decides most of your mark
+
+At the Sprint 4 Review session, the instructor clones your repository onto a machine that has never seen your project and runs these checks:
+
+| Check                                                                                                                                                                                         | What the instructor does                     | Pass when                                            |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- | ---------------------------------------------------- |
+| 1. Setup                                                                                                                                                                                      | Clone and follow docs/SETUP.md               | the app runs with no errors                          |
+| 2. Tests                                                                                                                                                                                      | run Type pytest on that machine              | all tests pass, with no hand edits                   |
+| 3. Every P0 story                                                                                                                                                                             | Pick a P0 story in docs/testing.md           | it has 3 or more test cases, including an error case |
+| 4. Boundary                                                                                                                                                                                   | Read one test for a rule with a number limit | it checks both sides of the limit                    |
+| 5. Traceable                                                                                                                                                                                  | Pick one test case ID in the table           | its pytest test exists and passes                    |
+| Test this yourselves before the deadline: clone into a new folder and run pytest. Tests that only pass on one laptop usually read a file that was never committed, or depend on today's date. |
