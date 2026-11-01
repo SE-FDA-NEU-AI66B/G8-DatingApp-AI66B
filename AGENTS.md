@@ -1,5 +1,7 @@
 # Agent instructions
 
+Follow [RULES.md](tests/RULES.md): write tests in Python or Rust, keep Python
+
 ## Database ownership
 
 - `database/note.py` is the single source of truth for creating, recreating, and initializing the application database.

@@ -33,7 +33,7 @@ mối quan hệ lành mạnh và lâu dài nếu họ tự nguyện lựa chọn
 
 ### Yêu cầu
 
-[SETUP.md](SETUP.md).
+[docs/SETUP.md](docs/SETUP.md).
 
 ### Chạy ở chế độ phát triển
 
@@ -55,7 +55,7 @@ cargo doc --open
 
 ## Tài liệu dự án
 
-- [Hướng dẫn cài đặt](SETUP.md)
+- [Hướng dẫn cài đặt](docs/SETUP.md)
 - [Sprint log](docs/sprint-log.md)
 - [Traceability](docs/traceability.md)
 - [API design](docs/api.md)

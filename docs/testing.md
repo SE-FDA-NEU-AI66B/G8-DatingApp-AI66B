@@ -14,7 +14,7 @@ or real passwords in test data.
 | Services | Unit tests for validation and business decisions; handler tests for status codes and response bodies. | Registration, study-date validation, match decisions, authorization, health, and dashboard aggregation. These rules can reject invalid or unauthorized actions and should be deterministic. |
 | Repository | Tests against an isolated temporary PostgreSQL database or a fake repository. | Verify uniqueness, filtered/sorted feeds, pending/accepted/declined request state, statistics, and health query behavior. Never initialize or mutate the application database from tests. |
 | Routes | Actix handler/integration tests with a test app and isolated dependencies. | Verify authentication and authorization, HTTP status/body, and that failures do not persist invalid state. |
-| Interface | Playwright tests with controlled API responses, plus manual checks for Microsoft OAuth. | Cover key form and page states, navigation, refresh, empty/error states, and the admin authorization matrix. OAuth is not automated against a real Microsoft tenant. |
+| Interface | Manual checks for Microsoft OAuth and rendered page states. | Browser automation is currently not configured. OAuth requires Microsoft configuration and an authorized test account. |
 
 Registration, authorization, and match decisions receive the strongest rule
 coverage because mistakes can expose accounts or allow interactions users did
@@ -73,10 +73,8 @@ also be exercised when testing the relevant story.
 
 ## 3. Automated tests
 
-Implement each ID above as an automated test, with the ID in the pytest test
-name or a comment. Keep browser-only cases in the existing Playwright suite if
-pytest cannot exercise the rendered interface; record the corresponding
-browser test ID and run command alongside the pytest suite. Use fake API
+Implement each ID above as an automated test in the marimo pytest notebook,
+with the ID in the pytest test name or a comment. Use fake API
 responses or isolated test fixtures so tests need neither a running server nor
 the development database. OAuth verification is a documented manual test
 because it depends on Microsoft configuration and an authorized test account.
@@ -98,6 +96,5 @@ No new bug is claimed by this plan: the cases above have not all been
 implemented or executed as a pytest suite. Once implemented, record one
 verified finding here with the issue, code fix, and guarding test ID, or
 deliberately break one rule, show the failing test output, restore the rule,
-and show the passing test. The current admin Playwright suite already checks
-that a statistics API failure is rendered as an error instead of misleading
-zero counts (US14-T03); it is not evidence for the unimplemented cases above.
+and show the passing test. The cases above have not all been implemented or
+executed as a pytest suite.

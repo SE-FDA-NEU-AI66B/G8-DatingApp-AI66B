@@ -27,7 +27,7 @@ working slice exists but acceptance or verification remains incomplete.
 | US05 — Accept or decline a match request | `/userhome/requests` | Partial | [Matching handler](../src/ss/matching.rs) has accept/decline tests; end-to-end browser flow is not covered. |
 | US12 — Restrict admin console to admins | `/admin_console` | Partial | Auth gate and dashboard behavior are implemented; browser evidence for anonymous, regular-user, and admin access remains incomplete. |
 | US13 — View database and server health | Health API | Partial | Health endpoint is implemented; browser assertions for independent health and failure states are not present. |
-| US14 — View admin dashboard statistics | `/admin_console` | Implemented; browser suite present | [Playwright suite](../end2end/tests/admin-dashboard.spec.ts) covers load, refresh, and API failure. Real-data and error screenshots remain manual evidence. |
+| US14 — View admin dashboard statistics | `/admin_console` | Implemented; browser checks are not currently automated | Real-data and error screenshots remain manual evidence. |
 
 Registration does not use OTP. Users register with a unique username, NEU
 email, and password; Microsoft sign-in verifies the NEU address, after which
@@ -48,7 +48,7 @@ screenshots are not checked in; manual capture requirements are listed in the
 | US05 — Review match request | [matching handler](../src/ss/matching.rs), [requests page](../src/app/userhome/requests.rs) | Accept/decline handler tests | Incoming-request browser flow. | [requests.svg](./images/ui/requests.svg) |
 | US12 — Admin access | [auth handler](../src/ss/auth.rs), [admin page](../src/app/admin.rs) | Admin dashboard suite covers load/error, not full authorization matrix | Browser cases for each access role. | [admin-console.svg](./images/ui/admin-console.svg) |
 | US13 — Health status | [admin handler](../src/ss/admin.rs) | Health endpoint implementation | Browser verification of independent health/failure states. | — |
-| US14 — Dashboard statistics | [admin handler](../src/ss/admin.rs), [admin page](../src/app/admin.rs) | [Playwright suite](../end2end/tests/admin-dashboard.spec.ts): load, refresh, API error | Real-data/error screenshots with address bar. | [admin-console.svg](./images/ui/admin-console.svg) |
+| US14 — Dashboard statistics | [admin handler](../src/ss/admin.rs), [admin page](../src/app/admin.rs) | No automated browser checks | Real-data/error screenshots with address bar. | [admin-console.svg](./images/ui/admin-console.svg) |
 
 ## P0 screens and flow
 
