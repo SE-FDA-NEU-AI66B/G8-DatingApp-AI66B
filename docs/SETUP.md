@@ -1,10 +1,17 @@
 # Setup
 
-Install Rust (rustup), Docker Compose, `uv`, and `cargo-leptos`. Rustup reads
-the pinned nightly and WASM target from `rust-toolchain.toml`.
+## Download-install
 
-Copy `.env.example` to `.env` and set the local PostgreSQL password and
-`DATABASE_URL`. Start PostgreSQL and create the schema in the database notebook:
+- Rust (rustup)
+- Docker Compose
+
+## Install
+
+- `uv` : cargo install uv
+- `cargo-leptos`: cargo install cargo-leptos
+- `rustc-codegen-cranelift`: rustup component add rustc-codegen-cranelift
+
+## setup
 
 ```sh
 docker compose --env-file .env -f database/compose.yaml up -d db
@@ -15,7 +22,6 @@ uv run marimo edit database/note.py
 Click **Recreate application database** in the notebook. Then run the server:
 
 ```sh
-cargo install cargo-leptos
 cargo leptos watch
 ```
 
