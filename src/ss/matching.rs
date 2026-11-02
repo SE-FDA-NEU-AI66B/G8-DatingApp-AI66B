@@ -371,12 +371,36 @@ pub async fn decline_request(
 
 #[cfg(test)]
 mod tests {
-    use super::{accept_request, decline_request};
+    use super::{accept_request, decline_request, relation_from_db, RELATION_QUERY};
     use actix_web::{cookie::Cookie, http::StatusCode, test, web, App};
     use rand::random;
     use sha2::{Digest, Sha256};
     use sqlx::{postgres::PgPoolOptions, PgPool};
     use uuid::Uuid;
+
+    #[test]
+    fn us04_profile_relations_show_request_state_and_hide_incomplete_accounts() {
+        assert_eq!(relation_from_db("none"), crate::share::matching::Relation::None);
+        assert_eq!(relation_from_db("pending"), crate::share::matching::Relation::Pending);
+        assert_eq!(relation_from_db("incoming"), crate::share::matching::Relation::Incoming);
+        assert_eq!(relation_from_db("matched"), crate::share::matching::Relation::Matched);
+        assert_eq!(relation_from_db("self"), crate::share::matching::Relation::SelfProfile);
+        assert!(RELATION_QUERY.contains("WHERE u.id = $2 AND u.email_verified"));
+    }
+
+    #[actix_web::test]
+    async fn us04_cannot_send_a_match_request_to_yourself() {
+        let pool = PgPoolOptions::new()
+            .connect_lazy("postgres://unused:unused@localhost/unused")
+            .expect("lazy pool should not connect");
+        let user_id = Uuid::new_v4();
+
+        let response = super::try_send(&pool, user_id, user_id)
+            .await
+            .expect("self request should be rejected before using the database");
+
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+    }
 
     async fn insert_user(pool: &PgPool, email: String) -> Uuid {
         sqlx::query_scalar("INSERT INTO users (email) VALUES ($1) RETURNING id")

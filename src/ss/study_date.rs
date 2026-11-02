@@ -169,6 +169,14 @@ mod tests {
     }
 
     #[test]
+    fn us03_feed_includes_only_active_requests_overlapping_the_next_day() {
+        assert!(FEED_QUERY.contains("WHERE status = 'active'"));
+        assert!(FEED_QUERY.contains("study_dates.starts_at < now() + interval '24 hours'"));
+        assert!(FEED_QUERY.contains("study_dates.ends_at > now()"));
+        assert!(FEED_QUERY.contains("(creator_id = $1) AS is_mine"));
+    }
+
+    #[test]
     fn three_hour_duration_is_valid() {
         assert_eq!(validate_duration(180), Ok(()));
     }
