@@ -12,27 +12,27 @@ def _():
 
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from screen.test_homepage import test_homepage_renders_expected_content_and_actions
-    from screen.test_registration import (
-        test_us01_t02_rejects_invalid_username,
-        test_us01_t02_rejects_non_neu_email,
-        test_us01_t02_rejects_short_password,
-    )
-    from screen.test_study_date import (
-        test_us02_t04_anonymous_user_cannot_create_study_date,
+    from screen.test_us05_us12 import (
+        test_us05_anonymous_user_cannot_read_or_respond_to_match_requests,
+        test_us12_anonymous_user_cannot_access_admin_console_or_data,
     )
 
     return (
         test_homepage_renders_expected_content_and_actions,
-        test_us01_t02_rejects_invalid_username,
-        test_us01_t02_rejects_non_neu_email,
-        test_us01_t02_rejects_short_password,
-        test_us02_t04_anonymous_user_cannot_create_study_date,
+        test_us05_anonymous_user_cannot_read_or_respond_to_match_requests,
+        test_us12_anonymous_user_cannot_access_admin_console_or_data,
     )
 
 
 @app.cell
-def _(test_homepage_renders_expected_content_and_actions):
+def _(
+    test_homepage_renders_expected_content_and_actions,
+    test_us05_anonymous_user_cannot_read_or_respond_to_match_requests,
+    test_us12_anonymous_user_cannot_access_admin_console_or_data,
+):
     test_homepage_renders_expected_content_and_actions()
+    test_us05_anonymous_user_cannot_read_or_respond_to_match_requests()
+    test_us12_anonymous_user_cannot_access_admin_console_or_data()
     return
 
 
