@@ -12,31 +12,27 @@ def _():
 
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from screen.test_homepage import test_homepage_renders_expected_content_and_actions
-    from test_us03_us04 import (
-        test_us03_active_study_date_feed_contract,
-        test_us04_rejects_a_self_match_request,
-        test_us04_profile_request_state_contract,
+    from screen.test_us05_us12 import (
+        test_us05_anonymous_user_cannot_read_or_respond_to_match_requests,
+        test_us12_anonymous_user_cannot_access_admin_console_or_data,
     )
 
     return (
         test_homepage_renders_expected_content_and_actions,
-        test_us03_active_study_date_feed_contract,
-        test_us04_rejects_a_self_match_request,
-        test_us04_profile_request_state_contract,
+        test_us05_anonymous_user_cannot_read_or_respond_to_match_requests,
+        test_us12_anonymous_user_cannot_access_admin_console_or_data,
     )
 
 
 @app.cell
 def _(
     test_homepage_renders_expected_content_and_actions,
-    test_us03_active_study_date_feed_contract,
-    test_us04_rejects_a_self_match_request,
-    test_us04_profile_request_state_contract,
+    test_us05_anonymous_user_cannot_read_or_respond_to_match_requests,
+    test_us12_anonymous_user_cannot_access_admin_console_or_data,
 ):
     test_homepage_renders_expected_content_and_actions()
-    test_us03_active_study_date_feed_contract()
-    test_us04_rejects_a_self_match_request()
-    test_us04_profile_request_state_contract()
+    test_us05_anonymous_user_cannot_read_or_respond_to_match_requests()
+    test_us12_anonymous_user_cannot_access_admin_console_or_data()
     return
 
 
