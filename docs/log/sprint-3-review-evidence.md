@@ -22,7 +22,7 @@ capture. It intentionally does not claim screenshots that were not produced.
 | `cargo check --lib --features hydrate` | Passed during dashboard implementation |
 | `cargo test --lib --features ssr` | Passed: 6 tests |
 | `cargo fmt -- --check` | Existing repository formatting differences remain outside the dashboard changes |
-| Playwright dashboard suite | CI harness passed; local full run requires the application and PostgreSQL |
+| Playwright dashboard suite | Historical evidence only; the TypeScript suite and its CI job have been removed. |
 
 ## Required manual captures
 
