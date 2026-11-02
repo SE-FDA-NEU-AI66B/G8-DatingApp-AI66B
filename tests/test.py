@@ -37,6 +37,24 @@ def _(
 
 
 @app.cell
+def _(
+    test_us01_t02_rejects_invalid_username,
+    test_us01_t02_rejects_non_neu_email,
+    test_us01_t02_rejects_short_password,
+):
+    test_us01_t02_rejects_non_neu_email()
+    test_us01_t02_rejects_invalid_username()
+    test_us01_t02_rejects_short_password()
+    return
+
+
+@app.cell
+def _(test_us02_t04_anonymous_user_cannot_create_study_date):
+    test_us02_t04_anonymous_user_cannot_create_study_date()
+    return
+
+
+@app.cell
 def _():
     import pytest
 
