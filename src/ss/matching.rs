@@ -391,9 +391,12 @@ mod tests {
             // Unknown values should fail closed to the non-interactive state.
             ("unexpected", Relation::None),
         ] {
-            assert_eq!(relation_from_db(database_value), expected, "{database_value}");
+            assert_eq!(
+                relation_from_db(database_value),
+                expected,
+                "{database_value}"
+            );
         }
-
     }
 
     #[actix_web::test]
@@ -406,7 +409,10 @@ mod tests {
             .connect(&database_url)
             .await
             .expect("test database must be reachable");
-        let mut tx = pool.begin().await.expect("fixture transaction should start");
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("fixture transaction should start");
 
         let mut ids = Vec::new();
         for verified in [true, true, true, true, false] {
@@ -510,7 +516,10 @@ mod tests {
         .fetch_one(&pool)
         .await
         .expect("self-match request count should be readable");
-        assert_eq!(request_count, 0, "self-match attempts must not be persisted");
+        assert_eq!(
+            request_count, 0,
+            "self-match attempts must not be persisted"
+        );
 
         sqlx::query("DELETE FROM users WHERE id = $1")
             .bind(user_id)

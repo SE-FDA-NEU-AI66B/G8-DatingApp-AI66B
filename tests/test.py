@@ -11,6 +11,9 @@ def _():
     from pathlib import Path
 
     sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from env import load_test_env
+
+    load_test_env()
     from screen.test_homepage import test_homepage_renders_expected_content_and_actions
     from screen.test_us05_us12 import (
         test_us05_anonymous_user_cannot_read_or_respond_to_match_requests,
