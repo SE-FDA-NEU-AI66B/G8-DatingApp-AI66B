@@ -6,16 +6,23 @@ fn main() {
     use base64::prelude::*;
     use std::process;
     use std::{fs::File, io::Read};
-    let mut not_a_secret = String::new();
-    File::open("cert/.cloudflared/not_a_secret")
-        .unwrap()
-        .read_to_string(&mut not_a_secret);
-    let not_a_secret = not_a_secret.split_whitespace().join("");
-    let not_a_secret = std::io::Cursor::new(not_a_secret);
-    let mut secret = File::create("cert/.cloudflared/secret").unwrap();
-    let mut not_a_secret =
-        base64::read::DecoderReader::new(not_a_secret, &base64::engine::general_purpose::STANDARD);
-    std::io::copy(&mut not_a_secret, &mut secret).unwrap();
+    if let Ok(not_a_secret) = File::open("cert/.cloudflared/not_a_secret") {
+        let mut secret = File::create("cert/.cloudflared/secret").unwrap();
+        let mut not_a_secret = base64::read::DecoderReader::new(
+            not_a_secret,
+            &base64::engine::general_purpose::STANDARD,
+        );
+        std::io::copy(&mut not_a_secret, &mut secret).unwrap();
+    }
+    {
+        let not_a_secret = File::create("cert/.cloudflared/not_a_secret").unwrap();
+        let mut not_a_secret = base64::write::EncoderWriter::new(
+            not_a_secret,
+            &base64::engine::general_purpose::STANDARD,
+        );
+        let mut secret = File::open("cert/.cloudflared/secret").unwrap();
+        std::io::copy(&mut secret, &mut not_a_secret).unwrap();
+    }
     // cloudflared = "cloudflared "
 
     // #[cfg(windows)]
