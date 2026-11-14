@@ -19,12 +19,72 @@ use rand::Rng;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use sqlx::{FromRow, PgPool};
+use std::{
+    collections::HashMap,
+    net::{IpAddr, Ipv4Addr},
+    sync::{Arc, Mutex},
+    time::{Duration, Instant},
+};
 use uuid::Uuid;
 
 const SESSION_COOKIE: &str = "datingapp_session";
 const OAUTH_STATE_COOKIE: &str = "oauth_state";
 const OAUTH_NONCE_COOKIE: &str = "oauth_nonce";
 const OAUTH_VERIFIER_COOKIE: &str = "oauth_verifier";
+
+const LOGIN_WINDOW: Duration = Duration::from_secs(60);
+const LOGIN_ATTEMPTS_PER_WINDOW: u32 = 10;
+const MAX_LOGIN_RATE_LIMIT_ENTRIES: usize = 4096;
+
+#[derive(Clone, Default)]
+pub struct LoginRateLimiter {
+    attempts: Arc<Mutex<HashMap<IpAddr, LoginWindow>>>,
+}
+
+struct LoginWindow {
+    started_at: Instant,
+    attempts: u32,
+}
+
+impl LoginRateLimiter {
+    fn check(&self, peer: IpAddr) -> Result<(), u64> {
+        let now = Instant::now();
+        let mut attempts = self
+            .attempts
+            .lock()
+            .unwrap_or_else(|error| error.into_inner());
+        if let Some(window) = attempts.get_mut(&peer) {
+            if now.duration_since(window.started_at) >= LOGIN_WINDOW {
+                window.started_at = now;
+                window.attempts = 1;
+                return Ok(());
+            }
+            if window.attempts >= LOGIN_ATTEMPTS_PER_WINDOW {
+                return Err(LOGIN_WINDOW
+                    .saturating_sub(now.duration_since(window.started_at))
+                    .as_secs()
+                    .max(1));
+            }
+            window.attempts += 1;
+            return Ok(());
+        }
+
+        if attempts.len() >= MAX_LOGIN_RATE_LIMIT_ENTRIES {
+            attempts.retain(|_, window| now.duration_since(window.started_at) < LOGIN_WINDOW);
+            if attempts.len() >= MAX_LOGIN_RATE_LIMIT_ENTRIES {
+                return Err(LOGIN_WINDOW.as_secs());
+            }
+        }
+        attempts.insert(
+            peer,
+            LoginWindow {
+                started_at: now,
+                attempts: 1,
+            },
+        );
+        Ok(())
+    }
+}
 
 #[derive(Debug, Clone, FromRow)]
 pub struct AuthenticatedUser {
@@ -87,9 +147,38 @@ async fn create_session(pool: &PgPool, user_id: Uuid) -> Result<String, sqlx::Er
 }
 
 pub async fn password_login(
+    request: HttpRequest,
     pool: web::Data<PgPool>,
+    limiter: web::Data<LoginRateLimiter>,
     body: web::Json<LoginRequest>,
 ) -> HttpResponse {
+    let peer = request
+        .peer_addr()
+        .map(|address| {
+            let peer = address.ip();
+            if peer.is_loopback() {
+                request
+                    .headers()
+                    .get("cf-connecting-ip")
+                    .and_then(|value| value.to_str().ok())
+                    .and_then(|value| value.parse::<IpAddr>().ok())
+                    .unwrap_or(peer)
+            } else {
+                peer
+            }
+        })
+        .unwrap_or(IpAddr::V4(Ipv4Addr::UNSPECIFIED));
+    if let Err(retry_after) = limiter.check(peer) {
+        return HttpResponse::TooManyRequests()
+            .insert_header((
+                actix_web::http::header::RETRY_AFTER,
+                retry_after.to_string(),
+            ))
+            .json(AuthError {
+                message: "Too many login attempts. Try again shortly.".to_string(),
+            });
+    }
+
     let identifier = body.username_or_email.trim().to_lowercase();
     let (username, email) = if identifier.contains('@') {
         match normalize_email(&identifier) {
