@@ -1,61 +1,47 @@
-# NEUDating
+https://www.dt-fwb.ipv64.de
 
-NEUDating là ứng dụng hẹn hò dành cho sinh viên và người trẻ tại Việt Nam,
-giúp họ kết nối với những người có sở thích, giá trị và mục tiêu tương đồng
-trong một môi trường an toàn, nghiêm túc và tôn trọng quyền riêng tư.
+# NEUDating — Milestone 5 submission
 
-## Bối cảnh và vấn đề
+NEUDating is a student-focused dating app for meeting people with shared interests and goals.
 
-Tỷ lệ sinh của Việt Nam đang giảm xuống dưới mức sinh thay thế. Theo
-[World Bank](https://data.worldbank.org/indicator/SP.DYN.TFRT.IN?locations=VN-KR),
-mức sinh của Việt Nam năm 2023 là khoảng 1,9 con/phụ nữ, trong khi Hàn Quốc
-đã ở mức thấp hơn rất nhiều. Số liệu chính thức của
-[Statistics Korea](https://kostat.go.kr/board.es?mid=a10301010000&bid=204&act=view&list_no=433085)
-cho thấy tổng tỷ suất sinh của Hàn Quốc năm 2023 chỉ là 0,72.
+[![Cargo Build & Test workflow](https://github.com/pham-ha-gif/H-iDB/actions/workflows/eltonjohn.yml/badge.svg)](https://github.com/pham-ha-gif/H-iDB/actions/workflows/eltonjohn.yml)
 
-Đây là lời cảnh báo về những khó khăn xã hội và kinh tế do dân số già hóa,
-thiếu lực lượng lao động và ngày càng ít gia đình trẻ. NEUDating không coi
-việc kết hôn hay sinh con là nghĩa vụ của mỗi cá nhân; sản phẩm tập trung vào
-việc giúp những người độc thân có thêm cơ hội gặp gỡ phù hợp, xây dựng các
-mối quan hệ lành mạnh và lâu dài nếu họ tự nguyện lựa chọn.
+**CI status caveat:** the current workflow checks out the code, but its Cargo build and test commands are commented out. A green badge does not mean the Rust app was built or tested.
 
-## Nhóm
+## Demo accounts
 
-**Nhóm:** QHQ<br>
-**Thành viên:** @Nguyễn Sơn Hải · @Nguyễn Minh Quang · @Lê Duy Quyền<br>
-**Product Owner (cố định cả kỳ):** @Nguyễn Sơn Hải<br>
-**Scrum Master (luân phiên mỗi sprint):** @Nguyễn Minh Quang (Sprint 2);
-@Nguyễn Minh Quang (`iambadwithname`) (Sprint 3)
+Local notebook seed accounts (created by the sample-data action in `database/note.py`):
 
-**Board:** [NEUDating GitHub Project](https://github.com/orgs/SE-FDA-NEU-AI66B/projects/20)
+| Role | Test account | Local demo password |
+|---|---|---|
+| Admin | `admin` | `password` |
+| Student | `alex_demo`, `linh_demo`, `minh_demo` | `password` |
 
-## Chạy thử
+These are demo-only credentials for the local seeded development database, not real user credentials. Availability of these accounts on the public host is not guaranteed.
 
-### Yêu cầu
+## P0 stories and starting points
 
-[docs/SETUP.md](docs/SETUP.md).
+- **US01 Register:** [`/register`](https://www.dt-fwb.ipv64.de/register)
+- **US02 Create a study date:** [`/userhome/study-date/new`](https://www.dt-fwb.ipv64.de/userhome/study-date/new)
+- **US03 Browse study dates:** [`/userhome/study-dates`](https://www.dt-fwb.ipv64.de/userhome/study-dates)
+- **US04 Send a match request:** start at [`/userhome/study-dates`](https://www.dt-fwb.ipv64.de/userhome/study-dates), then open a profile at `/profile/:id`
+- **US05 Accept or decline a request:** [`/userhome/requests`](https://www.dt-fwb.ipv64.de/userhome/requests)
+- **US12–US14 Admin access, health, and statistics:** [`/admin_console`](https://www.dt-fwb.ipv64.de/admin_console)
 
-### Chạy ở chế độ phát triển
+Story status and evidence: [P0 traceability](docs/traceability.md).
 
-```bash
-cargo leptos watch
-```
+## Team QHQ
 
-### Chạy bản release
+Nguyễn Sơn Hải (`hai291`, Product Owner) · Nguyễn Minh Quang (`iambadwithname`) · Phạm Hà (`pham-ha-gif`). See the [project board](https://github.com/orgs/SE-FDA-NEU-AI66B/projects/20).
 
-```bash
-cargo leptos watch --release
-```
+## Hosting and setup
 
-### Tạo tài liệu Rust
+The app and PostgreSQL are self-hosted. Cloudflare Tunnel routes the HTTPS URL to the app on the host at `localhost:3100`; PostgreSQL runs in Docker Compose and is bound to host loopback. This repository does not configure managed hosting, automated deployment, or a production database service. Keep `.env` and tunnel credentials on the host, outside Git. The checked-in database seed is demo data, and the development database notebook recreates the schema.
 
-```bash
-cargo doc --open
-```
+For local setup, see [setup](docs/SETUP.md). Production/release and monitoring details: [release guide](docs/release.md) · [operations guide](docs/operations.md).
 
-## Tài liệu dự án
+## Testing and repository evidence
 
-- [Hướng dẫn cài đặt](docs/SETUP.md)
-- [Sprint log](docs/sprint-log.md)
-- [Traceability](docs/traceability.md)
-- [API design](docs/api.md)
+- [Test plan and current coverage limits](docs/testing.md)
+- [Sprint 3 review evidence index](docs/log/sprint-3-review-evidence.md) · [evidence screenshots](docs/evident/)
+- [Sprint log](docs/sprint-log.md) · [repository](https://github.com/pham-ha-gif/H-iDB)
