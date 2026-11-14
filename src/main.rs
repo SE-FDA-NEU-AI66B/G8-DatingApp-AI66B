@@ -58,6 +58,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(ss::admin::admin_access)
             .service(ss::admin::dashboard_statistics)
+            .service(ss::admin::public_health)
             .service(ss::admin::health_status)
             .service(ss::register::register)
             .service(

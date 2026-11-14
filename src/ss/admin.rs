@@ -4,6 +4,7 @@ use crate::lib::share::admin::{
 };
 use actix_web::{get, web, HttpRequest, HttpResponse};
 use sqlx::{FromRow, PgPool};
+use std::time::Duration;
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
 #[derive(Debug, FromRow)]
@@ -22,6 +23,30 @@ const DASHBOARD_QUERY: &str = "SELECT
       AND starts_at < now() + interval '24 hours'
       AND ends_at > now()) AS active_study_date_requests,
     (SELECT COUNT(*) FROM user_reports WHERE status = 'pending') AS pending_reports";
+
+async fn database_is_healthy(pool: &PgPool) -> bool {
+    tokio::time::timeout(
+        Duration::from_secs(2),
+        sqlx::query("SELECT 1").execute(pool),
+    )
+    .await
+    .is_ok_and(|result| result.is_ok())
+}
+
+/// Minimal unauthenticated readiness endpoint for the host or reverse proxy.
+#[get("/health")]
+pub async fn public_health(pool: web::Data<PgPool>) -> HttpResponse {
+    if database_is_healthy(pool.get_ref()).await {
+        HttpResponse::Ok()
+            .content_type("text/plain; charset=utf-8")
+            .body("ok")
+    } else {
+        eprintln!("public health check failed: database unavailable");
+        HttpResponse::ServiceUnavailable()
+            .content_type("text/plain; charset=utf-8")
+            .body("unhealthy")
+    }
+}
 
 #[get("/api/admin/access")]
 pub async fn admin_access(request: HttpRequest, pool: web::Data<PgPool>) -> HttpResponse {
@@ -66,10 +91,7 @@ pub async fn health_status(request: HttpRequest, pool: web::Data<PgPool>) -> Htt
     let checked_at = OffsetDateTime::now_utc()
         .format(&Rfc3339)
         .expect("RFC3339 formatting must be available");
-    let database_healthy = sqlx::query("SELECT 1")
-        .execute(pool.get_ref())
-        .await
-        .is_ok();
+    let database_healthy = database_is_healthy(pool.get_ref()).await;
 
     HttpResponse::Ok().json(HealthStatus {
         server: HealthComponent {
