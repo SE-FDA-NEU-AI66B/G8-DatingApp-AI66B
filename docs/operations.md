@@ -38,10 +38,10 @@ if needed, rollback.
 | Item | Layer | What could happen | Plan |
 |---|---|---|---|
 | Free service sleeps | infrastructure | First request is slow | accepted: warn demo reviewers |
-| No external alerting | infrastructure | Outage is noticed late | Create monitoring issue after release |
-| OTP mail stub | code | Production login is unsuitable | Replace before public launch |
-| Sample data is optional | data | A new database starts empty | Set `SEED_SAMPLE_DATA=true` |
-| Manual release URL update | docs | Submission link is stale | Verify README before tagging v1.0 |
+| No external alerting | infrastructure | Outage is noticed late | #145: add production monitoring |
+| OTP mail stub | code | Production login is unsuitable | #146: prepare safe production authentication |
+| Sample data is optional | data | A new database starts empty | #140: configure persistent sample data |
+| Manual release URL update | docs | Submission link is stale | #142: verify the v1.0 release |
 
 ## 5. Maintenance plan
 
@@ -62,3 +62,12 @@ if needed, rollback.
    during architecture work.
 3. Release evidence is easy to lose; the checklist links the URL, CI run, and
    tag, and we would capture it during every sprint.
+
+## 7. Final submission checklist
+
+Before submission, verify that the first line of `README.md` is the live
+HTTPS URL, the test accounts are documented without real passwords, and the
+CI badge links to a green run on `main`. Confirm that branch protection
+requires a pull request, approval, and green check. Confirm that tag `v1.0`
+points to the commit running at the URL, then export the required
+`Team08_M5.pdf` evidence.
