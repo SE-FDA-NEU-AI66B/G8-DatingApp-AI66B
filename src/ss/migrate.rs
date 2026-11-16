@@ -62,10 +62,12 @@ CREATE TABLE IF NOT EXISTS activity_log (
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 )";
 
-const CREATE_DASHBOARD_INDEXES: &str = "
+const CREATE_STUDY_DATE_INDEX: &str = "
 CREATE INDEX IF NOT EXISTS study_date_request_active_idx
     ON study_date_request (starts_at, ends_at)
-    WHERE status = 'active';
+    WHERE status = 'active'";
+
+const CREATE_REPORT_INDEX: &str = "
 CREATE INDEX IF NOT EXISTS report_pending_idx
     ON report (status)
     WHERE status = 'pending'";
@@ -94,9 +96,11 @@ CREATE TABLE IF NOT EXISTS chat_room (
     CONSTRAINT chat_room_unique_pair UNIQUE (user_low, user_high)
 )";
 
-const CREATE_MATCH_INDEXES: &str = "
+const CREATE_MATCH_RECEIVER_INDEX: &str = "
 CREATE INDEX IF NOT EXISTS match_request_receiver_pending_idx
-    ON match_request (receiver_id) WHERE status = 'pending';
+    ON match_request (receiver_id) WHERE status = 'pending'";
+
+const CREATE_MATCH_SENDER_INDEX: &str = "
 CREATE INDEX IF NOT EXISTS match_request_sender_day_idx
     ON match_request (sender_id, created_at)";
 
@@ -151,9 +155,22 @@ pub async fn run(pool: &PgPool) -> Result<(), sqlx::Error> {
     .await?;
     sqlx::query(CREATE_ACTIVITY_LOG).execute(pool).await?;
     sqlx::query(CREATE_AUTH_SESSIONS).execute(pool).await?;
-    sqlx::query(CREATE_DASHBOARD_INDEXES).execute(pool).await?;
+    sqlx::query(CREATE_STUDY_DATE_INDEX).execute(pool).await?;
+    sqlx::query(CREATE_REPORT_INDEX).execute(pool).await?;
     sqlx::query(CREATE_MATCH_REQUEST).execute(pool).await?;
     sqlx::query(CREATE_CHAT_ROOM).execute(pool).await?;
-    sqlx::query(CREATE_MATCH_INDEXES).execute(pool).await?;
+    sqlx::query(CREATE_MATCH_RECEIVER_INDEX).execute(pool).await?;
+    sqlx::query(CREATE_MATCH_SENDER_INDEX).execute(pool).await?;
+    if std::env::var("SEED_SAMPLE_DATA").as_deref() == Ok("true") {
+        sqlx::query(
+            "INSERT INTO app_user (email, email_verified)
+             VALUES
+                ('demo.one@neu.edu.vn', TRUE),
+                ('demo.two@neu.edu.vn', TRUE)
+             ON CONFLICT (email) DO NOTHING",
+        )
+        .execute(pool)
+        .await?;
+    }
     Ok(())
 }

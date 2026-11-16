@@ -75,6 +75,17 @@ pub async fn health_status(request: HttpRequest, pool: web::Data<PgPool>) -> Htt
     })
 }
 
+#[get("/health")]
+pub async fn public_health(pool: web::Data<PgPool>) -> HttpResponse {
+    match sqlx::query("SELECT 1").execute(pool.get_ref()).await {
+        Ok(_) => HttpResponse::Ok().finish(),
+        Err(error) => {
+            eprintln!("public health check failed: {error}");
+            HttpResponse::ServiceUnavailable().finish()
+        }
+    }
+}
+
     #[post("/api/reports")]
     pub async fn create_report(
         request: HttpRequest,

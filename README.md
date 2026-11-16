@@ -1,3 +1,8 @@
+Running app: https://<Render-service-url>
+
+The production URL is configured by the deployment owner after the Render
+service is created. It must be replaced above before the `v1.0` release.
+
 # NEUDating
 
 NEUDating là ứng dụng hẹn hò dành cho sinh viên và người trẻ tại Việt Nam,
@@ -27,6 +32,25 @@ mối quan hệ lành mạnh và lâu dài nếu họ tự nguyện lựa chọn
 **Scrum Master (luân phiên mỗi sprint):** @Nguyễn Minh Quang (Sprint 2)
 
 **Board:** [NEUDating GitHub Project](https://github.com/orgs/SE-FDA-NEU-AI66B/projects/20)
+
+**CI:** [![CI](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/actions/workflows/ci.yml/badge.svg)](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/actions/workflows/ci.yml)
+
+### Milestone 5 test accounts
+
+The production test accounts are configured by the deployment owner and must
+be listed here without real passwords before release. Never commit credentials.
+When `SEED_SAMPLE_DATA=true`, the safe sample records are
+`demo.one@neu.edu.vn` and `demo.two@neu.edu.vn`; they are data fixtures, not
+production login credentials.
+
+### P0 stories
+
+Start from the first page and use the visible navigation links. The P0 entry
+points are registration/login, the study-date feed, matching requests, and the
+admin dashboard for the documented admin test account.
+
+See [docs/operations.md](docs/operations.md) for deployment, health checks,
+rollback, monitoring, and the final release checklist.
 
 ## Chạy thử
 
