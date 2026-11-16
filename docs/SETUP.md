@@ -26,5 +26,10 @@ cargo leptos watch
 ```
 
 Open <http://localhost:3100>. Microsoft sign-in also requires the Entra values
-in `.env`. Run tests with `uv run pytest -q` or open the test notebook with
-`uv run marimo edit tests/test_suite.py`.
+in `.env`. Python tests load the repository `.env`; configure
+`TEST_DATABASE_URL` to point to a separate PostgreSQL test database before
+running database integration tests. Run the clean-checkout test suite with
+`uv run --with pytest --no-project pytest -q`. Tests that need a running app
+skip unless `TEST_APP_URL` is set. For the selected demo cases and current
+validation result, see [testing.md](testing.md). The optional test notebook is
+`uv run marimo edit tests/test.py`.

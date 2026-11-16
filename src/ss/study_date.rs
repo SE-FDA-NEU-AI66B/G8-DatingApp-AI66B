@@ -7,7 +7,10 @@ use actix_web::{web, HttpRequest, HttpResponse};
 use sqlx::PgPool;
 
 pub const MAX_DURATION_MIN: i32 = 720;
-pub const MAX_DURATION_ERROR: &str = "Maximum study date duration is 12 hours";
+pub const MAX_DURATION_ERROR: &str =
+    "This study date is longer than the 12-hour limit. Set the duration to 12 hours or less and try again.";
+pub const MIN_DURATION_ERROR: &str =
+    "This study date is shorter than the 1-minute minimum. Choose a duration of at least 1 minute and try again.";
 
 // "Active" dùng cùng định nghĩa với dashboard admin: giao với [now, now+24h].
 // Qualify `study_dates.starts_at` trong ORDER BY để không sort theo alias dạng text.
@@ -43,7 +46,7 @@ fn validate_duration(duration_min: i32) -> Result<(), &'static str> {
     if duration_min > MAX_DURATION_MIN {
         Err(MAX_DURATION_ERROR)
     } else if duration_min < 1 {
-        Err("Study date duration must be at least 1 minute")
+        Err(MIN_DURATION_ERROR)
     } else {
         Ok(())
     }
@@ -158,7 +161,7 @@ pub async fn create_study_date(
 mod tests {
     use super::{
         duration_validation_response, valid_local_datetime, validate_duration, CREATE_QUERY,
-        FEED_QUERY, MAX_DURATION_ERROR,
+        FEED_QUERY, MAX_DURATION_ERROR, MAX_DURATION_MIN, MIN_DURATION_ERROR,
     };
     use actix_web::{web, App};
     use sqlx::postgres::PgPoolOptions;
@@ -169,19 +172,35 @@ mod tests {
     }
 
     #[test]
+    fn us03_feed_includes_only_active_requests_overlapping_the_next_day() {
+        assert!(FEED_QUERY.contains("WHERE status = 'active'"));
+        assert!(FEED_QUERY.contains("study_dates.starts_at < now() + interval '24 hours'"));
+        assert!(FEED_QUERY.contains("study_dates.ends_at > now()"));
+        assert!(FEED_QUERY.contains("(creator_id = $1) AS is_mine"));
+    }
+
+    #[test]
     fn three_hour_duration_is_valid() {
         assert_eq!(validate_duration(180), Ok(()));
     }
 
     #[test]
-    fn fourteen_hour_duration_is_rejected_with_the_required_message() {
-        assert_eq!(validate_duration(14 * 60), Err(MAX_DURATION_ERROR));
+    fn us02_t02_duration_limit_accepts_both_boundaries_and_rejects_outside() {
+        assert_eq!(
+            validate_duration(0),
+            Err(MIN_DURATION_ERROR)
+        );
+        assert_eq!(validate_duration(1), Ok(()));
+        assert_eq!(validate_duration(MAX_DURATION_MIN), Ok(()));
+        assert_eq!(
+            validate_duration(MAX_DURATION_MIN + 1),
+            Err(MAX_DURATION_ERROR)
+        );
     }
 
     #[actix_web::test]
-    async fn fourteen_hour_duration_returns_422_with_the_required_message() {
-        assert!(duration_validation_response(180).is_none());
-        let response = duration_validation_response(14 * 60)
+    async fn us02_t02_duration_above_limit_returns_recovery_guidance() {
+        let response = duration_validation_response(MAX_DURATION_MIN + 1)
             .expect("a duration above the limit must return an error response");
         assert_eq!(
             response.status(),
@@ -190,9 +209,25 @@ mod tests {
         let body = actix_web::body::to_bytes(response.into_body())
             .await
             .expect("error response body should be readable");
-        assert!(String::from_utf8(body.to_vec())
-            .expect("JSON response body should be UTF-8")
-            .contains(MAX_DURATION_ERROR));
+        let body = String::from_utf8(body.to_vec()).expect("JSON response body should be UTF-8");
+        assert!(body.contains("longer than the 12-hour limit"));
+        assert!(body.contains("Set the duration to 12 hours or less and try again"));
+    }
+
+    #[actix_web::test]
+    async fn us02_t02_zero_duration_returns_recovery_guidance() {
+        let response =
+            duration_validation_response(0).expect("a zero duration must return an error response");
+        assert_eq!(
+            response.status(),
+            actix_web::http::StatusCode::UNPROCESSABLE_ENTITY
+        );
+        let body = actix_web::body::to_bytes(response.into_body())
+            .await
+            .expect("error response body should be readable");
+        let body = String::from_utf8(body.to_vec()).expect("JSON response body should be UTF-8");
+        assert!(body.contains("shorter than the 1-minute minimum"));
+        assert!(body.contains("Choose a duration of at least 1 minute and try again"));
     }
 
     #[test]

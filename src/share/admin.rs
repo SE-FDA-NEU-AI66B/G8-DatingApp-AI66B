@@ -42,16 +42,19 @@ mod tests {
     }
 
     #[test]
-    fn statistics_error_has_a_non_empty_message() {
+    fn us14_t03_statistics_error_has_a_recovery_message() {
         let error = StatisticsError {
             message: "Dashboard statistics are temporarily unavailable.".to_string(),
         };
 
-        assert!(!error.message.is_empty());
+        assert_eq!(
+            error.message,
+            "Dashboard statistics are temporarily unavailable."
+        );
     }
 
     #[test]
-    fn health_status_contains_independent_components() {
+    fn us13_t02_health_status_reports_database_failure_separately() {
         let checked_at = "2026-10-05T15:00:00Z".to_string();
         let status = HealthStatus {
             server: HealthComponent {
@@ -66,5 +69,23 @@ mod tests {
 
         assert!(status.server.healthy);
         assert!(!status.database.healthy);
+    }
+
+    #[test]
+    fn us14_t04_zero_statistics_are_valid_values() {
+        let statistics = DashboardStatistics {
+            total_registered_users: 0,
+            active_study_date_requests: 0,
+            pending_reports: 0,
+        };
+
+        assert_eq!(
+            serde_json::to_value(statistics).expect("statistics should serialize"),
+            serde_json::json!({
+                "total_registered_users": 0,
+                "active_study_date_requests": 0,
+                "pending_reports": 0
+            })
+        );
     }
 }

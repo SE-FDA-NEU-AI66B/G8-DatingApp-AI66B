@@ -371,12 +371,162 @@ pub async fn decline_request(
 
 #[cfg(test)]
 mod tests {
-    use super::{accept_request, decline_request};
+    use super::{accept_request, decline_request, relation_from_db, RELATION_QUERY};
     use actix_web::{cookie::Cookie, http::StatusCode, test, web, App};
     use rand::random;
     use sha2::{Digest, Sha256};
     use sqlx::{postgres::PgPoolOptions, PgPool};
     use uuid::Uuid;
+
+    #[test]
+    fn relation_from_db_maps_known_states_and_fails_closed() {
+        use crate::share::matching::Relation;
+
+        for (database_value, expected) in [
+            ("none", Relation::None),
+            ("pending", Relation::Pending),
+            ("incoming", Relation::Incoming),
+            ("matched", Relation::Matched),
+            ("self", Relation::SelfProfile),
+            // Unknown values should fail closed to the non-interactive state.
+            ("unexpected", Relation::None),
+        ] {
+            assert_eq!(
+                relation_from_db(database_value),
+                expected,
+                "{database_value}"
+            );
+        }
+    }
+
+    #[actix_web::test]
+    #[ignore = "requires TEST_DATABASE_URL pointing to an isolated PostgreSQL database"]
+    async fn us04_profile_relations_show_request_state_and_hide_incomplete_accounts() {
+        let database_url = std::env::var("TEST_DATABASE_URL")
+            .expect("TEST_DATABASE_URL must point to an isolated PostgreSQL database");
+        let pool = PgPoolOptions::new()
+            .max_connections(1)
+            .connect(&database_url)
+            .await
+            .expect("test database must be reachable");
+        let mut tx = pool
+            .begin()
+            .await
+            .expect("fixture transaction should start");
+
+        let mut ids = Vec::new();
+        for verified in [true, true, true, true, false] {
+            let id: Uuid = sqlx::query_scalar(
+                "INSERT INTO users (email, email_verified)
+                 VALUES ('us04-' || gen_random_uuid() || '@neu.edu.vn', $1)
+                 RETURNING id",
+            )
+            .bind(verified)
+            .fetch_one(&mut *tx)
+            .await
+            .expect("US04 fixture user should be inserted");
+            ids.push(id);
+        }
+        let [me, outgoing, incoming, matched, incomplete]: [Uuid; 5] = ids
+            .try_into()
+            .expect("five fixture users should be returned");
+
+        sqlx::query(
+            "INSERT INTO match_requests (sender_id, receiver_id, status, responded_at)
+             VALUES ($1, $2, 'pending', NULL),
+                    ($3, $1, 'pending', NULL),
+                    ($1, $4, 'accepted', now())",
+        )
+        .bind(me)
+        .bind(outgoing)
+        .bind(incoming)
+        .bind(matched)
+        .execute(&mut *tx)
+        .await
+        .expect("US04 relation fixtures should be inserted");
+
+        for (target, expected) in [
+            (me, "self"),
+            (outgoing, "pending"),
+            (incoming, "incoming"),
+            (matched, "matched"),
+        ] {
+            let relation: String = sqlx::query_scalar(RELATION_QUERY)
+                .bind(me)
+                .bind(target)
+                .fetch_one(&mut *tx)
+                .await
+                .expect("verified profile relation should be returned");
+            assert_eq!(relation, expected);
+        }
+
+        let hidden: Option<String> = sqlx::query_scalar(RELATION_QUERY)
+            .bind(me)
+            .bind(incomplete)
+            .fetch_optional(&mut *tx)
+            .await
+            .expect("incomplete-profile lookup should succeed");
+        assert_eq!(hidden, None, "unverified accounts must not be discoverable");
+
+        tx.rollback().await.expect("US04 fixtures should roll back");
+    }
+
+    #[actix_web::test]
+    #[ignore = "requires TEST_DATABASE_URL pointing to an isolated PostgreSQL database"]
+    async fn us04_cannot_send_a_match_request_to_yourself() {
+        let database_url = std::env::var("TEST_DATABASE_URL")
+            .expect("TEST_DATABASE_URL must point to an isolated PostgreSQL database");
+        let pool = PgPoolOptions::new()
+            .max_connections(2)
+            .connect(&database_url)
+            .await
+            .expect("test database must be reachable");
+        let unique = random::<u64>();
+        let user_id = insert_user(&pool, format!("self-{unique}@neu.edu.vn")).await;
+        let token = format!("us04-self-{unique}");
+        let token_hash = hex::encode(Sha256::digest(token.as_bytes()));
+        sqlx::query(
+            "INSERT INTO auth_cookies (token_hash, user_id, expires_at)
+             VALUES ($1, $2, now() + interval '1 hour')",
+        )
+        .bind(token_hash)
+        .bind(user_id)
+        .execute(&pool)
+        .await
+        .expect("test session should be inserted");
+
+        let app = test::init_service(
+            App::new()
+                .app_data(web::Data::new(pool.clone()))
+                .service(super::send_request),
+        )
+        .await;
+        let request = test::TestRequest::post()
+            .uri("/api/match-requests")
+            .cookie(Cookie::new("datingapp_session", token))
+            .set_json(serde_json::json!({ "to_user_id": user_id }))
+            .to_request();
+        let response = test::call_service(&app, request).await;
+        assert_eq!(response.status(), StatusCode::BAD_REQUEST);
+
+        let request_count: i64 = sqlx::query_scalar(
+            "SELECT COUNT(*) FROM match_requests WHERE sender_id = $1 OR receiver_id = $1",
+        )
+        .bind(user_id)
+        .fetch_one(&pool)
+        .await
+        .expect("self-match request count should be readable");
+        assert_eq!(
+            request_count, 0,
+            "self-match attempts must not be persisted"
+        );
+
+        sqlx::query("DELETE FROM users WHERE id = $1")
+            .bind(user_id)
+            .execute(&pool)
+            .await
+            .expect("self-request fixture should be removed");
+    }
 
     async fn insert_user(pool: &PgPool, email: String) -> Uuid {
         sqlx::query_scalar("INSERT INTO users (email) VALUES ($1) RETURNING id")
