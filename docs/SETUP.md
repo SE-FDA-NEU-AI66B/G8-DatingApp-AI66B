@@ -1,35 +1,123 @@
-# Setup
+# NEUDating setup
 
-## Download-install
+## Prerequisites
 
-- Rust (rustup)
-- Docker Compose
+- Git 2.40+
+- Rust 1.85+ with `rustup`; the repository pins the nightly toolchain
+- Docker Desktop 4.30+ and Docker Compose
+- Node.js 20+ and npm 10+ for browser checks
+- Windows 10/11, macOS 13+, or a current Linux distribution
 
-## Install
+## Clone and configure
 
-- `uv` : cargo install uv
-- `cargo-leptos`: cargo install cargo-leptos
-- `rustc-codegen-cranelift`: rustup component add rustc-codegen-cranelift
-
-## setup
-
-```sh
-docker compose --env-file .env -f database/compose.yaml up -d db
-uv sync
-uv run marimo edit database/note.py
+```bash
+git clone https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B.git
+cd G8-DatingApp-AI66B
 ```
 
-Click **Recreate application database** in the notebook. Then run the server:
+Windows PowerShell:
 
-```sh
+```powershell
+Copy-Item .env.example .env
+```
+
+macOS/Linux:
+
+```bash
+cp .env.example .env
+```
+
+Set `DATABASE_URL` to the PostgreSQL database created by Compose and set
+`ADMIN_EMAIL` to the email that will receive development admin access. Never
+commit real passwords, OTPs, or keys.
+
+## Start, migrate, and seed the database
+
+```bash
+docker compose -f database/compose.yaml up -d db
+rustup toolchain install nightly
+rustup default nightly
+rustup target add wasm32-unknown-unknown
+cargo install cargo-leptos
+cargo leptos build
+```
+
+Run migrations by starting the server once, then seed the deterministic
+development fixtures: one admin, eight verified users, one unverified user,
+two active requests, and one pending report. Re-running the script updates the
+named fixture users without creating duplicate rows. Use two terminals because
+the development server must remain running while `psql` connects:
+
+Windows PowerShell:
+
+```powershell
+# Terminal 1
 cargo leptos watch
+# Terminal 2
+psql $env:DATABASE_URL -f database/seed.sql
 ```
 
-Open <http://localhost:3100>. Microsoft sign-in also requires the Entra values
-in `.env`. Python tests load the repository `.env`; configure
-`TEST_DATABASE_URL` to point to a separate PostgreSQL test database before
-running database integration tests. Run the clean-checkout test suite with
-`uv run --with pytest --no-project pytest -q`. Tests that need a running app
-skip unless `TEST_APP_URL` is set. For the selected demo cases and current
-validation result, see [testing.md](testing.md). The optional test notebook is
-`uv run marimo edit tests/test.py`.
+macOS/Linux:
+
+```bash
+# Terminal 1
+cargo leptos watch
+# Terminal 2
+psql "$DATABASE_URL" -f database/seed.sql
+```
+
+Stop the watcher with `Ctrl+C` only after the seed command completes. The
+seed file is idempotent for its named fixture rows.
+
+## How to know it worked
+
+Open <http://localhost:3100>, complete the development OTP flow for the
+configured admin email, then open
+<http://localhost:3100/admin_console>. The page shows non-zero values for
+registered users, active study-date requests, and pending reports, plus
+separate server and database health statuses.
+
+## Validation
+
+```bash
+cargo fmt --all -- --check
+cargo check --features ssr
+cargo test --lib --features ssr
+```
+
+For browser checks:
+
+```bash
+cd end2end
+npm ci
+npx playwright install --with-deps chromium
+npm test
+```
+
+PostgreSQL integration tests require an isolated `TEST_DATABASE_URL`.
+
+## Troubleshooting
+
+**`connection refused` or `database does not exist`:** confirm Docker Desktop
+is running, run `docker compose -f database/compose.yaml up -d db`, and make
+sure `.env` uses the PostgreSQL port `5432` and database `datingapp`.
+
+**`psql is not recognized`:** install PostgreSQL client tools and add their
+`bin` directory to `PATH`, or run `psql` using its full installation path.
+
+**`cargo leptos` is not recognized:** run `cargo install cargo-leptos` and
+restart the terminal so Cargo's bin directory is on `PATH`.
+
+## Tested by
+
+Before submission, a non-author teammate must follow this file on a fresh
+machine. Record the tester handle, operating system, date, and elapsed time
+here, for example: `@iambadwithname — Windows 11 — 2025-03-08 — 12 minutes`.
+
+## Submission workflow
+
+Create a documentation branch, commit `docs/design.md`, `docs/SETUP.md`, and
+the ERD, then open a pull request into `main`. A different member must select
+**Review changes**, leave a substantive comment, and approve. Merge only after
+that approval. Export the merged `docs/design.md` to exactly
+`Team<NN>_M2.pdf` and submit that one PDF to the LMS.

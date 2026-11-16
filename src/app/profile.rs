@@ -1,5 +1,5 @@
 use super::api;
-use crate::share::matching::{ProfileView, Relation, SendMatchRequest};
+use crate::share::matching::{display_name, ProfileView, Relation, SendMatchRequest};
 use crate::share::register::MessageBody;
 use leptos::prelude::*;
 use leptos_router::{components::A, hooks::use_params_map};
@@ -7,12 +7,7 @@ use leptos_router::{components::A, hooks::use_params_map};
 #[component]
 pub fn ProfilePage() -> impl IntoView {
     let params = use_params_map();
-    let user_id = move || {
-        params
-            .read()
-            .get("id")
-            .and_then(|s| s.parse::<uuid::Uuid>().ok())
-    };
+    let user_id = move || params.read().get("id").and_then(|s| s.parse::<i64>().ok());
 
     let (profile, set_profile) = signal(None::<ProfileView>);
     let (error, set_error) = signal(None::<String>);
@@ -77,7 +72,7 @@ pub fn ProfilePage() -> impl IntoView {
                             view! {
                                 <p>
                                     "This user sent you a request. "
-                                    <A href="/userhome/requests">"Review it"</A>
+                                    <A href="/requests">"Review it"</A>
                                 </p>
                             }
                                 .into_any()
@@ -86,10 +81,7 @@ pub fn ProfilePage() -> impl IntoView {
                         Relation::SelfProfile => view! { <p>"This is your profile"</p> }.into_any(),
                     };
                     view! {
-                        <h1 id="profile-title">{p.display_name.clone()}</h1>
-                        {p.cohort.clone().map(|cohort| view! { <p class="public-profile-cohort">"NEU · " {cohort}</p> })}
-                        {(!p.bio.is_empty()).then(|| view! { <p class="public-profile-bio">{p.bio.clone()}</p> })}
-                        {(!p.interests.is_empty()).then(|| view! { <p class="public-profile-interests"><strong>"Interests: "</strong>{p.interests.clone()}</p> })}
+                        <h1 id="profile-title">{display_name(p.user_id)}</h1>
                         {action}
                     }
                         .into_any()

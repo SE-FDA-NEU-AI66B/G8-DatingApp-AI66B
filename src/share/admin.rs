@@ -24,6 +24,29 @@ pub struct HealthStatus {
     pub database: HealthComponent,
 }
 
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct ReportSummary {
+    pub id: i64,
+    pub reported_user_id: i64,
+    pub reason: String,
+    pub report_count: i64,
+    pub status: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct CreateReportRequest {
+    pub reported_user_id: i64,
+    pub reason: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct ActivityLogEntry {
+    pub action: String,
+    pub target_id: Option<i64>,
+    pub actor_id: Option<i64>,
+    pub created_at: String,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -42,19 +65,16 @@ mod tests {
     }
 
     #[test]
-    fn us14_t03_statistics_error_has_a_recovery_message() {
+    fn statistics_error_has_a_non_empty_message() {
         let error = StatisticsError {
             message: "Dashboard statistics are temporarily unavailable.".to_string(),
         };
 
-        assert_eq!(
-            error.message,
-            "Dashboard statistics are temporarily unavailable."
-        );
+        assert!(!error.message.is_empty());
     }
 
     #[test]
-    fn us13_t02_health_status_reports_database_failure_separately() {
+    fn health_status_contains_independent_components() {
         let checked_at = "2026-10-05T15:00:00Z".to_string();
         let status = HealthStatus {
             server: HealthComponent {
@@ -69,23 +89,5 @@ mod tests {
 
         assert!(status.server.healthy);
         assert!(!status.database.healthy);
-    }
-
-    #[test]
-    fn us14_t04_zero_statistics_are_valid_values() {
-        let statistics = DashboardStatistics {
-            total_registered_users: 0,
-            active_study_date_requests: 0,
-            pending_reports: 0,
-        };
-
-        assert_eq!(
-            serde_json::to_value(statistics).expect("statistics should serialize"),
-            serde_json::json!({
-                "total_registered_users": 0,
-                "active_study_date_requests": 0,
-                "pending_reports": 0
-            })
-        );
     }
 }

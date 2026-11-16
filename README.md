@@ -1,3 +1,8 @@
+Running app: https://<Render-service-url>
+
+The production URL is configured by the deployment owner after the Render
+service is created. It must be replaced above before the `v1.0` release.
+
 # NEUDating
 
 NEUDating là ứng dụng hẹn hò dành cho sinh viên và người trẻ tại Việt Nam,
@@ -24,22 +29,72 @@ mối quan hệ lành mạnh và lâu dài nếu họ tự nguyện lựa chọn
 **Nhóm:** QHQ<br>
 **Thành viên:** @Nguyễn Sơn Hải · @Nguyễn Minh Quang · @Lê Duy Quyền<br>
 **Product Owner (cố định cả kỳ):** @Nguyễn Sơn Hải<br>
-**Scrum Master (luân phiên mỗi sprint):** @Nguyễn Minh Quang (Sprint 2);
-@Nguyễn Minh Quang (`iambadwithname`) (Sprint 3)
+**Scrum Master (luân phiên mỗi sprint):** @Nguyễn Minh Quang (Sprint 2)
 
 **Board:** [NEUDating GitHub Project](https://github.com/orgs/SE-FDA-NEU-AI66B/projects/20)
+
+**CI:** [![CI](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/actions/workflows/ci.yml/badge.svg)](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/actions/workflows/ci.yml)
+
+### Milestone 5 test accounts
+
+The production test accounts are configured by the deployment owner and must
+be listed here without real passwords before release. Never commit credentials.
+When `SEED_SAMPLE_DATA=true`, the safe sample records are
+`demo.one@neu.edu.vn` and `demo.two@neu.edu.vn`; they are data fixtures, not
+production login credentials.
+
+### P0 stories
+
+Start from the first page and use the visible navigation links. The P0 entry
+points are registration/login, the study-date feed, matching requests, and the
+admin dashboard for the documented admin test account.
+
+See [docs/operations.md](docs/operations.md) for deployment, health checks,
+rollback, monitoring, and the final release checklist.
 
 ## Chạy thử
 
 ### Yêu cầu
 
-[docs/SETUP.md](docs/SETUP.md).
+- Rust và `rustup`
+- Rust nightly toolchain
+- `cargo-leptos`
+- Target `wasm32-unknown-unknown`
+
+Hướng dẫn cài đặt đầy đủ cho máy mới được duy trì trong
+[SETUP.md](SETUP.md).
 
 ### Chạy ở chế độ phát triển
 
 ```bash
+git clone https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B.git
+cd G8-DatingApp-AI66B
 cargo leptos watch
 ```
+
+Sau khi lệnh chạy thành công, mở
+<http://localhost:3100>. Chế độ `watch` tự động biên dịch lại khi mã nguồn
+thay đổi.
+
+### Admin authentication (development)
+
+The admin dashboard requires an authenticated session. Register a NEU email,
+use the six-digit OTP printed by the development mail stub to call
+`POST /api/auth/login`, and set `ADMIN_EMAIL` to the account email before
+starting the server. The server then provisions that account as an admin.
+Sessions use an HttpOnly cookie and expire after eight hours.
+
+```bash
+set ADMIN_EMAIL=admin@neu.edu.vn
+curl -i -c cookies.txt -H "Content-Type: application/json" ^
+  -d "{\"email\":\"admin@neu.edu.vn\",\"otp\":\"123456\"}" ^
+  http://localhost:3100/api/auth/login
+curl -i -b cookies.txt http://localhost:3100/api/admin/statistics
+```
+
+Do not use the development OTP stub or `ADMIN_EMAIL` provisioning as a
+production identity provider. Production deployment must replace them with the
+shared US12 authentication and admin-provisioning flow.
 
 ### Chạy bản release
 
@@ -55,7 +110,12 @@ cargo doc --open
 
 ## Tài liệu dự án
 
-- [Hướng dẫn cài đặt](docs/SETUP.md)
+- [Hướng dẫn cài đặt](SETUP.md)
+- [Definition of Done](docs/definition-of-done.md)
 - [Sprint log](docs/sprint-log.md)
 - [Traceability](docs/traceability.md)
+- [Architecture](docs/architecture.md)
 - [API design](docs/api.md)
+- [Walking skeleton](docs/walking-skeleton.md)
+- [Milestone 2 design](docs/design.md)
+- [Milestone 2 setup](docs/SETUP.md)

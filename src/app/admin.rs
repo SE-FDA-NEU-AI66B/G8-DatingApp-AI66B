@@ -3,8 +3,8 @@ use crate::share::admin::StatisticsError;
 use crate::share::admin::{DashboardStatistics, HealthStatus};
 use leptos::prelude::*;
 
+#[cfg(target_arch = "wasm32")]
 async fn fetch_statistics() -> Result<DashboardStatistics, String> {
-    use crate::share::admin::StatisticsError;
     use gloo_net::http::Request;
 
     let response = Request::get("/api/admin/statistics")
@@ -24,28 +24,24 @@ async fn fetch_statistics() -> Result<DashboardStatistics, String> {
             |error| error.message,
         ))
     }
-}
 
-async fn fetch_health() -> Result<HealthStatus, String> {
-    use crate::share::admin::StatisticsError;
-    use gloo_net::http::Request;
+    #[cfg(target_arch = "wasm32")]
+    async fn fetch_health() -> Result<HealthStatus, String> {
+        use gloo_net::http::Request;
 
-    let response = Request::get("/api/admin/health")
-        .send()
-        .await
-        .map_err(|_| "Unable to reach the system health service.".to_string())?;
-
-    if response.ok() {
-        response
-            .json()
+        let response = Request::get("/api/admin/health")
+            .send()
             .await
-            .map_err(|_| "The health service returned an unexpected response.".to_string())
-    } else {
-        let error = response.json::<StatisticsError>().await.ok();
-        Err(error.map_or_else(
-            || "System health is temporarily unavailable.".to_string(),
-            |error| error.message,
-        ))
+            .map_err(|_| "Unable to reach the health service.".to_string())?;
+
+        if response.ok() {
+            response
+                .json()
+                .await
+                .map_err(|_| "The health service returned an unexpected response.".to_string())
+        } else {
+            Err("Health status is unavailable.".to_string())
+        }
     }
 }
 
@@ -56,10 +52,16 @@ pub fn AdminDashboard() -> impl IntoView {
     let (error, set_error) = signal(None::<String>);
     let (health_error, set_health_error) = signal(None::<String>);
     let (loading, set_loading) = signal(true);
+
+    #[cfg(not(target_arch = "wasm32"))]
+    let _ = (&set_statistics, &set_health);
+
     let load = move || {
         set_loading.set(true);
         set_error.set(None);
         set_health_error.set(None);
+
+        #[cfg(target_arch = "wasm32")]
         {
             leptos::task::spawn_local(async move {
                 match fetch_statistics().await {
@@ -83,27 +85,25 @@ pub fn AdminDashboard() -> impl IntoView {
         }
     };
 
-    Effect::new(load);
+    #[cfg(target_arch = "wasm32")]
+    {
+        load();
+    }
+
     view! {
-        <section class="admin-dashboard" aria-labelledby="admin-dashboard-title">
-            <header class="admin-dashboard-header">
-                <div><p class="section-kicker">"SITE OPERATIONS"</p><h1 id="admin-dashboard-title">"Admin console"</h1>
-                    <p>"Monitor service health and activity across Study Date."</p></div>
-                <button type="button" on:click=move |_| load() disabled=move || loading.get()>
+        <section aria-labelledby="admin-dashboard-title">
+            <h1 id="admin-dashboard-title">"Admin dashboard"</h1>
+            <button type="button" on:click=move |_| load() disabled=move || loading.get()>
                 {move || if loading.get() { "Refreshing..." } else { "Refresh" }}
-                </button>
-            </header>
+            </button>
             {move || {
                 if loading.get() && statistics.get().is_none() {
                     view! { <p role="status">"Loading dashboard statistics..."</p> }.into_any()
                 } else if let Some(message) = error.get() {
                     view! {
                         <p role="alert">{message}</p>
-                        <button type="button" on:click=move |_| load()>
-                            "Try again"
-                        </button>
-                    }
-                        .into_any()
+                        <button type="button" on:click=move |_| load()>"Try again"</button>
+                    }.into_any()
                 } else if let Some(value) = statistics.get() {
                     view! {
                         <div class="dashboard-statistics">
@@ -120,8 +120,7 @@ pub fn AdminDashboard() -> impl IntoView {
                                 <p>{value.pending_reports}</p>
                             </article>
                         </div>
-                    }
-                        .into_any()
+                    }.into_any()
                 } else {
                     view! { <p role="alert">"Dashboard statistics are unavailable."</p> }.into_any()
                 }
@@ -131,23 +130,20 @@ pub fn AdminDashboard() -> impl IntoView {
                     view! { <p role="alert">{message}</p> }.into_any()
                 } else if let Some(value) = health.get() {
                     view! {
-                        <section class="admin-health" aria-labelledby="health-status-title">
-                            <div class="admin-section-heading"><div><p class="section-kicker">"LIVE CHECKS"</p><h2 id="health-status-title">"System health"</h2></div></div>
-                            <div class="admin-health-grid">
-                                <article class=if value.server.healthy { "admin-health-card is-healthy" } else { "admin-health-card is-unhealthy" }>
-                                    <span class="admin-health-indicator" aria-hidden="true"></span><div><h3>"Application server"</h3>
-                                        <strong>{if value.server.healthy { "Healthy" } else { "Unhealthy" }}</strong>
-                                        <p>"Checked " {value.server.checked_at.clone()}</p></div>
-                                </article>
-                                <article class=if value.database.healthy { "admin-health-card is-healthy" } else { "admin-health-card is-unhealthy" }>
-                                    <span class="admin-health-indicator" aria-hidden="true"></span><div><h3>"PostgreSQL database"</h3>
-                                        <strong>{if value.database.healthy { "Healthy" } else { "Unhealthy" }}</strong>
-                                        <p>"Checked " {value.database.checked_at.clone()}</p></div>
-                                </article>
-                            </div>
+                        <section aria-labelledby="health-status-title">
+                            <h2 id="health-status-title">"System health"</h2>
+                            <p>
+                                "Server: "
+                                {if value.server.healthy { "Healthy" } else { "Unhealthy" }}
+                                " (last checked " {value.server.checked_at.clone()} ")"
+                            </p>
+                            <p>
+                                "Database: "
+                                {if value.database.healthy { "Healthy" } else { "Unhealthy" }}
+                                " (last checked " {value.database.checked_at.clone()} ")"
+                            </p>
                         </section>
-                    }
-                        .into_any()
+                    }.into_any()
                 } else {
                     view! { <p role="status">"Checking system health..."</p> }.into_any()
                 }
