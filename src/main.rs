@@ -25,6 +25,7 @@ async fn main() -> std::io::Result<()> {
         .await
         .expect("admin role configuration failed");
     let pool = web::Data::new(pool);
+    let login_limiter = ss::auth::LoginRateLimiter::default();
 
     let server = HttpServer::new(move || {
         // Generate the list of routes in your Leptos App
@@ -36,6 +37,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .configure(worker::config)
             .app_data(pool.clone())
+            .app_data(web::Data::new(login_limiter.clone()))
             .service(
                 actix_web::web::resource("/api/auth/login")
                     .route(actix_web::web::get().to(ss::auth::login)),

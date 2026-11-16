@@ -19,5 +19,6 @@ Cargo.lock
 rustc-ice*
 ### python ###
 **/__pycache__/
+**/__marimo__/
 .coverage
 junit.xml

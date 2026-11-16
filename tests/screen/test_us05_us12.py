@@ -4,6 +4,7 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+import pytest
 
 ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
@@ -13,12 +14,12 @@ def app_url() -> str:
     if configured_url:
         return configured_url.rstrip("/")
 
-    if ENV_FILE.exists():
+    if ENV_FILE.is_file():
         for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
             if line.startswith("TEST_APP_URL="):
                 return line.partition("=")[2].strip().strip("\"'").rstrip("/")
 
-    raise AssertionError("TEST_APP_URL is missing from .env")
+    pytest.skip("requires TEST_APP_URL pointing to a running app")
 
 
 def get_status(path: str) -> tuple[int, str]:
@@ -54,7 +55,7 @@ def test_us12_anonymous_user_cannot_access_admin_console_or_data():
     # anonymous requests without returning data.
     page_status, page = get_status("/admin_console")
     assert page_status == 200
-    assert "Checking sign-in" in page or "Admin dashboard" not in page
+    assert "Checking sign-in" in page
 
     for path in ("/api/admin/access", "/api/admin/statistics", "/api/admin/health"):
         status, body = get_status(path)
