@@ -1,0 +1,311 @@
+   ○<────────┐    7463815 (HEAD -> main, origin/main) Merge pull request #157 from SE-FDA-NEU-AI66B/m5/issue-138-deployment
+   ├────────>○    f552794 merge: synchronize Milestone 5 PRs with latest main
+   ○<┐       │    aeceef1 Merge pull request #164 from SE-FDA-NEU-AI66B/148
+   ├─┼──────>○    16a3774 merge: synchronize Milestone 5 branch with main
+   │ ●       │    3736d7d Create operations.md
+   │ ●       │    89e39a4 Reconcile P0 test documentation with the deployed behavior
+   │ │       ●    cabaf9c feat: prepare milestone 5 deployment
+   │ │       │ ●  638b944 (docs/readme, origin2/docs/readme) change readme
+   │ │     ● │ │  ec772d0 (docs/operations, origin2/docs/operations) operations
+   │ │     ● │ │  e822bff add operations
+   │ │   ● │ │ │  cafd052 (fix/ci, origin2/fix/ci) fix ci
+   │ │ ● │ │ │ │  000d63a (chore/fixcve, origin2/chore/fixcve) fix rust-toolchain
+   │ │ ● │ │ │ │  78fb29d block login by ip
+   ├─┘ ● │ │ │ │  65df05e update dep
+   ├───┴─┴─┴─┼─┘  
+   ○<┐       │    aecd6dc (chore/fixbug) Merge pull request #137 from SE-FDA-NEU-AI66B/chore/fixbug
+   │ ●       │    27d65d8 (origin/chore/fixbug) fix us 3 4
+   │ ●       │    74b5ac7 fix test us 3,4
+   ├─┘       │    
+   ○<──────┐ │    96959e9 (test/US1-2) Merge pull request #132 from SE-FDA-NEU-AI66B/test/US1-2
+   ├──────>○ │    dbe5f23 Merge branch 'main' into test/US1-2
+   ○<────┐ │ │    6c9ca3c Merge pull request #133 from SE-FDA-NEU-AI66B/test/US03-04
+   ├────>○ │ │    b72f789 Merge branch 'main' into test/US03-04
+   ○<──┐ │ │ │    0bd274c Merge pull request #131 from SE-FDA-NEU-AI66B/test/us5-12
+   ○<┐ │ │ │ │    59ac89d Merge pull request #130 from SE-FDA-NEU-AI66B/test/us13-14
+   │ │ │ │ ● │    39d0ea4 add study_date
+   │ │ │ │ ● │    c3a9a44 registration
+   │ │ │ ● │ │    ad21138 git add test to python
+   │ │ │ ● │ │    751948c git add test for study_date
+   │ │ │ ● │ │    be3e55c add test for matching
+   │ │ ● │ │ │    a030c21 add test for us 5,12
+   │ ● │ │ │ │    129c11e add test for us13 14
+   ├─┴─┴─┘ │ │    
+   ○<──────┤ │    9f37f42 Merge pull request #129 from SE-FDA-NEU-AI66B/docs/setup
+   ○       │ │    48ff6fd Merge pull request #121 from SE-FDA-NEU-AI66B/feat/testinit
+   │       ● │    62d01be (docs/setup, origin/docs/setup) fix bug
+   │       ● │    a36a370 change setup
+   │       ● │    47867ee add demo
+   │       ● │    d904fd4 add test framework
+   │       ● │    c672a55 .
+   │       ● │    135cb03 add testing base
+   │       ● │    ac7ac04 (doc/setup) update traceability
+   ○       │ │    64a657d Merge pull request #119 from SE-FDA-NEU-AI66B/feat/betternav
+   │       ● │    07c8d28 fix setup
+   ├<──────┤ │    
+   │       ● │    a163631 (feat/testinit, origin/feat/testinit) add test doc
+   ├<──────┤ │    
+   │       ● │    eb16f19 (feat/betternav, origin/feat/betternav) changes navg
+   │       ● │    2f29bd8 refactor
+   │       ● │    217dffb fix nav
+   ├───────┘ │    
+   ○<────────┼─┐  2151e6f Merge pull request #115 from SE-FDA-NEU-AI66B/feat/admin-console
+   ├─────────┼>○  359f403 (feat/admin-console, origin/feat/admin-console) Merge remote-tracking branch 'origin/main' into feat/admin-console
+   ○<──┐     │ │  10aa09b Merge pull request #114 from SE-FDA-NEU-AI66B/Doc-US
+   │   │     │ ●  8acd77d ops
+   │   │     │ ●  d918eb2 add search
+   ├──>○     │ │  a4f79e6 Merge branch 'main' into Doc-US
+   │   │     │ ●  a9762db add vertical nav bar
+   │   │     │ ●  b72682a add chat and home and thread
+   ○<┐ │     │ │  be91b8b Merge pull request #113 from SE-FDA-NEU-AI66B/issue-101-sprint-wrap-up
+   │ │ ●     │ │  800501c hoan thien issue cung doc
+   │ │ │     │ ●  d8d7936 delete alot of stuff
+   │ │ │     │ ●  559f08a change login screen
+   │ │ │     │ ●  140736a add agent
+   │ │ │     │ ●  67c001d recreate database
+   │ │ │     │ ●  49aa532 add ui
+   │ │ │     │ ●  4749345 optm
+   │ │ │     │ ●  827e6c7 the code is runable now
+   │ │ │   ┌─┼>○  30745f4 Merge branch 'feat/database' into feat/admin-console
+   │ │ │   ● │ │  6fe2e26 (feat/database, origin/feat/database) change to uuid
+   │ │ │   ● │ │  9da67ff remove testdatabase
+   │ │ │   ● │ │  e7c936e fix notebook
+   │ │ │ ● │ │ │  98043a8 (feat/register) a
+   │ │ │ │ │ ● │  337f814 feat: add admin reports and activity views
+   │ │ │ │ │ ● │  598e69c feat: add moderation and activity APIs
+   │ │ │ │ │ ● │  ee7caab test: cover admin dashboard failure flows
+   │ │ │ │ │ ● │  ec4a5cf test: stabilize deterministic development fixtures
+   │ ● │ │ │ │ │  c509c09 Document Sprint 3 wrap-up and closure criteria for #101
+   │ ● │ │ │ │ │  351d771 Record Sprint 3 review evidence and capture checklist for #100
+   │ ● │ │ │ │ │  ca2171e Reconcile Sprint 3 documentation and routes for #99
+   │ ● │ │ │ │ │  e41da88 Document the complete P0 dashboard flow for #98
+   │ ● │ │ │ │ │  0b43cb2 Refine Sprint 3 backlog order and ownership for #97
+   │ ● │ │ │ │ │  948c5ba Improve dashboard responsive accessibility for #94
+   │ ● │ │ │ │ │  d300261 Handle dashboard authorization and API errors for #93
+   │ ● │ └─┼─┼─┤  9196677 Implement dashboard loading and refresh states for #92
+   │ │ │   │ │ ●  2981409 add admin pages
+   │ │ │   │ │ ●  8a3775b fix
+   │ │ │   │ │ ●  124ff20 (feat/database-login, origin/feat/database-login) login works
+   │ │ │   │ │ ●  b35819c partal login
+   │ ● │   │ │ │  d23c647 docs: place submission cover on first page
+   │ ● │   │ │ │  2ce54ca docs: add complete submission cover metadata
+   │ ● │   │ │ │  ed31a77 fix: restore dashboard runtime startup
+   ├─┴─┴───┴─┘ │  
+   ○<────┐     │  97ac1e0 Merge pull request #83 from SE-FDA-NEU-AI66B/feature/us03-us04-us05
+   ○<┐   │     │  6713d26 Merge pull request #86 from SE-FDA-NEU-AI66B/docs/m2-requirements-complete
+   │ ●   │     │  dac8d78 (origin/docs/m2-requirements-complete) docs: complete milestone 2 submission requirements
+   ├─┘   │     │  
+   ○<──┐ │     │  f422ee2 Merge pull request #84 from SE-FDA-NEU-AI66B/feature/issue-68-health-status
+   ○<┐ │ │     │  984a639 Merge pull request #85 from SE-FDA-NEU-AI66B/docs/issue-61-63-64-53
+   │ ● │ │     │  4516fc7 (origin/docs/issue-61-63-64-53) Prepare milestone 2 design submission
+   │ │ │ ●     │  a4e3654 (origin/feature/us03-us04-us05) thêm ERD và thêm như review
+   │ ● │ │     │  c9ab801 Document architecture API and walking skeleton
+   │ │ ● │     │  4fd3983 (origin/feature/issue-68-health-status) Add admin health status endpoint
+   │ │ │ ●     │  3d8ceb7 update chức năng cho US 2
+   │ │ │ │     ●  b19dbd3 git fix cargo.toml
+   ├─┴─┘ ●     │  f071515 hoàn thành chức năng của US 3-4-5
+   ├─────┘     │  
+   ○<──┐       │  ec4666b Merge pull request #82 from SE-FDA-NEU-AI66B/fix/issue-78-playwright-harness
+   ○<┐ │       │  0be81f8 Merge pull request #81 from SE-FDA-NEU-AI66B/fix/issue-75-postgres-dashboard-tests
+   │ ● │       │  5cdf1f1 (origin/fix/issue-75-postgres-dashboard-tests) Add PostgreSQL dashboard integration fixtures
+   ├─┘ │       │  
+   ○<┐ │       │  9db2579 Merge pull request #80 from SE-FDA-NEU-AI66B/fix/issue-77-registered-user-policy
+   │ ● │       │  c78ea70 (origin/fix/issue-77-registered-user-policy) Define verified registered-user dashboard metric
+   ├─┘ ●       │  08b4888 (origin/fix/issue-78-playwright-harness) Make Playwright dashboard tests runnable
+   ├───┼───────┘  
+   ○<┐ │          b3ca6b7 Merge pull request #79 from SE-FDA-NEU-AI66B/fix/issue-77-admin-auth-boundary
+   │ ● │          2a5da02 (origin/fix/issue-77-admin-auth-boundary) Add session authentication for admin dashboard
+   │ │ ●          0e73c61 (origin/fix/issue-73-us14-acceptance-coverage) Add US14 dashboard acceptance tests
+   │ ├─┘          
+   │ ●            b3cb998 (origin/feature/us14-dashboard-statistics) Complete US14 dashboard statistics coverage
+   ├─┘            
+   ○<┐            a990129 Merge pull request #72 from SE-FDA-NEU-AI66B/US01
+   │ ●            549877f (origin/US01) US01 - Register with NEU email
+   │ ●            eac052e (origin/fix/requirements) thêm US cho admin
+   ○<┼───┐        7f38e6e Merge pull request #48 from SE-FDA-NEU-AI66B/chore/diagram
+   │ │   ●        44a18bd (chore/diagram, origin/chore/diagram) diagram
+   │ │ ● │        2693c91 (origin/docs/fix-requirements) docs: fix requirements.md — product vision, headings, typos, screens table
+   │ │ │ ●        b5b7e9a change diagrams
+   │ │ ● │        523bfb6 docs: fix requirements.md — product vision, headings, typos, screens table
+   ├─┼─┼─┼>○      364e38c (origin/docs/repo-cleanup) merge: resolve conflicts with origin/main — keep velocity data, fix typos, fix checkout version
+   ├─┼─┴─┘ ●      54a0979 docs: clean up and unify repo — fix inconsistencies, remove dead files, fix broken links
+   ○<┼─┐   │      47719ec Merge pull request #45 from SE-FDA-NEU-AI66B/docs/diagrams
+   ○<┤ │   │      3d3b7ed Merge pull request #44 from SE-FDA-NEU-AI66B/sprint-log-update
+   │ │ ●   │      9e2d360 (docs/diagrams, origin/docs/diagrams) done
+   │ ● │   │      933c8a4 (origin/sprint-log-update) Update sprint-log.md
+   │ │ ●   │      879d2dd SequenceDiagram
+   ├─┘ ●   │      e731783 add mise taks for diagrams
+   ○<──┼─┐ │      fe5e504 Merge pull request #43 from SE-FDA-NEU-AI66B/edit-user-stories
+   │   │ ● │      74bfd3f (edit-user-stories, origin/edit-user-stories) patch
+   │   ● ├─┘      4b5ad1e add template
+   ├───┴>○        34e7bfc Merge origin/main and resolve requirements conflict
+   ○<──┐ │        1faf852 Merge pull request #41 from SE-FDA-NEU-AI66B/docs/rquirements.md-3.4
+   │   │ ●        abfa5f8 docs: revise user stories
+   ├──>○ │        9afac8e (docs/rquirements.md-3.4, origin/docs/rquirements.md-3.4) Merge remote-tracking branch 'origin/main' into docs/rquirements.md-3.4
+   │   ● │        6a2d325 change readme
+   ○<──┼─┤        0883f2f Merge pull request #38 from SE-FDA-NEU-AI66B/edit-scenarios
+   ○   │ │        7925c61 Merge pull request #37 from SE-FDA-NEU-AI66B/edit-persona
+   │   │ ●        d0dfe9b (origin/edit-scenarios) docs: update dating scenarios
+   ├<──┼─┤        
+   │   │ ●        9dca1e4 (origin/edit-persona) docs: refine NEU dating personas
+   ○<┐ │ │        8c47c5e Merge pull request #36 from SE-FDA-NEU-AI66B/ci/windows
+   │ │ │ ●        420ced3 docs: update NEU dating personas
+   │ ● │ │        3c336db (origin/ci/windows) ci: add Windows test job
+   ├─┘ ● │        7a09759 (doc/Requirement, origin/doc/Requirement) done
+   ├───┴─┘        
+   ○<┐            c6e26f9 Merge pull request #27 from SE-FDA-NEU-AI66B/docs/modify-readme1
+   │ ●            2383e65 (origin/docs/modify-readme1) Update-readme
+   ├─┘     ●      80a1c5e (origin/docs/modify-readme) update README.md to reflect project details and remove outdated README2.md
+   ○<──┐   │      bd093f8 Merge pull request #23 from SE-FDA-NEU-AI66B/doc/Requirement
+   ○<┐ │   │      f2b8240 Merge pull request #25 from SE-FDA-NEU-AI66B/revert-22-Modify-README
+   │ │ ●   │      d8e15a5 fix ci
+   │ │ ●   │      ffac2ab fix ci
+   │ ● │   │      f84eb48 (origin/revert-22-Modify-README) Revert "Modify readme"
+   │ │ ●   │      e199895 fix ci
+   │ │ ●   │      2cb7425 fix ci
+   │ │ ●   │      95a07a4 fix ci
+   │ │ │ ● │      04bfe91 (origin/copilot/fix-github-actions-job) Revert "Harden PR issue-link detection in scrum check workflow"
+   │ │ │ ● │      d380f5b Harden PR issue-link detection in scrum check workflow
+   │ │ ● │ │      ddae567 fix ci
+   ├─┘ │ ● │      4c6d3f3 Initial plan
+   ├───┼─┘ │      
+   ○<┐ │   │      1823538 Merge pull request #22 from SE-FDA-NEU-AI66B/Modify-README
+   │ │ ●   │      01605b4 update requirements
+   ├>○ │   │      8ab06c8 (Modify-README, origin/Modify-README) Merge remote-tracking branch 'origin/main' into Modify-README
+   │ ○ │   │      f6e12a6 Merge remote-tracking branch 'origin/main' into Modify-README
+   │ │ ●   │      debd79b add Requirement remember to edit the docs/requirements.md
+   │ ● │   │      85c2caa Refactor README.md and remove obsolete README2.md
+   ○ │ │   │      44fb224 Merge pull request #20 from SE-FDA-NEU-AI66B/add-basic-database
+   ├>┤ │   │      
+   │ │ ●   │      930e79d (add-basic-database) add mariadb test tldr it suck
+   ├<┼─┤   │      
+   ├─┼>○   │      31d403f (origin/add-basic-database) Merge remote-tracking branch 'origin/main' into add-basic-database
+   │ │ ●   │      baffc78 Squashed commit of the following:
+   │ │ ●   │      035fc69 fix that took forever
+   │ │ ●   │      16b3b0d hmmmm
+   │ │ ●   │      8e25f9d changes cargo.toml
+   │ │ ●   │      c33b474 test patch
+   │ │ ●   │      d23ff97 update cargo.lock
+   │ │ ●   │      27bac12 fix
+   │ │ ●   │      4c741ba remove some dev fix test
+   │ │ ●   │      61b57a7 test
+   │ │ ●   │      2f5d8a5 password scruber suck
+   │ │ ●   │      4bdb394 fix dep
+ ┌─┼─┼>○   │      25553e3 Merge branch 'main' into add-basic-database
+ │ │ │ ●   │      55f52b8 add bench mark for click house
+ │ │ │ ●   │      92ca81c add benchmark for database
+ │ ○<┼─┼─┐ │      cf35e40 Merge pull request #17 from SE-FDA-NEU-AI66B/docs/adding-template
+ │ │ ● │ │ │      6e267c7 (origin/docs/move-out-of-document) Move docs out of Document
+ │ │ │ ● │ │      d05e654 add bench mark or database
+ │ │ │ ● │ │      7da88d3 build take way too long so build mode is now in debug
+ │ │ │ ● │ │      6fa5d15 optimize build speed in dev mode remove 99% waring
+ │ │ │ │ ● │      b8f91d0 (origin/docs/adding-template) add doc
+ │ ├─┘ │ ● │      f4ef320 add doc
+ │ ├───┼─┼─┘      
+ │ ○<┐ │ │        34e9106 Merge pull request #9 from SE-FDA-NEU-AI66B/clean-up-main
+ │ │ ○<┼─┘        38ac9ee (origin/clean-up-main) Merge branch 'cooler-main' into clean-up-main
+ │ │ │ ●          d4bd0d9 disabe a ci
+ │ │ ● │          b749b1f fix a test so it only run on ss
+ │ │ ○<┤          30d7e3c Merge branch 'cooler-main' into clean-up-main
+ ├─┼─┘ │          
+ │ │   ●          69fdaa6 (origin/cooler-main) ops fix wrong rust dep
+ │ │   ●          2cc3fff add pytest
+ │ │   ●          647a4b6 change python dep
+ ● │   │          71f57be Xóa rác và thay thế 100% bằng code từ cooler-main
+ ○<┤   │          61dc2a9 Merge branch 'main' of https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B
+ │ │ ● │          82db1c3 (origin/chore-scaffold) chore: add scrum scaffold from course template
+ │ │ │ │   ●      1d65ea1 (origin/mệt) Update process.md
+ ├─┼─┼─┘   ○      ed82914 Merge branch 'main' of https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B into mệt
+ ● │ │     │      1104609 add python to view and edit database
+ ● │ │     │      940158e remove node test add python for maintainace adding benchmark for database
+ ● │ │     │      f7b88d0 (origin2/main) remove useless cert note (cloud flare can itercept every tls packet)
+ ● │ │     │      572f132 AMEND
+ ● │ │     │      0b5b025 secret? what secret.
+ ● │ │     │      b66bffb fix workflows
+ ● ├─┘     │      14ca0d8 fix cookie
+ │ ○<──┐   │      978dffa Merge pull request #5 from SE-FDA-NEU-AI66B/scrum
+ ● │   │   │      a2326ab fix worksflows wroker count now works adding cookie
+ ● │   │   │      aeec44b add worker data (40%) add action
+ ● │   │   │      48e29ac add certificate
+ ○<┤   │   │      70fcf66 Merge branch 'main' into cooler-main
+ ● │   │   │      070867a change cloudflared acc+add server side f
+ │ ○<┐ │   │      ffb9580 Merge pull request #7 from SE-FDA-NEU-AI66B/docs/process-dossier
+ │ ├─┼─┼──>┤      
+ │ │ ● │   │      76cd641 (origin/docs/process-dossier) Tighten process dossier to assignment rubric
+ │ │ ● │   │      aeaadf8 Add process dossier
+ │ │ │ │   ●      221cadc Create process.md
+ ○ │ │ │   │      da67310 Merge branch 'cooler-main' into HEAD
+ ● │ │ │   │      757913e rename
+ ● │ │ │   │      c7ab390 toanan
+ │ │ │ ●   │      2b71eb4 (origin/scrum) Adding scrum
+ ├<┼─┼─┤   │      
+ │ │ │ ●   │      16c7d4d adding cert
+ │ ├─┴─┘ ● │      f83a98a (buut/main) .
+ │ ●       │      bbbea17 fix cloudflared
+ │ ●       │      c6659ff rebase done
+ │ ●       │      076d875 add cloudflared instruction
+ │ ●       │      6634fad add cloudflare, fix waring
+ │ ●       │      b7d8ae6 no toby
+ │ ●       │      00c6c57 stuff
+ │ ●       │      532cbe1 add extra tool silence some waring
+ │ ●       │      7f188b0 fix readme
+ │ ●       │      638e97d SETUP
+ │ ●       │      93c1138 readme
+ │ ●       │      3ab2315 hmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+ │ ●       │      f5498ff something something
+ │ ●       │      0bc5765 looks like a good frame works
+ │ ●       │      8b3c995 testing and stuff
+ │ ●       │      38244cd stuff
+ │ │ ●     │      da8b0bc (aaa/main) add cloudflared instruction
+ │ │ ○<────┼─┐    283eb53 Merge remote-tracking branch 'origin/main'
+ │ │ ●     │ │    3fdbf2a add cloudflare, fix waring
+ │ │ ●     │ │    91576f2 [tags/bu] no toby
+ │ │ │     │ ●    f1a4932 Add my name
+ │ │ │     │ ●    b5de959 update tôi lên
+ │ │ └─────┼─┤    
+ │ │       │ ●    e9c58c4 stuff
+ │ │       │ ●    d91ed04 add extra tool silence some waring
+ │ │       │ ●    a9586c6 fix readme
+ │ │       │ ●    15e0dea SETUP
+ │ │       │ ●    d8b98a4 readme
+ │ ●       │ │    540cf8c stop deleting README
+ │ │       │ ●    107ed08 hmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm
+ │ │       │ ●    3fc167a something something
+ │ │       │ ●    bc840a3 looks like a good frame works
+ │ ○<┐     │ │    0958860 Merge pull request #4 from pham-ha-gif/mệt
+ │ ● │     │ │    8be85d9 net
+ │ │ │     ● │    2219757 Update README.md
+ │ │ ├─────┘ │    
+ │ │ ●       │    87bf067 Update README.md
+ │ │ ●       │    f9ca6d2 Update README.md
+ │ ├─┘       │    
+ │ ●         │    7fe525e net
+ │ ○<┐       │    ab4662e Merge remote-tracking branch 'origin/main'
+ │ ● │       │    62d0cd2 evident
+ │ │ ○<┐     │    c94e9d5 Merge pull request #3 from pham-ha-gif/MichaelJackson
+ │ │ ○<┼───┐ │    531a77c Merge pull request #2 from pham-ha-gif/who-ever-delete-or-merge-this-branch-is-gay
+ │ ├─┘ │   │ │    
+ │ ├──>○   │ │    3e8061f (origin/MichaelJackson) Merge branch 'main' into MichaelJackson
+ │ ○<┐ │   │ │    bea2b5a Merge remote-tracking branch 'origin/main'
+ │ ● │ │   │ │    1fa16c3 evident
+ │ │ ○<┼─┐ │ │    680a3b7 Merge pull request #1 from pham-ha-gif/feature/hai_dep_trai
+ │ ├─┘ │ │ │ │    
+ │ ●   │ │ │ │    004af0d facx
+ │ │   ● │ │ │    ea93751 stuff
+ │ │   ● │ │ │    1460414 MJ
+ │ ├───┘ ● │ │    a4d4bfa (origin/feature/hai_dep_trai) Hải_đẹp_trai
+ │ ●     │ │ │    de2b342 yourname
+ │ │     │ ● │    82530f9 (origin/who-ever-delete-or-merge-this-branch-is-gay) stuff
+ │ ├─────┼─┘ ●    8f98bcf testing and stuff
+ │ ○<────┤   │    e0e78e4 Merge remote-tracking branch 'origin/main'
+ │ │     ●   │    5e2b958 add readme
+ │ ●     │   │    c15c64e (origin/hai-bu-quyen) stuff
+ │ ├─────┘   │    
+ │ ○<┐       │    038a9ae stuff
+ │ ● │       │    a53421b stuff
+ │ │ ●       │    1f04923 Add test
+ │ ├─┘       │    
+ │ ●         │    889a672 Add test
+ └─┤         │    
+   ●         │    0fb030a first commit
+             ●    8361883 stuff
