@@ -267,40 +267,35 @@ def _(conn, initialize_sample_data_button, mo):
                     ("linh.demo@demo.neu.edu.vn", "linh_demo"),
                     ("minh.demo@neu.edu.vn", "minh_demo"),
                 ]
-                # Demo-only Argon2id hash of the shared sample password: "password".
-                sample_password_hash = (
-                    "$argon2id$v=19$m=19456,t=2,p=1$bmV1LWRlbW8tc2VlZC1zYWx0$"
-                    "6iunv0I8Ia6ivjbSmVVs9WuhrO2AL76m8xlwdnjqv9g"
-                )
                 sample_user_ids = {}
                 for _email, _username in sample_users:
                     _cursor.execute(
                         """
-                        INSERT INTO users (email, username, password_hash, email_verified)
-                        VALUES (%s, %s, %s, TRUE)
+                        INSERT INTO users (email, username, email_verified)
+                        VALUES (%s, %s, TRUE)
                         ON CONFLICT (email) DO UPDATE SET
                             username = EXCLUDED.username,
-                            password_hash = EXCLUDED.password_hash,
+                            password_hash = NULL,
                             email_verified = TRUE
                         RETURNING id
                         """,
-                        (_email, _username, sample_password_hash),
+                        (_email, _username),
                     )
                     sample_user_ids[_username] = _cursor.fetchone()[0]
 
-                # Demo-only administrator; sign in with username `admin` and password `password`.
+                # Keep the demo account as a regular user; deployments assign admins via ADMIN_EMAIL.
                 _cursor.execute(
                     """
-                    INSERT INTO users (email, username, password_hash, email_verified, role)
-                    VALUES (%s, %s, %s, TRUE, 'admin')
+                    INSERT INTO users (email, username, email_verified, role)
+                    VALUES (%s, %s, TRUE, 'user')
                     ON CONFLICT (email) DO UPDATE SET
                         username = EXCLUDED.username,
-                        password_hash = EXCLUDED.password_hash,
+                        password_hash = NULL,
                         email_verified = TRUE,
-                        role = 'admin'
+                        role = 'user'
                     RETURNING id
                     """,
-                    ("admin@neu.edu.vn", "admin", sample_password_hash),
+                    ("admin@neu.edu.vn", "admin"),
                 )
                 sample_user_ids["admin"] = _cursor.fetchone()[0]
 
@@ -372,7 +367,7 @@ def _(conn, initialize_sample_data_button, mo):
                 )
             conn.commit()
             sample_data_status = mo.md(
-                "Sample users, admin (`admin` / `password`), study dates, one pending report, an accepted match, and a conversation are ready."
+                "Demo users, study dates, one pending report, an accepted match, and a conversation are ready. Demo users have no password login; configure ADMIN_EMAIL to grant an administrator role."
             )
         except Exception as error:
             conn.rollback()
