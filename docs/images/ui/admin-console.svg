@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="510" viewBox="0 0 760 510" role="img" aria-labelledby="title desc">
+  <title id="title">Admin console wireframe</title>
+  <desc id="desc">Admin access check, statistics, refresh action, and independent server/database health indicators.</desc>
+  <rect width="760" height="390" fill="#f4f6f8"/>
+  <rect x="24" y="24" width="712" height="462" rx="12" fill="white" stroke="#52606d" stroke-width="2"/>
+  <text x="48" y="62" font-family="sans-serif" font-size="22" font-weight="bold">Admin dashboard</text>
+  <text x="48" y="91" font-family="sans-serif" font-size="15">The user comes here to monitor platform statistics and server/database health.</text>
+  <rect x="48" y="112" width="650" height="83" rx="7" fill="#fff" stroke="#8795a1"/>
+  <text x="66" y="140" font-family="sans-serif" font-size="15">Registered users: — | Active study dates: — | Pending reports: —</text>
+  <rect x="66" y="151" width="96" height="30" rx="4" fill="#dce8f5" stroke="#52606d"/>
+  <text x="85" y="172" font-family="sans-serif" font-size="13">Refresh</text>
+  <rect x="48" y="209" width="650" height="102" rx="7" fill="#f8fafb" stroke="#8795a1"/>
+  <text x="66" y="239" font-family="sans-serif" font-size="17" font-weight="bold">System health</text>
+  <text x="66" y="269" font-family="sans-serif" font-size="15">Server: Healthy / Unhealthy — last checked …</text>
+  <text x="66" y="294" font-family="sans-serif" font-size="15">Database: Healthy / Unhealthy — last checked …</text>
+  <rect x="48" y="343" width="664" height="35" rx="5" fill="#e9eef4" stroke="#8795a1"/>
+  <text x="60" y="366" font-family="sans-serif" font-size="13">Home | Register | Feed | Create | Requests | Admin | Sign in (planned)</text>
+  <text x="48" y="408" font-family="sans-serif" font-size="12">Loading: checking access, statistics, and health</text>
+  <text x="48" y="428" font-family="sans-serif" font-size="12">Empty: zero counts are valid data</text>
+  <text x="48" y="448" font-family="sans-serif" font-size="12">Error: access, statistics, or health alert</text>
+  <text x="48" y="468" font-family="sans-serif" font-size="12">Success: counts and independent health status are shown</text>
+  <text x="48" y="498" font-family="sans-serif" font-size="13" fill="#52606d">API: GET /api/admin/access, /statistics, /health</text>
+</svg>
