@@ -136,7 +136,7 @@ mod tests {
 
     #[actix_web::test]
     #[ignore = "requires TEST_DATABASE_URL pointing to an isolated PostgreSQL database"]
-    async fn us13_t01_health_reports_server_and_database_independently() {
+    async fn us13_t01_health_reports_both_components_healthy() {
         let fixture = admin_fixture().await;
         let app = test::init_service(
             App::new()

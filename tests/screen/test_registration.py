@@ -4,20 +4,21 @@ from pathlib import Path
 from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
+import pytest
 
 ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 
 def app_url() -> str:
     configured_url = os.environ.get("TEST_APP_URL")
-    if not configured_url:
+    if not configured_url and ENV_FILE.is_file():
         for line in ENV_FILE.read_text(encoding="utf-8").splitlines():
             if line.startswith("TEST_APP_URL="):
                 configured_url = line.partition("=")[2].strip().strip("\"'")
                 break
 
     if not configured_url:
-        raise AssertionError("TEST_APP_URL is missing from .env")
+        pytest.skip("requires TEST_APP_URL pointing to a running app")
     return configured_url.rstrip("/")
 
 
