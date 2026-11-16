@@ -1,29 +1,93 @@
 # Operations guide
 
-## Run
+## 1. Run and release
 
-For local development, follow [SETUP.md](SETUP.md). Start PostgreSQL with
-Docker Compose, recreate the development schema through `database/note.py`,
-then run `cargo leptos watch`.
+URL: <https://www.dt-fwb.ipv64.de>, routed by Cloudflare Tunnel to
+`localhost:3100` (`cert/.cloudflared/config.yml`). App and tunnel run on the
+host; deployment is manual.
 
-## Monitor
+Develop with [SETUP.md](SETUP.md) and `cargo leptos watch`. Release by merging
+to `main` after CI passes, then build with `cargo leptos build --release` and
+restart the app through the host's process manager. No deploy script or service
+unit is defined here; the current workflows do not provide an active build/test
+gate (section 2).
 
-Public readiness is `GET /health`. It runs `SELECT 1` with a two-second
-timeout and returns `200 ok` or `503 unhealthy`. Admin-only
-`GET /api/admin/health` reports server and database status. Neither endpoint
-checks Microsoft sign-in or the Cloudflare Tunnel.
+Rollback by rebuilding/restarting the previous good commit, or revert the
+change and deploy `main`. Verify the public URL and admin health page.
 
-The app writes startup and error summaries to stdout/stderr. Read them in the
-foreground terminal or the self-host's process manager; Cloudflare Tunnel has
-separate logs. App handlers do not log passwords, session cookies, or raw
-request bodies. No metrics or log aggregation service is configured. Once
-metrics are available, track 5xx rate and p95 response time; until then check
-logs, the public URL, `/health`, and admin health after deploys.
+## 2. CI pipeline: install and test
 
-## Database and deployment limits
+`.github/workflows/ci.yml-not` is not loaded by GitHub Actions. The active
+`eltonjohn.yml` only checks out code; build/test commands are comments. No
+latest green run or measured duration is available. Check the [main Actions
+runs](https://github.com/pham-ha-gif/H-iDB/actions?query=branch%3Amain); allow
+5–10 minutes once a real workflow is enabled.
 
-PostgreSQL is self-hosted on the app host. The Compose port binds to loopback;
-the app connects through `DATABASE_URL`. Development schema creation belongs
-to the notebook, not server startup. The repository does not configure
-production backups, a managed database, or automated deployment. See the
-[release guide](release.md) for deploy and rollback steps.
+| Workflow step          | What it checks                                                                                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workflow step          | Check                                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| Detect stack (Ubuntu)  | Checkout; detect Python files to select jobs.                                              |
+| Python tests (Ubuntu)  | Install `uv`; sync; Ruff (warning-only); pytest with coverage/JUnit; publish summary.       |
+| Python tests (Windows) | Same Python checks on Windows; install Python 3.13 for summary.                            |
+| No secrets committed   | Scan for credentials, `.env`, SQL dumps, and database dumps.                              |
+
+There is no Rust/Leptos step or branch-protection screenshot. Capture the
+actual `main` rules from GitHub Settings → Branches at
+`docs/evident/main-branch-protection.png`.
+
+## 3. Monitoring, logs, and health
+
+App diagnostics go to stdout/stderr: startup address and database,
+authentication, and OAuth failure summaries. Read foreground output or host
+process logs (for example, `journalctl -u <app-unit>`); Tunnel logs are
+separate. No log aggregation or metrics service is configured.
+
+Handlers do not log passwords, session cookies, raw request bodies, or
+intentionally log emails/usernames. Restrict log access; review database errors
+before sharing logs.
+
+`GET /health` runs `SELECT 1` (2-second timeout): `200 ok` or `503 unhealthy`.
+`GET /api/admin/health` requires an admin session and shows server/database
+status and timestamps. Neither checks sign-in, tunnel, or full user flows.
+Watch:
+
+- **Error rate:** 5xx responses; alert above 2% for five minutes.
+- **Response time:** p95 latency; alert above one second for five minutes.
+
+Thresholds are proposed, not measured. Until metrics are configured, review
+logs and check the URL, `/health`, and admin health view.
+
+## 4. Known risks and technical debt
+
+| Item                                                                                              | Layer          | What could happen                                                          | Plan                                                                                                                      |
+| ------------------------------------------------------------------------------------------------- | -------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Item | Layer | What could happen | Plan |
+| --- | --- | --- | --- |
+| CI config is inactive; Cargo checks are commented out. | infrastructure | Rust regressions reach `main`. | accepted — enable CI before production use. |
+| PostgreSQL tests need `TEST_DATABASE_URL`. | tests | CI misses database regressions. | accepted — CI needs an isolated database. |
+| Deployment is manual on the Tunnel host. | infrastructure | Wrong commit or downtime. | accepted — no deploy runner is configured. |
+| No production backup/restore job. | data | Host loss removes user data. | accepted — configure encrypted off-host backups before production. |
+| No metrics or log aggregation. | infrastructure | Errors/latency go unnoticed. | accepted — demo uses manual checks. |
+
+## 5. Maintenance plan
+
+| Area               | What to do                                                                                                                          | Owner                                       | How often                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------- |
+| Area | What to do | Owner | How often |
+| --- | --- | --- | --- |
+| Bugs | Triage, reproduce, file issue, add regression test. | Dev team; Product Owner prioritizes | Weekly; before release |
+| Dependencies | Review advisories, update lockfiles, build/test. | Developer and release operator | Monthly; urgent fixes immediately |
+| Backups | Configure encrypted off-host backup; test restore. Dev DB is notebook-recreated. | Database operator | Daily; quarterly restore drill |
+| Monitoring | Review errors, latency, logs, URL, health endpoints. | Release operator | After deploy; metrics weekly |
+| Docs | Verify setup, API, schema, runbook, screenshots. | Author; reviewer verifies | Relevant PRs; full sprint review |
+
+## 6. Lessons learned
+
+1. CI files looked active but checks were disabled. We inspected the workflow
+   contents; next time, verify a green `main` run before claiming CI works.
+2. Review evidence and an independent setup walkthrough were missing late in
+   the project. We added an evidence checklist; next time, capture evidence as
+   we work and schedule a clean-machine setup early.
+3. A stale wasm standard library caused a misleading Serde error. We found the
+   toolchain mismatch; next time, verify wasm targets during the first build.
