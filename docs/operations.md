@@ -1,103 +1,93 @@
-# Operations
+# Operations guide
 
-## 1. Release and rollback
+## 1. Run and release
 
-**Public URL:** none is provisioned. The [Render candidate](https://neudating.onrender.com)
-returned HTTP 404 on 2026-11-16; it is not production. Replace it after #138.
-The [manifest](../render.yaml) sets `autoDeploy: true`, which does not wait for
-CI. Until #144 is verified, set `autoDeploy: false`, sync the service, and
-confirm automatic deploys are disabled. Deploy manually after the checks pass.
+URL: <https://www.dt-fwb.ipv64.de>, routed by Cloudflare Tunnel to
+`localhost:3100` (`cert/.cloudflared/config.yml`). App and tunnel run on the
+host; deployment is manual.
 
-1. Open a PR to `main`; obtain a teammate review and green checks. Until the
-   branch rule is evidenced, have a maintainer verify it. Run `cargo fmt
-   --all -- --check`, `cargo check --features ssr`, and `cargo test --lib
-   --features ssr`; current CI does not build Rust.
-2. Merge after checks pass. Record the main SHA and its green
-   [Actions run](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/actions/runs/41417457026).
-3. In Render Dashboard, open `neudating` → **Manual Deploy** and deploy that
-   exact SHA. Wait for completion.
-4. Copy the confirmed host from Render. Open
-   `https://<confirmed-host>/health` and require HTTP 200, then complete the
-   P0 smoke flow in a private browser window. Record URL, SHA, and deploy event.
+Develop with [SETUP.md](SETUP.md) and `cargo leptos watch`. Release by merging
+to `main` after CI passes, then build with `cargo leptos build --release` and
+restart the app through the host's process manager. No deploy script or service
+unit is defined here; the current workflows do not provide an active build/test
+gate (section 2).
 
-For rollback, open `neudating` in Render, select the last known-good SHA in
-**Events**, and redeploy it. Recheck `/health` and the P0 flow, then record
-failure and restored SHA. A code rollback does not restore database contents;
-back up before schema/data changes and forward-fix if rollback would lose data.
-Rehearse under #147.
+Rollback by rebuilding/restarting the previous good commit, or revert the
+change and deploy `main`. Verify the public URL and admin health page.
 
-## 2. CI and branch protection
+## 2. CI pipeline: install and test
 
-The [CI workflow](../.github/workflows/ci.yml) runs on pushes and pull
-requests. It checks stack detection, Python tests on Linux and Windows, a
-credential/database-dump scan, and Playwright test discovery. Lint is
-warning-only; Playwright does not run browser flows, and CI does not compile
-or test Rust. Do not treat this as a release gate until #143 closes these gaps.
+`.github/workflows/ci.yml-not` is not loaded by GitHub Actions. The active
+`eltonjohn.yml` only checks out code; build/test commands are comments. No
+latest green run or measured duration is available. Check the [main Actions
+runs](https://github.com/pham-ha-gif/H-iDB/actions?query=branch%3Amain); allow
+5–10 minutes once a real workflow is enabled.
 
-The latest successful `main` run found during this update is [run #222](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/actions/runs/41417457026),
-completed 2026-11-02 on commit `48ff6fd20af4368402dbd25ca4fd24aedd47b4a2`.
-It passed its five jobs in about 67 seconds; it predates the current deployment
-work and does not validate unmerged changes.
+| Workflow step          | What it checks                                                                                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Workflow step          | Check                                                                                     |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| Detect stack (Ubuntu)  | Checkout; detect Python files to select jobs.                                              |
+| Python tests (Ubuntu)  | Install `uv`; sync; Ruff (warning-only); pytest with coverage/JUnit; publish summary.       |
+| Python tests (Windows) | Same Python checks on Windows; install Python 3.13 for summary.                            |
+| No secrets committed   | Scan for credentials, `.env`, SQL dumps, and database dumps.                              |
 
-The [main branch protection settings](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/settings/branches)
-are authoritative (maintainer access required). The rule and screenshot are
-not yet verified; see #144. Require a PR, one approval, and green CI before
-enabling deploy-after-green.
+There is no Rust/Leptos step or branch-protection screenshot. Capture the
+actual `main` rules from GitHub Settings → Branches at
+`docs/evident/main-branch-protection.png`.
 
-## 3. Monitoring and secret handling
+## 3. Monitoring, logs, and health
 
-Render is configured to probe `GET /health`; the required contract is HTTP 200
-when the service can query PostgreSQL and HTTP 503 otherwise. The route and
-automated healthy/unhealthy checks must be verified before release under
-issue #139. Until then, a missing or non-200 response blocks release.
+App diagnostics go to stdout/stderr: startup address and database,
+authentication, and OAuth failure summaries. Read foreground output or host
+process logs (for example, `journalctl -u <app-unit>`); Tunnel logs are
+separate. No log aggregation or metrics service is configured.
 
-In the Render service's **Metrics**, watch 5xx error rate (5xx responses /
-total responses) and p95 response time. Use 5% errors or p95 above 2 seconds
-for five minutes as initial investigation thresholds; confirm available
-metrics and adjust them for the selected plan. Check `/health` after each
-deploy and during demos. Render **Logs** captures application stdout/stderr;
-filter by the failing time and operation, then compare with the deploy event.
-There is no external alerting yet (#145); checks are manual.
+Handlers do not log passwords, session cookies, raw request bodies, or
+intentionally log emails/usernames. Restrict log access; review database errors
+before sharing logs.
 
-Store `DATABASE_URL`, production authentication credentials, and other
-secrets only in Render Environment settings or an ignored local `.env`.
-`ADMIN_EMAIL` is configuration, not a password. Never paste secret values in
-issues, screenshots, command output, or logs. If a value is exposed, rotate it
-at the provider and update Render before restarting the service.
+`GET /health` runs `SELECT 1` (2-second timeout): `200 ok` or `503 unhealthy`.
+`GET /api/admin/health` requires an admin session and shows server/database
+status and timestamps. Neither checks sign-in, tunnel, or full user flows.
+Watch:
 
-## 4. Five known risks
+- **Error rate:** 5xx responses; alert above 2% for five minutes.
+- **Response time:** p95 latency; alert above one second for five minutes.
 
-| Risk | Impact | Issue-based plan |
-|---|---|---|
-| No provisioned public service or verified URL | Users cannot reach or smoke-test production. | [#138 — deploy HTTPS service](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/138) |
-| `/health` route/checks not verified on `main` | Render may report a false failure or miss a database outage. | [#139 — implement and test health](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/139) |
-| Production database/sample records not confirmed | Data may be ephemeral or the demo may start empty. | [#140 — persistent data and fixtures](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/140) |
-| CI and branch protection do not yet gate deploys | A broken or unreviewed commit could reach the service. | [#143 — CI](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/143) and [#144 — protected `main`](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/144) |
-| No production alerting or agreed log retention | An outage may be noticed late or evidence may be unavailable. | [#145 — monitoring guidance](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/145) |
+Thresholds are proposed, not measured. Until metrics are configured, review
+logs and check the URL, `/health`, and admin health view.
 
-## 5. Five maintenance areas
+## 4. Known risks and technical debt
 
-| Area | Action | Owner | Cadence |
-|---|---|---|---|
-| Release and recovery | Review deploy SHA, verify smoke checks, rehearse rollback. | Release maintainer | Every release; rollback drill per [#147](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/147) |
-| Database | Confirm backup/restore point and persistence; review fixture safety. | Database owner | Weekly and before schema changes |
-| Monitoring | Check `/health`, 5xx rate, p95 response time, and Render logs. | Operations maintainer | After deploy and each demo day |
-| Dependencies and CI | Review Rust/toolchain, Python, npm, and action updates; run full checks. | Development team | Monthly |
-| Secrets and demo accounts | Audit access, rotate exposed values, verify non-production accounts. | Deployment owner | Every release; see [#146](https://github.com/SE-FDA-NEU-AI66B/G8-DatingApp-AI66B/issues/146) |
+| Item                                                                                              | Layer          | What could happen                                                          | Plan                                                                                                                      |
+| ------------------------------------------------------------------------------------------------- | -------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Item | Layer | What could happen | Plan |
+| --- | --- | --- | --- |
+| CI config is inactive; Cargo checks are commented out. | infrastructure | Rust regressions reach `main`. | accepted — enable CI before production use. |
+| PostgreSQL tests need `TEST_DATABASE_URL`. | tests | CI misses database regressions. | accepted — CI needs an isolated database. |
+| Deployment is manual on the Tunnel host. | infrastructure | Wrong commit or downtime. | accepted — no deploy runner is configured. |
+| No production backup/restore job. | data | Host loss removes user data. | accepted — configure encrypted off-host backups before production. |
+| No metrics or log aggregation. | infrastructure | Errors/latency go unnoticed. | accepted — demo uses manual checks. |
 
-## 6. Three lessons learned
+## 5. Maintenance plan
 
-1. Localhost and hosted services differ in ports and database URLs; use
-   platform environment configuration and test a clean deployment earlier.
-2. An admin-only health card is not an operational probe; keep public
-   dependency health separate and verify it independently.
-3. Release evidence is easy to lose; record the URL, SHA, green run, branch
-   rule, and rollback result as each release happens.
+| Area               | What to do                                                                                                                          | Owner                                       | How often                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------- |
+| Area | What to do | Owner | How often |
+| --- | --- | --- | --- |
+| Bugs | Triage, reproduce, file issue, add regression test. | Dev team; Product Owner prioritizes | Weekly; before release |
+| Dependencies | Review advisories, update lockfiles, build/test. | Developer and release operator | Monthly; urgent fixes immediately |
+| Backups | Configure encrypted off-host backup; test restore. Dev DB is notebook-recreated. | Database operator | Daily; quarterly restore drill |
+| Monitoring | Review errors, latency, logs, URL, health endpoints. | Release operator | After deploy; metrics weekly |
+| Docs | Verify setup, API, schema, runbook, screenshots. | Author; reviewer verifies | Relevant PRs; full sprint review |
 
-## 7. Final release checklist
+## 6. Lessons learned
 
-- [ ] Replace the candidate with the live HTTPS URL; test desktop/mobile private windows (#138).
-- [ ] Confirm `/health` and the P0 smoke flow on deployed SHA (#139, #141).
-- [ ] Verify `main` protection and deploy-after-green; attach settings evidence (#144).
-- [ ] Record green run, tag `v1.0` at deployed SHA, rehearse rollback (#142, #147).
-- [ ] Verify demo accounts and sample data; include no credentials (#140, #146).
+1. CI files looked active but checks were disabled. We inspected the workflow
+   contents; next time, verify a green `main` run before claiming CI works.
+2. Review evidence and an independent setup walkthrough were missing late in
+   the project. We added an evidence checklist; next time, capture evidence as
+   we work and schedule a clean-machine setup early.
+3. A stale wasm standard library caused a misleading Serde error. We found the
+   toolchain mismatch; next time, verify wasm targets during the first build.

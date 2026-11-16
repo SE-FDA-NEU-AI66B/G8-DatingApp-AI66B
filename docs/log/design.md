@@ -133,6 +133,7 @@ created and reset from the `## Application database` section in
 | `GET` | `/api/auth/login` | — | Redirect to Microsoft sign-in | `500` configuration/provider failure |
 | `GET` | `/api/auth/callback` | Microsoft authorization response | `302`; verified account and session cookie | `400`, `401`, `500` |
 | `GET` | `/api/admin/statistics` | Admin session cookie | `200` with three counts | `401` unauthenticated; `403` non-admin; `500` database failure |
+| `GET` | `/health` | None | `200 ok` when PostgreSQL responds; `503 unhealthy` otherwise | No detailed health data is exposed |
 | `GET` | `/api/admin/health` | Admin session cookie | `200` with server/database status and timestamps | `401`; `403` |
 | `GET` | `/api/auth/login` | — | Redirect to configured OAuth2 provider | `500` provider configuration failure |
 | `GET` | `/api/auth/callback` | OAuth2 authorization response | `302` session cookie | `400`, `401`, `500` |
