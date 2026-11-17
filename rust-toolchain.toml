@@ -1,4 +1,4 @@
 [toolchain]
 channel = "nightly"
-components = ["rustfmt", "clippy", "rust-docs"]
+components = ["rustfmt", "clippy", "rust-docs", "rustc-codegen-cranelift"]
 targets = ["wasm32-unknown-unknown"]

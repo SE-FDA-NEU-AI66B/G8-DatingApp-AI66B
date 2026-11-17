@@ -1,8 +1,8 @@
 tunnel: urmom
 credentials-file: ./cert/.cloudflared/secret
 ingress:
-  - hostname: www.dt-fwb.ipv64.de
-    service: http://localhost:3100
+  - hostname: 30.imsimp.ipv64.de
+    service: http://0.0.0.0:3100
     # originRequest:
     #   originServerName: www.dt-fwb.ipv64.de
   - service: http_status:404
