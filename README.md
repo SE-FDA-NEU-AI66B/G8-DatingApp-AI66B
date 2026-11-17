@@ -15,7 +15,7 @@ separately with the instructor/team and are intentionally not committed here.
 
 | Role | Email | Username |
 |---|---|---|
-| Admin | `admin.test@neu.edu.vn` | `admin_test` |
+| Admin | `admin1@neu.edu.vn` | `admin1` |
 | Student | `student.one@neu.edu.vn` | `student_one` |
 | Student | `student.two@neu.edu.vn` | `student_two` |
 
