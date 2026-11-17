@@ -379,8 +379,8 @@ mod tests {
     use uuid::Uuid;
 
     #[test]
-    fn relation_from_db_maps_known_states_and_fails_closed() {
-        use crate::share::matching::Relation;
+    async fn relation_from_db_maps_known_states_and_fails_closed() {
+        use crate::lib::share::matching::Relation;
 
         for (database_value, expected) in [
             ("none", Relation::None),
