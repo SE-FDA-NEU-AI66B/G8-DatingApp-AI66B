@@ -79,7 +79,7 @@ const SCHEMA_STATEMENTS: &[&str] = &[
     )",
 ];
 
-pub async fn run(pool: &PgPool, admin_email: Option<&str>) -> Result<(), sqlx::Error> {
+pub async fn run(pool: &PgPool) -> Result<(), sqlx::Error> {
     for statement in SCHEMA_STATEMENTS {
         sqlx::query(*statement).execute(pool).await?;
     }
@@ -96,17 +96,6 @@ pub async fn run(pool: &PgPool, admin_email: Option<&str>) -> Result<(), sqlx::E
         "CREATE INDEX IF NOT EXISTS thread_comments_thread_created_idx ON thread_comments (thread_id, created_at, id)",
     ] {
         sqlx::query(statement).execute(pool).await?;
-    }
-
-    if let Some(email) = admin_email.map(str::trim).filter(|email| !email.is_empty()) {
-        sqlx::query(
-            "INSERT INTO users (email, email_verified, role)
-             VALUES ($1, TRUE, 'admin')
-             ON CONFLICT (email) DO UPDATE SET role = 'admin'",
-        )
-        .bind(email.to_lowercase())
-        .execute(pool)
-        .await?;
     }
 
     Ok(())
