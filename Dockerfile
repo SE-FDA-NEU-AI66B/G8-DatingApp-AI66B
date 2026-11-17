@@ -11,7 +11,7 @@ COPY . .
 
 RUN cargo leptos build --release
 
-FROM debian:bookworm-slim
+FROM debian:trixie-slim
 
 RUN apt-get update \
     && apt-get install --no-install-recommends -y ca-certificates libssl3 \
