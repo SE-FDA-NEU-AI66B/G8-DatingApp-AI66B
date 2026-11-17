@@ -9,10 +9,12 @@ pub fn get_tls_config() -> rustls::ServerConfig {
 
     use std::{fs::File, io::BufReader};
 
-    let mut certs_file =
-        BufReader::new(File::open("cert/.lego/certificates/rsa_4096.pem").expect("wrong dir"));
-    let mut key_file =
-        BufReader::new(File::open("cert/.lego/certificates/rsa_4096.pem").expect("wrong dir"));
+    let cert_path = std::env::var("TLS_CERT_PATH")
+        .expect("TLS_CERT_PATH must be set when TLS is enabled");
+    let key_path = std::env::var("TLS_KEY_PATH")
+        .expect("TLS_KEY_PATH must be set when TLS is enabled");
+    let mut certs_file = BufReader::new(File::open(cert_path).expect("cannot open TLS certificate"));
+    let mut key_file = BufReader::new(File::open(key_path).expect("cannot open TLS private key"));
     let tls_certs = rustls_pemfile::certs(&mut certs_file)
         .collect::<Result<Vec<_>, _>>()
         .unwrap();

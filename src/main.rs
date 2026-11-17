@@ -15,7 +15,12 @@ async fn main() -> std::io::Result<()> {
     use leptos_meta::MetaTags;
     use lib::app::*;
     let conf = get_configuration(None).unwrap();
-    let addr = conf.leptos_options.site_addr;
+    let addr = match env::var("PORT") {
+        Ok(port) => format!("0.0.0.0:{port}")
+            .parse()
+            .expect("PORT must be a valid TCP port number"),
+        Err(_) => conf.leptos_options.site_addr,
+    };
     let pool = sqlx::postgres::PgPoolOptions::new()
         .max_connections(10)
         .connect(&ss::functions::get_db_uri())
@@ -116,7 +121,9 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(leptos_options.to_owned()))
         //.wrap(middleware::Compress::default())
     });
-    let tls_config = if !cfg!(debug_assertions) {
+    let tls_config = if env::var_os("TLS_CERT_PATH").is_some()
+        && env::var_os("TLS_KEY_PATH").is_some()
+    {
         Some(ss::functions::get_tls_config())
     } else {
         None
