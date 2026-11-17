@@ -7,6 +7,8 @@ pub mod chat;
 pub mod community;
 pub mod functions;
 #[cfg(feature = "ssr")]
+pub mod migrate;
+#[cfg(feature = "ssr")]
 pub mod matching;
 #[cfg(feature = "ssr")]
 pub mod register;
