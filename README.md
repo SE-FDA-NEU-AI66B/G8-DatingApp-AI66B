@@ -1,4 +1,4 @@
-https://www.dt-fwb.ipv64.de
+Running app: https://g8-datingapp-ai66b-1.onrender.com
 
 # NEUDating — Milestone 5 submission
 
@@ -8,16 +8,21 @@ NEUDating is a student-focused dating app for meeting people with shared interes
 
 **CI status caveat:** the current workflow checks out the code, but its Cargo build and test commands are commented out. A green badge does not mean the Rust app was built or tested.
 
-## Demo accounts
+## Test accounts
 
-Local notebook seed accounts (created by the sample-data action in `database/note.py`):
+Use these non-production accounts for the public demo. Passwords are shared
+separately with the instructor/team and are intentionally not committed here.
 
-| Role | Test account | Local demo password |
+| Role | Email | Username |
 |---|---|---|
-| Admin | `admin` | `password` |
-| Student | `alex_demo`, `linh_demo`, `minh_demo` | `password` |
+| Admin | `admin.test@neu.edu.vn` | `admin_test` |
+| Student | `student.one@neu.edu.vn` | `student_one` |
+| Student | `student.two@neu.edu.vn` | `student_two` |
 
-These are demo-only credentials for the local seeded development database, not real user credentials. Availability of these accounts on the public host is not guaranteed.
+The admin email must match the Render `ADMIN_EMAIL` value. Create each account
+through the registration screen before the demo, using a unique test password
+of at least 12 characters. Never use a real personal password or a database
+connection string in this repository.
 
 ## P0 stories and starting points
 
@@ -31,6 +36,8 @@ These are demo-only credentials for the local seeded development database, not r
 Story status and evidence: [P0 traceability](docs/traceability.md).
 
 ## Team QHQ
+
+Members: Nguyen Son Hai (11247282), Nguyen Minh Quang (11247344), Le Duy Quyen (11247345).
 
 Nguyễn Sơn Hải (`hai291`, Product Owner) · Nguyễn Minh Quang (`iambadwithname`) · Phạm Hà (`pham-ha-gif`). See the [project board](https://github.com/orgs/SE-FDA-NEU-AI66B/projects/20).
 
