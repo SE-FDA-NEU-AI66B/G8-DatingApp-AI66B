@@ -36,9 +36,6 @@ jobs:
       TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/userdb
       TEST_APP_URL: http://127.0.0.1:3100
       PORT: "3100"
-      RECREATE_DATABASE: "1"
-      INITIALIZE_SAMPLE_DATA: "1"
-      CI_DATABASE_SETUP_ONLY: "1"
       ADMIN_EMAIL: admin@neu.edu.vn
       CARGO_TERM_COLOR: always
 
@@ -52,7 +49,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.15"
 
       - uses: astral-sh/setup-uv@v6
         with:
@@ -60,6 +57,9 @@ jobs:
 
       - name: Install Python dependencies
         run: uv sync --locked
+
+      - name: Initialize isolated CI database
+        run: uv run python database/init.py --recreate --seed
 
       - name: Install Rust and Leptos tools
         uses: dtolnay/rust-toolchain@nightly
@@ -86,32 +86,32 @@ jobs:
           echo "Application did not become healthy within 120 seconds."
           exit 1
 
-      # - name: Run pytest against the running application
-      #   run: uv run pytest -v --cov --cov-report=term-missing --junitxml=junit.xml
-      #
-      # - name: Publish test summary
-      #   if: always()
-      #   run: |
-      #     echo "### Python test results" >> "$GITHUB_STEP_SUMMARY"
-      #     python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
-      #     import pathlib
-      #     import xml.etree.ElementTree as ET
-      #
-      #     report = pathlib.Path("junit.xml")
-      #     if not report.exists():
-      #         print("No pytest report was produced.")
-      #     else:
-      #         root = ET.parse(report).getroot()
-      #         suite = root if root.tag == "testsuite" else root.find("testsuite")
-      #         if suite is None:
-      #             print("No test suite found in pytest report.")
-      #         else:
-      #             failed = int(suite.get("failures", 0)) + int(suite.get("errors", 0))
-      #             print(f"- Tests: **{suite.get('tests', 0)}**")
-      #             print(f"- Failed: **{failed}**")
-      #             print(f"- Skipped: **{suite.get('skipped', 0)}**")
-      #     PY
-      #
-      # - name: Show application log on failure
-      #   if: failure()
-      #   run: cat /tmp/neudating.log || true
+      - name: Run pytest against the running application
+        run: uv run pytest -v --cov --cov-report=term-missing --junitxml=junit.xml
+
+      - name: Publish test summary
+        if: always()
+        run: |
+          echo "### Python test results" >> "$GITHUB_STEP_SUMMARY"
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import pathlib
+          import xml.etree.ElementTree as ET
+
+          report = pathlib.Path("junit.xml")
+          if not report.exists():
+              print("No pytest report was produced.")
+          else:
+              root = ET.parse(report).getroot()
+              suite = root if root.tag == "testsuite" else root.find("testsuite")
+              if suite is None:
+                  print("No test suite found in pytest report.")
+              else:
+                  failed = int(suite.get("failures", 0)) + int(suite.get("errors", 0))
+                  print(f"- Tests: **{suite.get('tests', 0)}**")
+                  print(f"- Failed: **{failed}**")
+                  print(f"- Skipped: **{suite.get('skipped', 0)}**")
+          PY
+
+      - name: Show application log on failure
+        if: failure()
+        run: cat /tmp/neudating.log || true

@@ -1,8 +1,13 @@
-"""SQL definitions loaded and executed by the application database notebook.
+"""Create the application schema and sample data.
 
-This module only defines SQL and seed values. ``database/note.py`` owns the
-database connection, recreation controls, transactions, and execution flow.
+The notebook imports these functions for interactive setup; CI can run this
+module directly against its disposable PostgreSQL database.
 """
+
+import argparse
+import os
+
+import psycopg2
 
 APPLICATION_SCHEMA_SQL = """
 DROP SCHEMA public CASCADE;
@@ -230,3 +235,84 @@ INSERT INTO conversations (user_low, user_high, match_request_id)
 VALUES (%s, %s, %s)
 ON CONFLICT (user_low, user_high) DO NOTHING
 """
+
+
+def recreate_application_database(conn):
+    """Drop and recreate the public schema in the connected database."""
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cursor:
+            cursor.execute(APPLICATION_SCHEMA_SQL)
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.autocommit = True
+
+
+def initialize_sample_data(conn):
+    """Insert the reusable demo accounts and related records."""
+    try:
+        conn.autocommit = False
+        with conn.cursor() as cursor:
+            sample_user_ids = {}
+            for email, username in SAMPLE_USERS:
+                cursor.execute(UPSERT_SAMPLE_USER_SQL, (email, username))
+                sample_user_ids[username] = cursor.fetchone()[0]
+
+            # Deployments assign admin roles through ADMIN_EMAIL.
+            cursor.execute(UPSERT_ADMIN_SEED_SQL, ("admin@neu.edu.vn", "admin"))
+            sample_user_ids["admin"] = cursor.fetchone()[0]
+
+            cursor.execute(
+                SEED_STUDY_DATES_SQL,
+                tuple(sample_user_ids[name] for name in ("alex_demo", "linh_demo", "minh_demo")),
+            )
+            alex = sample_user_ids["alex_demo"]
+            linh = sample_user_ids["linh_demo"]
+            minh = sample_user_ids["minh_demo"]
+            cursor.execute(SEED_PENDING_REPORT_SQL, (alex, minh, alex, minh))
+            cursor.execute(SEED_ACCEPTED_MATCH_SQL, (alex, linh))
+            sample_match_id = cursor.fetchone()[0]
+            cursor.execute(SEED_PENDING_MATCH_SQL, (minh, alex))
+            cursor.execute(SEED_CONVERSATION_SQL, (min(alex, linh), max(alex, linh), sample_match_id))
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.autocommit = True
+
+
+def main():
+    from dotenv import load_dotenv
+
+    load_dotenv()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--recreate", action="store_true", help="drop and recreate the public schema")
+    parser.add_argument("--seed", action="store_true", help="insert sample application data")
+    args = parser.parse_args()
+    if not (args.recreate or args.seed):
+        parser.error("choose --recreate, --seed, or both")
+
+    conn = psycopg2.connect(
+        host=os.environ.get("PGHOST", "localhost"),
+        port=os.environ.get("PGPORT", "5432"),
+        database=os.environ.get("PGDATABASE", "userdb"),
+        user=os.environ.get("PGUSER", "postgres"),
+        password=os.environ.get("PGPASS"),
+    )
+    try:
+        if args.recreate:
+            recreate_application_database(conn)
+            print("Application database schema recreated.")
+        if args.seed:
+            initialize_sample_data(conn)
+            print("Sample data initialized.")
+    finally:
+        conn.close()
+
+
+if __name__ == "__main__":
+    main()
