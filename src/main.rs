@@ -26,7 +26,7 @@ async fn main() -> std::io::Result<()> {
         .connect(&ss::functions::get_db_uri())
         .await
         .expect("cannot connect to PostgreSQL (check DATABASE_URL and `mise run database`)");
-    ss::migrate::run(&pool, env::var("ADMIN_EMAIL").ok().as_deref())
+    ss::migrate::run(&pool)
         .await
         .expect("database schema migration failed");
     ss::auth::configure_admin(&pool, env::var("ADMIN_EMAIL").ok().as_deref())
