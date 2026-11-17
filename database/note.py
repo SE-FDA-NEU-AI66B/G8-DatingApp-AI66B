@@ -12,15 +12,11 @@ def _(mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _():
     import os
     import marimo as mo
-    # note if ur new to marimo dont worry about duckdb marimo auto useit if available;since both duckdb and and polars use arrow data format duckdb intergration with marimo can read all polars object and so is the otherway round
     import psycopg2
-    import polars as pl  # arrow conpatable
-
-    from psycopg2 import sql
 
     return mo, os, psycopg2
 
@@ -257,7 +253,7 @@ def _(conn, mo, recreate_database_button):
     else:
         schema_status = mo.md("Click the button above to recreate the application database.")
     schema_status
-    return
+    return (os,)
 
 
 @app.cell(hide_code=True)
@@ -383,7 +379,7 @@ def _(conn, initialize_sample_data_button, mo):
     else:
         sample_data_status = mo.md("Click **Initialize sample data** to add demo records.")
     sample_data_status
-    return
+    return (os,)
 
 
 @app.cell(hide_code=True)

@@ -17,20 +17,18 @@ change and deploy `main`. Verify the public URL and admin health page.
 
 ## 2. CI pipeline: install and test
 
-`.github/workflows/ci.yml-not` is not loaded by GitHub Actions. The active
-`eltonjohn.yml` only checks out code; build/test commands are comments. No
-latest green run or measured duration is available. Check the [main Actions
-runs](https://github.com/pham-ha-gif/H-iDB/actions?query=branch%3Amain); allow
-5–10 minutes once a real workflow is enabled.
+`.github/workflows/ci.yml` is the active build and test workflow. No latest
+green run or measured duration is recorded here; check the [main Actions
+runs](https://github.com/pham-ha-gif/H-iDB/actions?query=branch%3Amain).
 
-| Workflow step          | What it checks                                                                                                                                       |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Workflow step          | Check                                                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------- |
-| Detect stack (Ubuntu)  | Checkout; detect Python files to select jobs.                                              |
-| Python tests (Ubuntu)  | Install `uv`; sync; Ruff (warning-only); pytest with coverage/JUnit; publish summary.       |
-| Python tests (Windows) | Same Python checks on Windows; install Python 3.13 for summary.                            |
-| No secrets committed   | Scan for credentials, `.env`, SQL dumps, and database dumps.                              |
+| Workflow step | What it checks |
+| --- | --- |
+| PostgreSQL service | Starts an isolated PostgreSQL 17 database and waits for readiness. |
+| Python setup | Installs Python 3.14 and dependencies from `uv.lock`. |
+| Database setup | Executes the schema recreation and sample-data actions in `database/note.py` against the isolated CI database. |
+| Rust build | Installs nightly Rust and `cargo-leptos`, then builds the Leptos app. |
+| Start and health | Starts the app on port 3100 and waits for `/health`. |
+| Pytest | Runs Python tests against the live local app and isolated database; publishes test totals and displays app logs if a step fails. |
 
 There is no Rust/Leptos step or branch-protection screenshot. Capture the
 actual `main` rules from GitHub Settings → Branches at
