@@ -73,4 +73,4 @@ only be used with an isolated database.
 
 | Command | Result |
 |---|---|
-| `uv run --with pytest --no-project pytest -q` | Passed: 16 skipped in 0.16s. This checkout has no Cargo, `TEST_APP_URL`, or `TEST_DATABASE_URL`, so only skip paths ran; Rust/API behavior still requires the configured checks above. |
+| `uv run --with pytest --no-project pytest -q --tb=no` | Failed: 7 failed, 9 passed in 0.05s. The seven live endpoint tests tried the `TEST_APP_URL` in `.env` (`0.0.0.0:3100`), where no app was running. Start the app first, or remove that local setting to let those tests skip. This is a local run, not the CI result. |
