@@ -1,3 +1,4 @@
+#![recursion_limit = "256"]
 #![allow(unused_crate_dependencies)]
 #![allow(unused_imports)]
 pub mod app;
