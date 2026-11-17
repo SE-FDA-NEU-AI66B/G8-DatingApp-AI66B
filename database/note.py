@@ -17,12 +17,16 @@ def _():
     import os
     import marimo as mo
     import psycopg2
-    import os
-    from dotenv import load_dotenv
     from database.init import initialize_sample_data, recreate_application_database
-
+    from dotenv import load_dotenv
     load_dotenv()
-    return initialize_sample_data, mo, os, psycopg2, recreate_application_database
+    return (
+        initialize_sample_data,
+        mo,
+        os,
+        psycopg2,
+        recreate_application_database,
+    )
 
 
 @app.cell
@@ -91,7 +95,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(conn, initialize_sample_data, initialize_sample_data_button, mo, os, recreate_application_database, recreate_database_button):
+def _(conn, mo, os, recreate_application_database, recreate_database_button):
     if recreate_database_button.value or os.environ.get("RECREATE_DATABASE") == "1":
         try:
             recreate_application_database(conn)
