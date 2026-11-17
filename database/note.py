@@ -28,6 +28,8 @@ def _():
 @app.cell
 def _(os, psycopg2):
     PGPASS = os.environ.get("PGPASS")
+    PGHOST = os.environ.get("PGHOST", "localhost")
+    PGDATABASE = os.environ.get("PGDATABASE", "userdb")
     if PGPASS is None:
         from pathlib import Path
 
@@ -39,10 +41,10 @@ def _(os, psycopg2):
                     break
     # coonect to the database
     try:
-        uri = f"postgresql://postgres:{PGPASS}@localhost/userdb"
+        uri = f"postgresql://postgres:{PGPASS}@{PGHOST}/{PGDATABASE}"
         conn = psycopg2.connect(
-            host="localhost",  # Your database host
-            database="userdb",  # Your database name
+            host=PGHOST,
+            database=PGDATABASE,
             user="postgres",  # Your database username
             password=PGPASS,  # Your database password
         )
@@ -84,7 +86,9 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(conn, mo, recreate_database_button):
-    if recreate_database_button.value:
+    import os
+
+    if recreate_database_button.value or os.environ.get("RECREATE_DATABASE") == "1":
         schema_sql = """
         DROP SCHEMA public CASCADE;
         CREATE SCHEMA public;
@@ -258,7 +262,9 @@ def _(conn, mo, recreate_database_button):
 
 @app.cell(hide_code=True)
 def _(conn, initialize_sample_data_button, mo):
-    if initialize_sample_data_button.value:
+    import os
+
+    if initialize_sample_data_button.value or os.environ.get("INITIALIZE_SAMPLE_DATA") == "1":
         try:
             conn.autocommit = False
             with conn.cursor() as _cursor:

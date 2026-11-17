@@ -58,6 +58,17 @@ schema has been created for testing. They never initialize or mutate the
 development database. Rust-backed unit tests skip if Cargo is not installed.
 The test notebook can be opened with `uv run marimo edit tests/test.py`.
 
+## CI run
+
+`.github/workflows/ci.yml` provisions an isolated PostgreSQL service, uses
+`RECREATE_DATABASE=1` and `INITIALIZE_SAMPLE_DATA=1` to run the schema and seed
+actions owned by `database/note.py`, builds the Leptos application, and starts
+it on port 3100. CI waits for `/health` before running the complete pytest
+suite with `TEST_APP_URL` and `TEST_DATABASE_URL` pointed at that local app and
+database. The CI database is disposable; these environment switches should
+only be used with an isolated database because recreation drops its public
+schema.
+
 ## Latest run
 
 | Command | Result |

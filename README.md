@@ -1,34 +1,35 @@
 https://www.dt-fwb.ipv64.de
 
-# NEUDating — Milestone 5 submission
+# NEUDating
 
-NEUDating is a student-focused dating app for meeting people with shared interests and goals.
+NEUDating is a student-focused app for meeting people with shared interests and goals.
 
-[![Cargo Build & Test workflow](https://github.com/pham-ha-gif/H-iDB/actions/workflows/eltonjohn.yml/badge.svg)](https://github.com/pham-ha-gif/H-iDB/actions/workflows/eltonjohn.yml)
+[![CI](https://github.com/pham-ha-gif/H-iDB/actions/workflows/ci.yml/badge.svg)](https://github.com/pham-ha-gif/H-iDB/actions/workflows/ci.yml)
 
-**CI status caveat:** the current workflow checks out the code, but its Cargo build and test commands are commented out. A green badge does not mean the Rust app was built or tested.
+## Test accounts
 
-## Demo accounts
+The database notebook can seed these demo usernames. It sets their password hashes to `NULL`, so **there is no demo password login**. Sign-in requires a verified NEU email through Microsoft; the seeded accounts are not guaranteed to be available on the public host. Configure an account's email as `ADMIN_EMAIL` on the server to grant it administrator access.
 
-Local notebook seed accounts (created by the sample-data action in `database/note.py`):
-
-| Role | Test account | Local demo password |
+| Role | Seeded username | Password |
 |---|---|---|
-| Admin | `admin` | `password` |
-| Student | `alex_demo`, `linh_demo`, `minh_demo` | `password` |
-
-These are demo-only credentials for the local seeded development database, not real user credentials. Availability of these accounts on the public host is not guaranteed.
+| Regular user | `alex_demo`, `linh_demo`, `minh_demo` | Not configured |
+| Admin-capable seed | `admin` | Not configured; role is assigned by `ADMIN_EMAIL` |
 
 ## P0 stories and starting points
 
-- **US01 Register:** [`/register`](https://www.dt-fwb.ipv64.de/register)
-- **US02 Create a study date:** [`/userhome/study-date/new`](https://www.dt-fwb.ipv64.de/userhome/study-date/new)
-- **US03 Browse study dates:** [`/userhome/study-dates`](https://www.dt-fwb.ipv64.de/userhome/study-dates)
-- **US04 Send a match request:** start at [`/userhome/study-dates`](https://www.dt-fwb.ipv64.de/userhome/study-dates), then open a profile at `/profile/:id`
-- **US05 Accept or decline a request:** [`/userhome/requests`](https://www.dt-fwb.ipv64.de/userhome/requests)
-- **US12–US14 Admin access, health, and statistics:** [`/admin_console`](https://www.dt-fwb.ipv64.de/admin_console)
+Routes below are the app's starting screens. Most signed-in stories require a verified account; the presence of a URL does not guarantee public-host access. Current implementation status and test gaps are in [P0 traceability](docs/traceability.md).
 
-Story status and evidence: [P0 traceability](docs/traceability.md).
+- **US01 Register:** [`/register`](https://www.dt-fwb.ipv64.de/register)
+- **US02 Create a study date:** [`/userhome/study-date/new`](https://www.dt-fwb.ipv64.de/userhome/study-date/new) (after sign-in)
+- **US03 Browse study dates:** [`/userhome/study-dates`](https://www.dt-fwb.ipv64.de/userhome/study-dates) (after sign-in)
+- **US04 Send a match request:** start at [`/userhome/study-dates`](https://www.dt-fwb.ipv64.de/userhome/study-dates), then open a profile at `/profile/:id` (after sign-in)
+- **US05 Accept or decline a request:** [`/userhome/requests`](https://www.dt-fwb.ipv64.de/userhome/requests) (after sign-in)
+- **US12–US14 Admin access, health, and statistics:** [`/admin_console`](https://www.dt-fwb.ipv64.de/admin_console) (admin account required)
+- **Service health:** [`/health`](https://www.dt-fwb.ipv64.de/health)
+
+## CI
+
+The CI workflow builds the Leptos application, starts it against an isolated PostgreSQL service, waits for `/health`, and runs pytest against the local server. It runs on pushes and pull requests targeting `main`. A passing workflow does not by itself establish that GitHub branch protection is enabled or that the public deployment waits for CI.
 
 ## Team QHQ
 
@@ -36,11 +37,11 @@ Nguyễn Sơn Hải (`hai291`, Product Owner) · Nguyễn Minh Quang (`iambadwit
 
 ## Hosting and setup
 
-The app and PostgreSQL are self-hosted. Cloudflare Tunnel routes the HTTPS URL to the app on the host at `localhost:3100`; PostgreSQL runs in Docker Compose and is bound to host loopback. This repository does not configure managed hosting, automated deployment, or a production database service. Keep `.env` and tunnel credentials on the host, outside Git. The checked-in database seed is demo data, and the development database notebook recreates the schema.
+The public URL is `https://www.dt-fwb.ipv64.de`. The checked-in [`render.yaml`](render.yaml) describes a Render web service with automatic deploy enabled, but does not configure a CI deployment gate. Confirm deployment availability, seeded data, and sign-in on the host before relying on the public demo. Hosting and release details are in the [release guide](docs/release.md) and [operations guide](docs/operations.md).
 
-For local setup, see [setup](docs/SETUP.md). Production/release and monitoring details: [release guide](docs/release.md) · [operations guide](docs/operations.md).
+For local setup, see [SETUP.md](docs/SETUP.md). The database notebook owns development schema recreation and sample data initialization. Keep `.env`, database credentials, and platform secrets out of Git.
 
-## Testing and repository evidence
+## Testing and project records
 
 - [Test plan and current coverage limits](docs/testing.md)
 - [Sprint 3 review evidence index](docs/log/sprint-3-review-evidence.md) · [evidence screenshots](docs/evident/)
