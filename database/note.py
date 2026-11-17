@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.24.2"
+__generated_with = "0.25.2"
 app = marimo.App(width="full", auto_download=["html"])
 
 
@@ -17,8 +17,17 @@ def _():
     import os
     import marimo as mo
     import psycopg2
+    import os
+    from dotenv import load_dotenv
 
+    load_dotenv()
     return mo, os, psycopg2
+
+
+@app.cell
+def _(os):
+    os.environ.get("PGPASS")
+    return
 
 
 @app.cell
@@ -81,9 +90,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(conn, mo, recreate_database_button):
-    import os
-
+def _(conn, mo, os, recreate_database_button):
     if recreate_database_button.value or os.environ.get("RECREATE_DATABASE") == "1":
         schema_sql = """
         DROP SCHEMA public CASCADE;
@@ -253,13 +260,11 @@ def _(conn, mo, recreate_database_button):
     else:
         schema_status = mo.md("Click the button above to recreate the application database.")
     schema_status
-    return (os,)
+    return
 
 
 @app.cell(hide_code=True)
-def _(conn, initialize_sample_data_button, mo):
-    import os
-
+def _(conn, initialize_sample_data_button, mo, os):
     if initialize_sample_data_button.value or os.environ.get("INITIALIZE_SAMPLE_DATA") == "1":
         try:
             conn.autocommit = False
@@ -379,7 +384,7 @@ def _(conn, initialize_sample_data_button, mo):
     else:
         sample_data_status = mo.md("Click **Initialize sample data** to add demo records.")
     sample_data_status
-    return (os,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -399,36 +404,39 @@ def _(mo):
 
 
 @app.cell
-def _(conn, mo, users):
-    _df = mo.sql(
-        f"""
-        Select * from users
-        """,
-        engine=conn
-    )
+def _(conn, mo, os, users):
+    if os.environ.get("CI_DATABASE_SETUP_ONLY") != "1":
+        _df = mo.sql(
+            f"""
+            Select * from users
+            """,
+            engine=conn
+        )
     return
 
 
 @app.cell
-def _(conn, mo, users):
-    _df = mo.sql(
-        f"""
-        DELETE FROM users
-        WHERE username='quang';
-        """,
-        engine=conn
-    )
+def _(conn, mo, os, users):
+    if os.environ.get("CI_DATABASE_SETUP_ONLY") != "1":
+        _df = mo.sql(
+            f"""
+            DELETE FROM users
+            WHERE username='quang';
+            """,
+            engine=conn
+        )
     return
 
 
 @app.cell
-def _(conn, mo):
-    _df = mo.sql(
-        f"""
-        EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
-        """,
-        engine=conn
-    )
+def _(conn, mo, os):
+    if os.environ.get("CI_DATABASE_SETUP_ONLY") != "1":
+        _df = mo.sql(
+            f"""
+            EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
+            """,
+            engine=conn
+        )
     return
 
 

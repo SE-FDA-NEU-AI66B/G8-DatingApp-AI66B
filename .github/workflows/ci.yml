@@ -38,6 +38,7 @@ jobs:
       PORT: "3100"
       RECREATE_DATABASE: "1"
       INITIALIZE_SAMPLE_DATA: "1"
+      CI_DATABASE_SETUP_ONLY: "1"
       ADMIN_EMAIL: admin@neu.edu.vn
       CARGO_TERM_COLOR: always
 
@@ -69,8 +70,8 @@ jobs:
       - name: Install cargo-leptos
         run: cargo install cargo-leptos --locked
 
-      - name: Create isolated CI schema and sample data
-        run: uv run marimo export html database/note.py -o /tmp/database-note.html
+      - name: Execute notebook database setup against CI PostgreSQL
+        run: uv run marimo export html database/note.py -o /dev/null --force
 
       - name: Build application
         run: cargo leptos build --release

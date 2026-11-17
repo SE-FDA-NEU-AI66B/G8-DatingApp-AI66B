@@ -13,49 +13,15 @@ services:
     #    tmpfs:
     #      size: 134217728 # 128*2^20 bytes = 128Mb
     environment:
-      # POSTGRES_PASSWORD: "{$PGPASS}"
-      POSTGRES_PASSWORD: "$PGPASS"
+      POSTGRES_PASSWORD: "${PGPASS}"
       POSTGRES_DB: userdb
       POSTGRES_USER: "postgres"
     ports:
       - 127.0.0.1:5432:5432
     networks:
       - network
-  pgadmin:
-    image: dpage/pgadmin4
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: "postgres@postgres.postgres"
-      PGADMIN_DEFAULT_PASSWORD: "itisgnulinux"
-    ports:
-      - "127.0.0.1:5051:80"
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    depends_on:
-      - db
-    networks:
-      - network
-  dbgate:
-    image: dbgate/dbgate
-    restart: always
-    ports:
-      - "127.0.0.1:3001:3000"
-    volumes:
-      - dbgate_data:/root/.dbgate
-    environment:
-      # Optional: set basic auth for the web interface
-      - BASIC_AUTH=true
-      - LOGIN=postgres
-      - PASSWORD=itisgnulinux
-    depends_on:
-      - db
-    networks:
-      - network
-
 volumes:
   postgres_data:
-  pgadmin_data:
-  dbgate_data:
 networks:
   network:
     driver: bridge
