@@ -29,7 +29,7 @@ Routes below are the app's starting screens. Most signed-in stories require a ve
 
 ## CI
 
-The CI workflow builds the Leptos application, starts it against an isolated PostgreSQL service, waits for `/health`, and runs pytest against the local server. It runs on pushes and pull requests targeting `main`. A passing workflow does not by itself establish that GitHub branch protection is enabled or that the public deployment waits for CI.
+The CI workflow builds the Leptos application, starts it against an isolated PostgreSQL service, waits for `/health`, and runs pytest against the local server. It runs on pushes and pull requests targeting `main`. Successful CI runs on `main` trigger a Render deploy hook; configure the repository secret `RENDER_DEPLOY_HOOK_URL` with the service's Render deploy hook URL. Render automatic deploy is disabled in [`render.yaml`](render.yaml) so deployments wait for CI.
 
 ## Team QHQ
 

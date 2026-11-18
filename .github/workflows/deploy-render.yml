@@ -1,0 +1,19 @@
+name: Deploy to Render
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+jobs:
+  deploy:
+    name: Trigger Render deploy
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call Render deploy hook
+        env:
+          # RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          RENDER_DEPLOY_HOOK_URL: https://api.render.com/deploy/srv-dbuh3qom7kps73ccrcc0?key=TJ0nuwb6khc
+        run: curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL"

@@ -6,7 +6,7 @@ services:
     buildCommand: cargo install cargo-leptos --locked && cargo leptos build --release
     startCommand: ./target/release/datingapp
     healthCheckPath: /health
-    autoDeploy: true
+    autoDeploy: false
     envVars:
       - key: DATABASE_URL
         sync: false

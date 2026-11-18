@@ -2,18 +2,16 @@
 
 ## 1. Run and release
 
-URL: <https://www.dt-fwb.ipv64.de>, routed by Cloudflare Tunnel to
-`localhost:3100` (`cert/.cloudflared/config.yml`). App and tunnel run on the
-host; deployment is manual.
+URL: <https://www.dt-fwb.ipv64.de>. The app is deployed by Render using
+[`render.yaml`](../render.yaml).
 
 Develop with [SETUP.md](SETUP.md) and `cargo leptos watch`. Release by merging
-to `main` after CI passes, then build with `cargo leptos build --release` and
-restart the app through the host's process manager. No deploy script or service
-unit is defined here; the current workflows do not provide an active build/test
-gate (section 2).
+to `main`; `.github/workflows/deploy-render.yml` calls the Render deploy hook
+after the `CI` workflow succeeds. Configure the repository secret
+`RENDER_DEPLOY_HOOK_URL` from the Render service's deploy hook settings.
 
-Rollback by rebuilding/restarting the previous good commit, or revert the
-change and deploy `main`. Verify the public URL and admin health page.
+Rollback in the Render dashboard to the previous good deployment, or revert
+the change and wait for CI to pass. Verify the public URL and admin health page.
 
 ## 2. CI pipeline: install and test
 
@@ -30,8 +28,8 @@ runs](https://github.com/pham-ha-gif/H-iDB/actions?query=branch%3Amain).
 | Start and health | Starts the app on port 3100 and waits for `/health`. |
 | Pytest | Runs Python tests against the live local app and isolated database; publishes test totals and displays app logs if a step fails. |
 
-There is no Rust/Leptos step or branch-protection screenshot. Capture the
-actual `main` rules from GitHub Settings → Branches at
+There is no branch-protection screenshot. Capture the actual `main` rules from
+GitHub Settings → Branches at
 `docs/evident/main-branch-protection.png`.
 
 ## 3. Monitoring, logs, and health
@@ -64,7 +62,7 @@ logs and check the URL, `/health`, and admin health view.
 | --- | --- | --- | --- |
 | CI config is inactive; Cargo checks are commented out. | infrastructure | Rust regressions reach `main`. | accepted — enable CI before production use. |
 | PostgreSQL tests need `TEST_DATABASE_URL`. | tests | CI misses database regressions. | accepted — CI needs an isolated database. |
-| Deployment is manual on the Tunnel host. | infrastructure | Wrong commit or downtime. | accepted — no deploy runner is configured. |
+| Render deployment depends on a deploy hook secret and successful CI. | infrastructure | Missing secret prevents automated deploys. | Configure `RENDER_DEPLOY_HOOK_URL` in GitHub repository secrets. |
 | No production backup/restore job. | data | Host loss removes user data. | accepted — configure encrypted off-host backups before production. |
 | No metrics or log aggregation. | infrastructure | Errors/latency go unnoticed. | accepted — demo uses manual checks. |
 
