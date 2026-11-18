@@ -62,8 +62,10 @@ The test notebook can be opened with `uv run marimo edit tests/test.py`.
 
 `.github/workflows/ci.yml` provisions an isolated PostgreSQL service and runs
 `uv run python database/init.py --recreate --seed` to create its schema and
-sample data. The Marimo setup notebook imports the same functions for manual
-database setup. CI then builds the Leptos application and starts it on port
+sample data. Seed statements are maintained in [`database/seed.sql`](../database/seed.sql).
+All seeded accounts use the password `password` (stored as an Argon2 hash).
+The Marimo setup notebook imports the same functions for manual database setup.
+CI then builds the Leptos application and starts it on port
 3100. It waits for `/health` before running the complete pytest suite with
 `TEST_APP_URL` and `TEST_DATABASE_URL` pointed at that local app and database.
 The CI database is disposable; `--recreate` drops its public schema and must

@@ -6,6 +6,7 @@ module directly against its disposable PostgreSQL database.
 
 import argparse
 import os
+from pathlib import Path
 
 import psycopg2
 
@@ -170,71 +171,20 @@ SAMPLE_USERS = (
     ("minh.demo@neu.edu.vn", "minh_demo"),
 )
 
-UPSERT_SAMPLE_USER_SQL = """
-INSERT INTO users (email, username, email_verified)
-VALUES (%s, %s, TRUE)
-ON CONFLICT (email) DO UPDATE SET
-    username = EXCLUDED.username,
-    password_hash = NULL,
-    email_verified = TRUE
-RETURNING id
-"""
-
-UPSERT_ADMIN_SEED_SQL = """
-INSERT INTO users (email, username, email_verified, role)
-VALUES (%s, %s, TRUE, 'user')
-ON CONFLICT (email) DO UPDATE SET
-    username = EXCLUDED.username,
-    password_hash = NULL,
-    email_verified = TRUE,
-    role = 'user'
-RETURNING id
-"""
-
-SEED_STUDY_DATES_SQL = """
-INSERT INTO study_dates
-    (creator_id, starts_at, ends_at, duration_min, status)
-SELECT user_id, start_at, start_at + interval '60 minutes', 60, 'active'
-FROM (VALUES
-    (%s::uuid, date_trunc('day', now()) + interval '1 day' + interval '9 hours'),
-    (%s::uuid, date_trunc('day', now()) + interval '1 day' + interval '14 hours'),
-    (%s::uuid, date_trunc('day', now()) + interval '2 days' + interval '10 hours')
-) AS samples(user_id, start_at)
-WHERE NOT EXISTS (
-    SELECT 1 FROM study_dates existing
-    WHERE existing.creator_id = samples.user_id
-      AND existing.starts_at = samples.start_at
+DEMO_PASSWORD_HASH = (
+    "$argon2id$v=19$m=19456,t=2,p=1$J6t9k7Edc+TXEAuekDzPZA$"
+    "mTNg2GnAxfhHHGRoNVaZ06Qg0CnzYy8Eg+UIJWMGvAA"
 )
-"""
 
-SEED_PENDING_REPORT_SQL = """
-INSERT INTO user_reports (reporter_id, reported_user_id, status)
-SELECT %s, %s, 'pending'
-WHERE NOT EXISTS (
-    SELECT 1 FROM user_reports
-    WHERE reporter_id = %s AND reported_user_id = %s AND status = 'pending'
-)
-"""
 
-SEED_ACCEPTED_MATCH_SQL = """
-INSERT INTO match_requests (sender_id, receiver_id, status, responded_at)
-VALUES (%s, %s, 'accepted', now())
-ON CONFLICT (sender_id, receiver_id) DO UPDATE
-SET status = 'accepted', responded_at = COALESCE(match_requests.responded_at, now())
-RETURNING id
-"""
-
-SEED_PENDING_MATCH_SQL = """
-INSERT INTO match_requests (sender_id, receiver_id, status)
-VALUES (%s, %s, 'pending')
-ON CONFLICT (sender_id, receiver_id) DO NOTHING
-"""
-
-SEED_CONVERSATION_SQL = """
-INSERT INTO conversations (user_low, user_high, match_request_id)
-VALUES (%s, %s, %s)
-ON CONFLICT (user_low, user_high) DO NOTHING
-"""
+def load_seed_sql():
+    """Load named seed statements from the database-owned SQL file."""
+    sql_file = Path(__file__).with_name("seed.sql")
+    statements = {}
+    for section in sql_file.read_text(encoding="utf-8").split("-- statement: ")[1:]:
+        name, statement = section.split("\n", maxsplit=1)
+        statements[name.strip()] = statement.strip()
+    return statements
 
 
 def recreate_application_database(conn):
@@ -256,27 +206,37 @@ def initialize_sample_data(conn):
     try:
         conn.autocommit = False
         with conn.cursor() as cursor:
+            seed_sql = load_seed_sql()
             sample_user_ids = {}
             for email, username in SAMPLE_USERS:
-                cursor.execute(UPSERT_SAMPLE_USER_SQL, (email, username))
+                cursor.execute(
+                    seed_sql["sample_user"],
+                    (email, username, DEMO_PASSWORD_HASH),
+                )
                 sample_user_ids[username] = cursor.fetchone()[0]
 
             # Deployments assign admin roles through ADMIN_EMAIL.
-            cursor.execute(UPSERT_ADMIN_SEED_SQL, ("admin@neu.edu.vn", "admin"))
+            cursor.execute(
+                seed_sql["admin_user"],
+                ("admin@neu.edu.vn", "admin", DEMO_PASSWORD_HASH),
+            )
             sample_user_ids["admin"] = cursor.fetchone()[0]
 
             cursor.execute(
-                SEED_STUDY_DATES_SQL,
+                seed_sql["study_dates"],
                 tuple(sample_user_ids[name] for name in ("alex_demo", "linh_demo", "minh_demo")),
             )
             alex = sample_user_ids["alex_demo"]
             linh = sample_user_ids["linh_demo"]
             minh = sample_user_ids["minh_demo"]
-            cursor.execute(SEED_PENDING_REPORT_SQL, (alex, minh, alex, minh))
-            cursor.execute(SEED_ACCEPTED_MATCH_SQL, (alex, linh))
+            cursor.execute(seed_sql["pending_report"], (alex, minh, alex, minh))
+            cursor.execute(seed_sql["accepted_match"], (alex, linh))
             sample_match_id = cursor.fetchone()[0]
-            cursor.execute(SEED_PENDING_MATCH_SQL, (minh, alex))
-            cursor.execute(SEED_CONVERSATION_SQL, (min(alex, linh), max(alex, linh), sample_match_id))
+            cursor.execute(seed_sql["pending_match"], (minh, alex))
+            cursor.execute(
+                seed_sql["conversation"],
+                (min(alex, linh), max(alex, linh), sample_match_id),
+            )
         conn.commit()
     except Exception:
         conn.rollback()

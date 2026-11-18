@@ -87,6 +87,7 @@ def _(mo):
     connected database's `public` schema, then creates the tables used by the app.
     **Drop all tables** removes every table in `public` without recreating the schema.
     The sample-data button below adds reusable demo records without resetting the schema.
+    Seeded accounts use the password `password`; the database stores only its Argon2 hash.
     """)
     recreate_database_button = mo.ui.run_button(label="Recreate application database")
     drop_all_tables_button = mo.ui.run_button(label="Drop all tables")
@@ -143,7 +144,7 @@ def _(conn, initialize_sample_data, initialize_sample_data_button, mo):
         try:
             initialize_sample_data(conn)
             sample_data_status = mo.md(
-                "Demo users, study dates, one pending report, an accepted match, and a conversation are ready. Demo users have no password login; configure ADMIN_EMAIL to grant an administrator role."
+                "Demo users, study dates, one pending report, an accepted match, and a conversation are ready. Seeded users can sign in with password `password`; configure ADMIN_EMAIL to grant an administrator role."
             )
         except Exception as error:
             sample_data_status = mo.md(f"Sample data initialization failed: `{error}`")

@@ -8,12 +8,12 @@ NEUDating is a student-focused app for meeting people with shared interests and 
 
 ## Test accounts
 
-The database notebook can seed these demo usernames. It sets their password hashes to `NULL`, so **there is no demo password login**. Sign-in requires a verified NEU email through Microsoft; the seeded accounts are not guaranteed to be available on the public host. Configure an account's email as `ADMIN_EMAIL` on the server to grant it administrator access.
+The database notebook can seed these demo usernames. All seeded accounts, including `admin`, use the password `password`; the database stores only its Argon2 hash. Sign-in still requires a verified NEU email through Microsoft, and seeded accounts are not guaranteed to be available on the public host. Configure an account's email as `ADMIN_EMAIL` on the server to grant it administrator access.
 
 | Role | Seeded username | Password |
 |---|---|---|
-| Regular user | `alex_demo`, `linh_demo`, `minh_demo` | Not configured |
-| Admin-capable seed | `admin` | Not configured; role is assigned by `ADMIN_EMAIL` |
+| Regular user | `alex_demo`, `linh_demo`, `minh_demo` | `password` |
+| Admin-capable seed | `admin` | `password`; role is assigned by `ADMIN_EMAIL` |
 
 ## P0 stories and starting points
 
