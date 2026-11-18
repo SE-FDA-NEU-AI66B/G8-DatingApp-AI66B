@@ -25,7 +25,8 @@ jobs:
       - name: Call Render deploy hook
         if: steps.main-check.outputs.is_main == 'true'
         env:
-          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          # RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          RENDER_DEPLOY_HOOK_URL: https://api.render.com/deploy/srv-dbuh3qom7kps73ccrcc0?key=TJ0nuwb6khc
         run: |
           test -n "$RENDER_DEPLOY_HOOK_URL"
           curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL"
