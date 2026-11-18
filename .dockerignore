@@ -1,0 +1,7 @@
+.git
+.github
+.env
+.env.*
+target
+node_modules
+Team08_*.pdf

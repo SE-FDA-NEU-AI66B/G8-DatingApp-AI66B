@@ -1,0 +1,35 @@
+# Setup
+
+## Download-install
+
+- Rust (rustup)
+- Docker Compose
+
+## Install
+
+- `uv` : cargo install uv
+- `cargo-leptos`: cargo install cargo-leptos
+- `rustc-codegen-cranelift`: rustup component add rustc-codegen-cranelift
+
+## setup
+
+```sh
+docker compose --env-file .env -f database/compose.yaml up -d db
+uv sync
+uv run marimo edit database/note.py
+```
+
+Click **Recreate application database** in the notebook. Then run the server:
+
+```sh
+cargo leptos watch
+```
+
+Open <http://localhost:3100>. Microsoft sign-in also requires the Entra values
+in `.env`. Python tests load the repository `.env`; configure
+`TEST_DATABASE_URL` to point to a separate PostgreSQL test database before
+running database integration tests. Run the clean-checkout test suite with
+`uv run --with pytest --no-project pytest -q`. Tests that need a running app
+skip unless `TEST_APP_URL` is set. For the selected demo cases and current
+validation result, see [testing.md](testing.md). The optional test notebook is
+`uv run marimo edit tests/test.py`.

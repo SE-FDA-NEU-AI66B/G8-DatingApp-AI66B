@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="510" viewBox="0 0 760 510" role="img" aria-labelledby="title desc">
+  <title id="title">Registration wireframe</title>
+  <desc id="desc">NEU email registration form with submit, validation feedback, and registration result.</desc>
+  <rect width="760" height="390" fill="#f4f6f8"/>
+  <rect x="24" y="24" width="712" height="462" rx="12" fill="white" stroke="#52606d" stroke-width="2"/>
+  <text x="48" y="62" font-family="sans-serif" font-size="22" font-weight="bold">Register</text>
+  <text x="48" y="91" font-family="sans-serif" font-size="15">The user comes here to register an account with a verified NEU email.</text>
+  <text x="72" y="139" font-family="sans-serif" font-size="15">NEU email</text>
+  <rect x="72" y="151" width="570" height="42" rx="5" fill="white" stroke="#52606d"/>
+  <text x="88" y="178" font-family="sans-serif" font-size="14" fill="#687784">you@neu.edu.vn</text>
+  <rect x="72" y="210" width="132" height="40" rx="5" fill="#dce8f5" stroke="#52606d"/>
+  <text x="96" y="236" font-family="sans-serif" font-size="15">Register</text>
+  <rect x="72" y="267" width="570" height="30" rx="4" fill="#edf7ef" stroke="#6a9b73"/>
+  <text x="84" y="287" font-family="sans-serif" font-size="13">Status: inline validation error or registration/OTP confirmation</text>
+  <rect x="48" y="343" width="664" height="35" rx="5" fill="#e9eef4" stroke="#8795a1"/>
+  <text x="60" y="366" font-family="sans-serif" font-size="13">Home | Register | Feed | Create | Requests | Admin | Sign in (planned)</text>
+  <text x="48" y="408" font-family="sans-serif" font-size="12">Loading: submit button is disabled while registering</text>
+  <text x="48" y="428" font-family="sans-serif" font-size="12">Empty: not applicable to this form</text>
+  <text x="48" y="448" font-family="sans-serif" font-size="12">Error: inline validation or API message</text>
+  <text x="48" y="468" font-family="sans-serif" font-size="12">Success: account created; OTP delivery is pending</text>
+  <text x="48" y="498" font-family="sans-serif" font-size="13" fill="#52606d">API: POST /api/register</text>
+</svg>

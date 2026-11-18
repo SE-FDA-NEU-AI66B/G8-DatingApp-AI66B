@@ -1,3 +1,5 @@
+cargo-features = ["codegen-backend", "profile-rustflags"]
+
 [package]
 name = "datingapp"
 version = "0.1.0"
@@ -23,15 +25,8 @@ site-addr = "0.0.0.0:3100"
 # site-addr = "0.0.0.0:433"
 # The port to use for automatic reload monitoring
 reload-port = 3101
-# [Optional] Command to use when running end2end tests. It will run in the end2end dir.
-#   [Windows] for non-WSL use "npx.cmd playwright test"
-#   This binary name can be checked in Powershell with Get-Command npx
-end2end-cmd = "npx playwright test"
-end2end-dir = "end2end"
 # The browserlist query used for optimizing the CSS.
 browserquery = "defaults"
-# The environment Leptos will run in, usually either "DEV" or "PROD"
-env = "DEV"
 # The features to use when compiling the bin target
 #
 # Optional. Can be over-ridden with the command line parameter --bin-features
@@ -56,42 +51,55 @@ lib-default-features = false
 #
 # Optional. Defaults to "release".
 lib-profile-release = "wasm-release"
+lib-profile-dev = "wasm-dev"
+
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-
 [dependencies]
-env_logger = "0.11"
 actix-files = { version = "0.7", optional = true }
 console_error_panic_hook = "0.1"
-http = { version = "1.5.0", optional = true }
-itertools = "0.15.0"
+# http = { version = "1.5.0", optional = true }
+leptos = { version = "0.8.20", features = ["nightly", "delegation"] }
 leptos_actix = { version = "0.8.7", optional = true }
 leptos_meta = { version = "0.8.6" }
 leptos_router = { version = "0.8.15", features = ["nightly"] }
-rayon = "1.12.0"
-serde = "1.0.229"
-server_fn = "0.8.13"
-wasm-bindgen = "0.2.127"
-actix-web = { version = "4", features = [
+serde = { version = "1.0.229" }
+wasm-bindgen = { version = "0.2.127" }
+actix-web = { version = "4.18.2", features = [
   "macros",
   "rustls-0_23",
 ], optional = true }
-leptos = { version = "0.8.20", features = [
-  "nightly",
-  "delegation",
-] } # note delegation make code compiled faster and runfaster but might have bug ./target/doc/leptos/index.htmlactix-files = { version = "0.7.0", optional = true }features = ["delegation", "nightly"]
-leptos-use = { version = "0.19.0", features = [] }
+
+web-sys = { version = "0.3.106", features = ["Window", "Storage"] }
+sqlx = { version = "0.9", features = ["postgres", "time", "derive", "uuid"] }
+getrandom = { version = "0.4.3", features = ["wasm_js"] }
+sha2 = "0.11.0"
+uuid = { version = "1.26", features = ["serde"] }
+gloo-net = "0.7.0"
+hex = "0.4.3"
+itertools = "0.15.0"
 base64 = "0.23.1"
+serde_json = "1.0.154"
+# rand = { version = "0.9" }
+# random = { version = "0.14.1", features = ["wasm_js"] }
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies] # server side only
+
+dotenvy = "0.15.7"
+tokio = { version = "1.53.1", features = ["full"] }
+time = { version = "0.3.55", features = ["serde", "formatting"] }
+
+
 rustls = "0.23.43"
 rustls-pemfile = "2.2.0"
-tokio-postgres = "0.7.18"
+rand = "0.9"
+openidconnect = "4.0"
+argon2 = "0.5"
 
 [features]
-default = ["csr", "hydrate", "ssr"]
 csr = ["leptos/csr"]
-hydrate = ["leptos/hydrate"]
+default = ["csr", "hydrate", "ssr"]
+hydrate = ["leptos/hydrate", "sqlx/postgres"]
 ssr = [
   "dep:actix-files",
   "dep:actix-web",
@@ -99,8 +107,8 @@ ssr = [
   "leptos_meta/ssr",
   "leptos_router/ssr",
   "leptos/ssr",
-  "leptos-use/ssr",
-  "leptos-use/actix",
+  "sqlx/runtime-tokio",
+  "sqlx/tls-native-tls",
 ]
 
 # Defines a size-optimized profile for the WASM bundle in release mode
@@ -110,12 +118,13 @@ opt-level = "z"
 lto = true
 panic = "abort"
 codegen-units = 1
-[profile.dev.'cfg(not(target_arch = "wasm32"))']
+[profile.dev]
 codegen-backend = "cranelift" #dont support webasm
-[target.aarch64-apple-darwin]
-rustflags = ["--cfg", "erase_components"]
-[target.wasm32-unknown-unknown]
-rustflags = ["--cfg", "erase_components"]
-# [[example]]
-# name = "cloudflared"
-# path = "examples/cloudflared.rs"
+[profile.wasm-dev]
+inherits = "dev"
+codegen-backend = "llvm"
+incremental = false
+[profile.dev.package."*"]
+codegen-backend = "llvm"
+[workspace]
+members = ["util/*/", "util/cloudflared"]

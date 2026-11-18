@@ -1,6 +1,6 @@
 use serde::Deserialize;
 use std::cell::Cell;
-use std::sync::{atomic::AtomicUsize, atomic::Ordering, Arc};
+use std::sync::{atomic::AtomicUsize, Arc};
 #[derive(Clone, Deserialize, Debug)]
 pub struct Worker {
     pub worker_count: usize,

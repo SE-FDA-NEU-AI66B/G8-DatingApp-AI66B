@@ -1,1 +1,16 @@
+#[cfg(feature = "ssr")]
+pub mod admin;
+#[cfg(feature = "ssr")]
+pub mod auth;
+pub mod chat;
+#[cfg(feature = "ssr")]
+pub mod community;
 pub mod functions;
+#[cfg(feature = "ssr")]
+pub mod matching;
+#[cfg(feature = "ssr")]
+pub mod register;
+#[cfg(feature = "ssr")]
+pub mod study_date;
+#[cfg(feature = "ssr")]
+pub mod user_profile;

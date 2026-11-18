@@ -1,0 +1,14 @@
+
+OAuth: {
+direction: right
+shape: sequence_diagram
+user.r -> servers.r: request
+servers.r->OAuth:redirect
+user.r <-> OAuth: verify and get auth code
+user -> servers.r:send code to server
+servers.a: {
+  "process request"
+}
+servers.a<->postgres: store cookie
+servers.r->user.r : set cookie
+}

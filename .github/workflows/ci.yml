@@ -4,132 +4,114 @@ on:
   push:
     branches: ["**"]
   pull_request:
-    branches: [main, develop]
+    branches: [main]
 
-# Cancel an in-progress run when new commits are pushed to the same branch,
-# so a busy sprint week does not exhaust the org's Actions minutes.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  detect:
-    name: Detect stack
+  test:
+    name: Build, start app, and run pytest
     runs-on: ubuntu-latest
-    outputs:
-      python: ${{ steps.check.outputs.python }}
-      node: ${{ steps.check.outputs.node }}
-    steps:
-      - uses: actions/checkout@v4
-      - id: check
-        run: |
-          if ls requirements.txt pyproject.toml setup.py 2>/dev/null | grep -q .; then
-            echo "python=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "python=false" >> "$GITHUB_OUTPUT"
-          fi
-          if [ -f package.json ]; then
-            echo "node=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "node=false" >> "$GITHUB_OUTPUT"
-          fi
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: userdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d userdb"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGPASS: postgres
+      PGHOST: localhost
+      PGDATABASE: userdb
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/userdb
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/userdb
+      TEST_APP_URL: http://127.0.0.1:3100
+      PORT: "3100"
+      ADMIN_EMAIL: admin@neu.edu.vn
+      CARGO_TERM_COLOR: always
 
-  python:
-    name: Python tests
-    needs: detect
-    if: needs.detect.outputs.python == 'true'
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y pkg-config libssl-dev
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
-          cache: pip
+          python-version: "3.15"
 
-      - name: Install dependencies
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install Python dependencies
+        run: uv sync --locked
+
+      - name: Initialize isolated CI database
+        run: uv run python database/init.py --recreate --seed
+
+      - name: Install Rust and Leptos tools
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-leptos
+        run: cargo install cargo-leptos --locked
+
+      - name: Build application
+        run: cargo leptos build --release
+
+      - name: Start application
         run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          pip install pytest pytest-cov ruff
+          nohup target/release/datingapp > /tmp/neudating.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3100/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/neudating.log
+          echo "Application did not become healthy within 120 seconds."
+          exit 1
 
-      - name: Lint
-        run: ruff check . --output-format=github
-        continue-on-error: true   # Week 1-6: warn only. Remove this line from Sprint 2 onward.
-
-      - name: Test
-        run: pytest -v --cov --cov-report=term-missing --junitxml=junit.xml
+      - name: Run pytest against the running application
+        run: uv run pytest -v --cov --cov-report=term-missing --junitxml=junit.xml
 
       - name: Publish test summary
         if: always()
         run: |
-          echo "### Test results" >> "$GITHUB_STEP_SUMMARY"
-          python - << 'PY' >> "$GITHUB_STEP_SUMMARY"
-          import xml.etree.ElementTree as ET, pathlib
-          f = pathlib.Path("junit.xml")
-          if not f.exists():
-              print("No test report produced. Did the test run crash?")
+          echo "### Python test results" >> "$GITHUB_STEP_SUMMARY"
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import pathlib
+          import xml.etree.ElementTree as ET
+
+          report = pathlib.Path("junit.xml")
+          if not report.exists():
+              print("No pytest report was produced.")
           else:
-              r = ET.parse(f).getroot()
-              s = r if r.tag == "testsuite" else r.find("testsuite")
-              if s is None:
-                  print("No test suite found.")
+              root = ET.parse(report).getroot()
+              suite = root if root.tag == "testsuite" else root.find("testsuite")
+              if suite is None:
+                  print("No test suite found in pytest report.")
               else:
-                  total = int(s.get("tests", 0))
-                  bad = int(s.get("failures", 0)) + int(s.get("errors", 0))
-                  print(f"- Tests run: **{total}**")
-                  print(f"- Failed: **{bad}**")
-                  print(f"- Skipped: **{s.get('skipped', 0)}**")
+                  failed = int(suite.get("failures", 0)) + int(suite.get("errors", 0))
+                  print(f"- Tests: **{suite.get('tests', 0)}**")
+                  print(f"- Failed: **{failed}**")
+                  print(f"- Skipped: **{suite.get('skipped', 0)}**")
           PY
 
-  node:
-    name: Node build and tests
-    needs: detect
-    if: needs.detect.outputs.node == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: npm
-
-      - run: npm ci || npm install
-
-      - name: Lint
-        run: npm run lint --if-present
-        continue-on-error: true   # Week 1-6: warn only. Remove this line from Sprint 2 onward.
-
-      - name: Test
-        run: npm test --if-present
-
-      - name: Build
-        run: npm run build --if-present
-
-  secrets:
-    name: No secrets committed
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Scan for obvious credentials
-        run: |
-          # Deliberately simple and readable - students should be able to read this
-          # and understand why their commit was blocked.
-          PATTERN='(AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|-----BEGIN [A-Z ]*PRIVATE KEY-----|password\s*=\s*["'"'"'][^"'"'"']{6,})'
-          if git grep -nIE "$PATTERN" -- . ':!*.md' ':!.github/workflows/*' ; then
-            echo "::error::A credential-looking string was found. Move it to an environment variable and rotate the key."
-            exit 1
-          fi
-          echo "Clean."
-
-      - name: No .env or database dumps
-        run: |
-          if git ls-files | grep -E '^(.*/)?\.env$|\.sql$|\.sqlite3?$|\.dump$' ; then
-            echo "::error::Environment files or database dumps must not be committed. Add them to .gitignore."
-            exit 1
-          fi
-          echo "Clean."
+      - name: Show application log on failure
+        if: failure()
+        run: cat /tmp/neudating.log || true

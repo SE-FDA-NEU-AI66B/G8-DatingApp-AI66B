@@ -1,3 +1,6 @@
+#![recursion_limit = "512"]
+#![allow(unused_crate_dependencies)]
+#![allow(unused_imports)]
 pub mod app;
 pub mod share;
 #[cfg(feature = "hydrate")]

@@ -1,0 +1,14 @@
+direction: right
+chat: {
+shape: sequence_diagram
+alaex.r -> servers.r: open chat socket (async)
+bob.r -> servers.r: chat with alaex(async)
+servers.r.a<-> postgres database.a: verify user and fetch data(async)
+servers: {
+  "process request"
+}
+servers.r.a<-> postgres database.a: verify user and fetch data(async)
+servers.r->bob.r : respond(async)
+servers.r->alaex.r : websocket push(async)
+direction: right
+}

@@ -1,11 +1,7 @@
 use actix_web::web::Data;
-use serde::Deserialize;
 use std::cell::Cell;
-use std::rc::Rc;
 use std::sync::{atomic::AtomicUsize, atomic::Ordering, Arc};
 pub fn config(cfg: &mut actix_web::web::ServiceConfig) {
-    use actix_web::web;
-
     static WORKER: AtomicUsize = AtomicUsize::new(0);
     let data = crate::lib::share::worker::Worker {
         worker_count: WORKER.load(Ordering::Relaxed),
