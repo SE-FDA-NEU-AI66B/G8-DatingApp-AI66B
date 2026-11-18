@@ -1,3 +1,4 @@
+#![recursion_limit = "512"]
 mod ss;
 use std::env;
 mod worker;

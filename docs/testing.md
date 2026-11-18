@@ -58,8 +58,21 @@ schema has been created for testing. They never initialize or mutate the
 development database. Rust-backed unit tests skip if Cargo is not installed.
 The test notebook can be opened with `uv run marimo edit tests/test.py`.
 
+## CI run
+
+`.github/workflows/ci.yml` provisions an isolated PostgreSQL service and runs
+`uv run python database/init.py --recreate --seed` to create its schema and
+sample data. Seed statements are maintained in [`database/seed.sql`](../database/seed.sql).
+All seeded accounts use the password `password` (stored as an Argon2 hash).
+The Marimo setup notebook imports the same functions for manual database setup.
+CI then builds the Leptos application and starts it on port
+3100. It waits for `/health` before running the complete pytest suite with
+`TEST_APP_URL` and `TEST_DATABASE_URL` pointed at that local app and database.
+The CI database is disposable; `--recreate` drops its public schema and must
+only be used with an isolated database.
+
 ## Latest run
 
 | Command | Result |
 |---|---|
-| `uv run --with pytest --no-project pytest -q` | Passed: 16 skipped in 0.16s. This checkout has no Cargo, `TEST_APP_URL`, or `TEST_DATABASE_URL`, so only skip paths ran; Rust/API behavior still requires the configured checks above. |
+| `uv run --with pytest --no-project pytest -q --tb=no` | Failed: 7 failed, 9 passed in 0.05s. The seven live endpoint tests tried the `TEST_APP_URL` in `.env` (`0.0.0.0:3100`), where no app was running. Start the app first, or remove that local setting to let those tests skip. This is a local run, not the CI result. |

@@ -2,38 +2,34 @@
 
 ## 1. Run and release
 
-URL: <https://www.dt-fwb.ipv64.de>, routed by Cloudflare Tunnel to
-`localhost:3100` (`cert/.cloudflared/config.yml`). App and tunnel run on the
-host; deployment is manual.
+URL: <https://www.dt-fwb.ipv64.de>. The app is deployed by Render using
+[`render.yaml`](../render.yaml).
 
 Develop with [SETUP.md](SETUP.md) and `cargo leptos watch`. Release by merging
-to `main` after CI passes, then build with `cargo leptos build --release` and
-restart the app through the host's process manager. No deploy script or service
-unit is defined here; the current workflows do not provide an active build/test
-gate (section 2).
+to `main`; `.github/workflows/deploy-render.yml` calls the Render deploy hook
+after the `CI` workflow succeeds. Configure the repository secret
+`RENDER_DEPLOY_HOOK_URL` from the Render service's deploy hook settings.
 
-Rollback by rebuilding/restarting the previous good commit, or revert the
-change and deploy `main`. Verify the public URL and admin health page.
+Rollback in the Render dashboard to the previous good deployment, or revert
+the change and wait for CI to pass. Verify the public URL and admin health page.
 
 ## 2. CI pipeline: install and test
 
-`.github/workflows/ci.yml-not` is not loaded by GitHub Actions. The active
-`eltonjohn.yml` only checks out code; build/test commands are comments. No
-latest green run or measured duration is available. Check the [main Actions
-runs](https://github.com/pham-ha-gif/H-iDB/actions?query=branch%3Amain); allow
-5–10 minutes once a real workflow is enabled.
+`.github/workflows/ci.yml` is the active build and test workflow. No latest
+green run or measured duration is recorded here; check the [main Actions
+runs](https://github.com/pham-ha-gif/H-iDB/actions?query=branch%3Amain).
 
-| Workflow step          | What it checks                                                                                                                                       |
-| ---------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Workflow step          | Check                                                                                     |
-| ---------------------- | ----------------------------------------------------------------------------------------- |
-| Detect stack (Ubuntu)  | Checkout; detect Python files to select jobs.                                              |
-| Python tests (Ubuntu)  | Install `uv`; sync; Ruff (warning-only); pytest with coverage/JUnit; publish summary.       |
-| Python tests (Windows) | Same Python checks on Windows; install Python 3.13 for summary.                            |
-| No secrets committed   | Scan for credentials, `.env`, SQL dumps, and database dumps.                              |
+| Workflow step | What it checks |
+| --- | --- |
+| PostgreSQL service | Starts an isolated PostgreSQL 17 database and waits for readiness. |
+| Python setup | Installs Python 3.14 and dependencies from `uv.lock`. |
+| Database setup | Executes the schema recreation and sample-data actions in `database/note.py` against the isolated CI database. |
+| Rust build | Installs nightly Rust and `cargo-leptos`, then builds the Leptos app. |
+| Start and health | Starts the app on port 3100 and waits for `/health`. |
+| Pytest | Runs Python tests against the live local app and isolated database; publishes test totals and displays app logs if a step fails. |
 
-There is no Rust/Leptos step or branch-protection screenshot. Capture the
-actual `main` rules from GitHub Settings → Branches at
+There is no branch-protection screenshot. Capture the actual `main` rules from
+GitHub Settings → Branches at
 `docs/evident/main-branch-protection.png`.
 
 ## 3. Monitoring, logs, and health
@@ -66,7 +62,7 @@ logs and check the URL, `/health`, and admin health view.
 | --- | --- | --- | --- |
 | CI config is inactive; Cargo checks are commented out. | infrastructure | Rust regressions reach `main`. | accepted — enable CI before production use. |
 | PostgreSQL tests need `TEST_DATABASE_URL`. | tests | CI misses database regressions. | accepted — CI needs an isolated database. |
-| Deployment is manual on the Tunnel host. | infrastructure | Wrong commit or downtime. | accepted — no deploy runner is configured. |
+| Render deployment depends on a deploy hook secret and successful CI. | infrastructure | Missing secret prevents automated deploys. | Configure `RENDER_DEPLOY_HOOK_URL` in GitHub repository secrets. |
 | No production backup/restore job. | data | Host loss removes user data. | accepted — configure encrypted off-host backups before production. |
 | No metrics or log aggregation. | infrastructure | Errors/latency go unnoticed. | accepted — demo uses manual checks. |
 

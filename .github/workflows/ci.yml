@@ -1,0 +1,148 @@
+name: CI
+
+on:
+  push:
+    branches: [**]
+    tags: ["**"]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Build, start app, and run pytest
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: userdb
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d userdb"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGPASS: postgres
+      PGHOST: localhost
+      PGDATABASE: userdb
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/userdb
+      TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/userdb
+      TEST_APP_URL: http://127.0.0.1:3100
+      PORT: "3100"
+      ADMIN_EMAIL: admin@neu.edu.vn
+      CARGO_TERM_COLOR: always
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends -y pkg-config libssl-dev
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.15"
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Install Python dependencies
+        run: uv sync --locked
+
+      - name: Initialize isolated CI database
+        run: uv run python database/init.py --recreate --seed
+
+      - name: Install Rust and Leptos tools
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          targets: wasm32-unknown-unknown
+
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-leptos
+        run: cargo install cargo-leptos --locked
+
+      - name: Build application
+        run: cargo leptos build --release
+
+      - name: Start application
+        run: |
+          nohup target/release/datingapp > /tmp/neudating.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3100/health; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/neudating.log
+          echo "Application did not become healthy within 120 seconds."
+          exit 1
+
+      - name: Run pytest against the running application
+        run: uv run pytest -v --cov --cov-report=term-missing --junitxml=junit.xml
+
+      - name: Publish test summary
+        if: always()
+        run: |
+          echo "### Python test results" >> "$GITHUB_STEP_SUMMARY"
+          python - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import pathlib
+          import xml.etree.ElementTree as ET
+
+          report = pathlib.Path("junit.xml")
+          if not report.exists():
+              print("No pytest report was produced.")
+          else:
+              root = ET.parse(report).getroot()
+              suite = root if root.tag == "testsuite" else root.find("testsuite")
+              if suite is None:
+                  print("No test suite found in pytest report.")
+              else:
+                  failed = int(suite.get("failures", 0)) + int(suite.get("errors", 0))
+                  print(f"- Tests: **{suite.get('tests', 0)}**")
+                  print(f"- Failed: **{failed}**")
+                  print(f"- Skipped: **{suite.get('skipped', 0)}**")
+          PY
+
+      - name: Show application log on failure
+        if: failure()
+        run: cat /tmp/neudating.log || true
+
+  deploy:
+    name: Trigger Render deploy
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check tagged commit is on main
+        id: main-check
+        run: |
+          git fetch origin main
+          if git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "is_main=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_main=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Call Render deploy hook
+        if: steps.main-check.outputs.is_main == 'true'
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          test -n "$RENDER_DEPLOY_HOOK_URL"
+          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL"

@@ -1,15 +1,14 @@
 services:
   - type: web
     name: neudating
-    env: docker
-    dockerfilePath: ./Dockerfile
-    dockerContext: .
+    plan: free
+    runtime: rust
+    buildCommand: cargo install cargo-leptos --locked && cargo leptos build --release
+    startCommand: cargo leptos watch --release
     healthCheckPath: /health
-    autoDeploy: true
+    autoDeploy: false
     envVars:
       - key: DATABASE_URL
         sync: false
       - key: ADMIN_EMAIL
         sync: false
-      - key: SEED_SAMPLE_DATA
-        value: "true"
