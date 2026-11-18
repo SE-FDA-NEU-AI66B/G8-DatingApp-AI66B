@@ -12,12 +12,13 @@ def _(mo):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _():
     import os
     import marimo as mo
     import psycopg2
-    from database.init import initialize_sample_data, recreate_application_database
+    from psycopg2 import sql as psycopg_sql
+    from init import initialize_sample_data, recreate_application_database
     from dotenv import load_dotenv
     load_dotenv()
     return (
@@ -25,6 +26,7 @@ def _():
         mo,
         os,
         psycopg2,
+        psycopg_sql,
         recreate_application_database,
     )
 
@@ -51,32 +53,29 @@ def _(os, psycopg2):
                     break
     # coonect to the database
     try:
-        uri = f"postgresql://postgres:{PGPASS}@{PGHOST}/{PGDATABASE}"
-        conn = psycopg2.connect(
-            host=PGHOST,
-            database=PGDATABASE,
-            user="postgres",  # Your database username
-            password=PGPASS,  # Your database password
-        )
+        url = f"postgresql://postgres:{PGPASS}@{PGHOST}/{PGDATABASE}"
+        url = os.environ.get("EXTERNAL_DATABASE_URL", url)
+        conn = psycopg2.connect(url)
         conn.autocommit = True
     except Exception as e:
         print(e)
-    return conn, uri
+    return conn, url
 
 
 @app.cell
-def _(mo, uri):
+def _(mo, url):
     _df = mo.sql(
         f"""
-        ATTACH '{uri}' AS userdb (TYPE postgres);
-        """
+        ATTACH '{url}' AS userdb (TYPE postgres);
+        """,
+        output=False
     )
     return
 
 
 @app.cell
-def _(uri):
-    uri
+def _(url):
+    url
     return
 
 
@@ -86,17 +85,47 @@ def _(mo):
     ## Application database
     Recreate the empty application schema here. This drops every table in the
     connected database's `public` schema, then creates the tables used by the app.
+    **Drop all tables** removes every table in `public` without recreating the schema.
     The sample-data button below adds reusable demo records without resetting the schema.
     """)
     recreate_database_button = mo.ui.run_button(label="Recreate application database")
+    drop_all_tables_button = mo.ui.run_button(label="Drop all tables")
     initialize_sample_data_button = mo.ui.run_button(label="Initialize sample data")
-    mo.vstack([app_database_heading, recreate_database_button, initialize_sample_data_button])
-    return initialize_sample_data_button, recreate_database_button
+    mo.vstack([app_database_heading, recreate_database_button, drop_all_tables_button, initialize_sample_data_button])
+    return (
+        drop_all_tables_button,
+        initialize_sample_data_button,
+        recreate_database_button,
+    )
 
 
 @app.cell(hide_code=True)
-def _(conn, mo, os, recreate_application_database, recreate_database_button):
-    if recreate_database_button.value or os.environ.get("RECREATE_DATABASE") == "1":
+def _(conn, drop_all_tables_button, mo, psycopg_sql):
+    if drop_all_tables_button.value:
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT tablename FROM pg_tables WHERE schemaname = 'public'"
+                )
+                tables = [row[0] for row in cursor.fetchall()]
+                for table in tables:
+                    cursor.execute(
+                        psycopg_sql.SQL("DROP TABLE IF EXISTS {} CASCADE").format(
+                            psycopg_sql.Identifier(table)
+                        )
+                    )
+            drop_status = mo.md(f"Dropped {len(tables)} table(s) from the public schema.")
+        except Exception as error:
+            drop_status = mo.md(f"Dropping tables failed: `{error}`")
+    else:
+        drop_status = mo.md("Click **Drop all tables** to remove every table from the public schema.")
+    drop_status
+    return
+
+
+@app.cell(hide_code=True)
+def _(conn, mo, recreate_application_database, recreate_database_button):
+    if recreate_database_button.value:
         try:
             recreate_application_database(conn)
             schema_status = mo.md("Application database recreated.")
@@ -109,8 +138,8 @@ def _(conn, mo, os, recreate_application_database, recreate_database_button):
 
 
 @app.cell(hide_code=True)
-def _(conn, initialize_sample_data, initialize_sample_data_button, mo, os):
-    if initialize_sample_data_button.value or os.environ.get("INITIALIZE_SAMPLE_DATA") == "1":
+def _(conn, initialize_sample_data, initialize_sample_data_button, mo):
+    if initialize_sample_data_button.value:
         try:
             initialize_sample_data(conn)
             sample_data_status = mo.md(
@@ -141,39 +170,36 @@ def _(mo):
 
 
 @app.cell
-def _(conn, mo, os, users):
-    if os.environ.get("CI_DATABASE_SETUP_ONLY") != "1":
-        _df = mo.sql(
-            f"""
-            Select * from users
-            """,
-            engine=conn
-        )
+def _(conn, mo, users):
+    _df = mo.sql(
+        f"""
+        Select * from users
+        """,
+        engine=conn
+    )
     return
 
 
 @app.cell
-def _(conn, mo, os, users):
-    if os.environ.get("CI_DATABASE_SETUP_ONLY") != "1":
-        _df = mo.sql(
-            f"""
-            DELETE FROM users
-            WHERE username='quang';
-            """,
-            engine=conn
-        )
+def _(conn, mo, users):
+    _df = mo.sql(
+        f"""
+        DELETE FROM users
+        WHERE username='quang';
+        """,
+        engine=conn
+    )
     return
 
 
 @app.cell
-def _(conn, mo, os):
-    if os.environ.get("CI_DATABASE_SETUP_ONLY") != "1":
-        _df = mo.sql(
-            f"""
-            EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
-            """,
-            engine=conn
-        )
+def _(conn, mo):
+    _df = mo.sql(
+        f"""
+        EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM information_schema.tables WHERE table_schema = 'public'
+        """,
+        engine=conn
+    )
     return
 
 

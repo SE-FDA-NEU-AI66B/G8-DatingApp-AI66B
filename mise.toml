@@ -1,20 +1,11 @@
-# [tools]
-# node = '24'
-# python = '3.12'
 [env]
-[tools]
-
-# uv = "system"
 
 [tasks]
-hello = "seq 0 142"
 cloudflared = "cargo run --example cloudflared"
-lego = "cd cert; lego"
 database = "docker compose --env-file .env -f database/compose.yaml up -d"
 database_config = "docker compose --env-file .env -f database/compose.yaml config"
 database_clean = "cd database;docker compose down --remove-orphans"
-database_note = "uv run marimo edit database/note.py"
+database_note = "uv run marimo edit --watch database/note.py"
 
 [settings]
-activate_aggressive = true
 python.uv_venv_auto = "source"
