@@ -58,13 +58,19 @@ pub async fn register(pool: web::Data<PgPool>, body: web::Json<RegisterReq>) -> 
         }
     };
 
+    let admin_email = std::env::var("ADMIN_EMAIL")
+        .ok()
+        .map(|value| value.trim().to_lowercase());
+    let role = (admin_email.as_deref() == Some(email.as_str())).then_some("admin");
+
     match sqlx::query(
-        "INSERT INTO users (email, username, password_hash)
-         VALUES ($1, $2, $3)",
+        "INSERT INTO users (email, username, password_hash, email_verified, role)
+         VALUES ($1, $2, $3, TRUE, COALESCE($4, 'user'))",
     )
     .bind(email)
     .bind(username)
     .bind(password_hash)
+    .bind(role)
     .execute(pool.get_ref())
     .await
     {

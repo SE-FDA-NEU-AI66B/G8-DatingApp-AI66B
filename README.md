@@ -1,4 +1,4 @@
-https://www.dt-fwb.ipv64.de
+Running app: https://g8-datingapp-ai66b-1.onrender.com
 
 # NEUDating
 
@@ -8,12 +8,45 @@ NEUDating is a student-focused app for meeting people with shared interests and 
 
 ## Test accounts
 
-The database notebook can seed these demo usernames. All seeded accounts, including `admin`, use the password `password`; the database stores only its Argon2 hash. Sign-in still requires a verified NEU email through Microsoft, and seeded accounts are not guaranteed to be available on the public host. Configure an account's email as `ADMIN_EMAIL` on the server to grant it administrator access.
+<<<<<<< HEAD
+The database notebook can seed these demo usernames. It sets their password hashes to `NULL`, so **there is no demo password login**. Sign-in requires a verified NEU email through Microsoft; the seeded accounts are not guaranteed to be available on the public host. Configure an account's email as `ADMIN_EMAIL` on the server to grant it administrator access.
+||||||| 3899500
+## Demo accounts
+=======
+## Test accounts
+>>>>>>> origin/main
 
+<<<<<<< HEAD
 | Role | Seeded username | Password |
+||||||| 3899500
+Local notebook seed accounts (created by the sample-data action in `database/note.py`):
+
+| Role | Test account | Local demo password |
+=======
+Use these non-production accounts for the public demo. Passwords are shared
+separately with the instructor/team and are intentionally not committed here.
+
+| Role | Email | Username |
+>>>>>>> origin/main
 |---|---|---|
-| Regular user | `alex_demo`, `linh_demo`, `minh_demo` | `password` |
-| Admin-capable seed | `admin` | `password`; role is assigned by `ADMIN_EMAIL` |
+<<<<<<< HEAD
+| Regular user | `alex_demo`, `linh_demo`, `minh_demo` | Not configured |
+| Admin-capable seed | `admin` | Not configured; role is assigned by `ADMIN_EMAIL` |
+||||||| 3899500
+| Admin | `admin` | `password` |
+| Student | `alex_demo`, `linh_demo`, `minh_demo` | `password` |
+
+These are demo-only credentials for the local seeded development database, not real user credentials. Availability of these accounts on the public host is not guaranteed.
+=======
+| Admin | `admin.test@neu.edu.vn` | `admin_test` |
+| Student | `student.one@neu.edu.vn` | `student_one` |
+| Student | `student.two@neu.edu.vn` | `student_two` |
+
+The admin email must match the Render `ADMIN_EMAIL` value. Create each account
+through the registration screen before the demo, using a unique test password
+of at least 12 characters. Never use a real personal password or a database
+connection string in this repository.
+>>>>>>> origin/main
 
 ## P0 stories and starting points
 
@@ -32,6 +65,8 @@ Routes below are the app's starting screens. Most signed-in stories require a ve
 The CI workflow builds the Leptos application, starts it against an isolated PostgreSQL service, waits for `/health`, and runs pytest against the local server. It runs on pushes and pull requests targeting `main`. Successful CI runs on `main` trigger a Render deploy hook; configure the repository secret `RENDER_DEPLOY_HOOK_URL` with the service's Render deploy hook URL. Render automatic deploy is disabled in [`render.yaml`](render.yaml) so deployments wait for CI.
 
 ## Team QHQ
+
+Members: Nguyen Son Hai (11247282), Nguyen Minh Quang (11247344), Le Duy Quyen (11247345).
 
 Nguyễn Sơn Hải (`hai291`, Product Owner) · Nguyễn Minh Quang (`iambadwithname`) · Phạm Hà (`pham-ha-gif`). See the [project board](https://github.com/orgs/SE-FDA-NEU-AI66B/projects/20).
 
