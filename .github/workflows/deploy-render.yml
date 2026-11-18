@@ -25,8 +25,8 @@ jobs:
       - name: Call Render deploy hook
         if: steps.main-check.outputs.is_main == 'true'
         env:
-          # RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
-          RENDER_DEPLOY_HOOK_URL: https://api.render.com/deploy/srv-dbuk8jsipgvc7396dat0?key=NR4E5WKrb8U
+          QUANG_RENDER_DEPLOY_HOOK_URL: ${{ secrets.QUANG_RENDER_DEPLOY_HOOK_URL }}
+          # RENDER_DEPLOY_HOOK_URL: https://api.render.com/deploy/srv-dbuk8jsipgvc7396dat0?key=NR4E5WKrb8U
         run: |
-          test -n "$RENDER_DEPLOY_HOOK_URL"
-          curl --fail --silent --show-error --request POST "$RENDER_DEPLOY_HOOK_URL"
+          test -n "$QUANG_RENDER_DEPLOY_HOOK_URL"
+          curl --fail --silent --show-error --request POST "$QUANG_RENDER_DEPLOY_HOOK_URL"
