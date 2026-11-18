@@ -4,7 +4,7 @@ services:
     plan: free
     runtime: rust
     buildCommand: cargo install cargo-leptos --locked && cargo leptos build --release
-    startCommand: ./target/release/datingapp
+    startCommand: cargo leptos watch --release
     healthCheckPath: /health
     autoDeploy: false
     envVars:
