@@ -1,6 +1,7 @@
 services:
   - type: web
     name: neudating
+    plan: free
     env: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
