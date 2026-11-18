@@ -58,3 +58,17 @@ ON CONFLICT (sender_id, receiver_id) DO NOTHING;
 INSERT INTO conversations (user_low, user_high, match_request_id)
 VALUES (%s, %s, %s)
 ON CONFLICT (user_low, user_high) DO NOTHING;
+
+-- statement: sample_posts
+INSERT INTO threads (author_id, title, body)
+SELECT samples.author_id, samples.title, samples.body
+FROM (VALUES
+    (%s::uuid, 'Best quiet places to study?', 'I am looking for quiet spots on campus with reliable Wi-Fi. Where do you like to study?'),
+    (%s::uuid, 'Study group for algorithms', 'Anyone interested in reviewing graph algorithms together this week?'),
+    (%s::uuid, 'Sharing exam prep tips', 'What has helped you prepare for midterms? I can share my notes for databases.')
+) AS samples(author_id, title, body)
+WHERE NOT EXISTS (
+    SELECT 1 FROM threads existing
+    WHERE existing.author_id = samples.author_id
+      AND existing.title = samples.title
+);

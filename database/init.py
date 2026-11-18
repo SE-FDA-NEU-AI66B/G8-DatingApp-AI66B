@@ -169,6 +169,9 @@ SAMPLE_USERS = (
     ("alex.demo@students.neu.edu.vn", "alex_demo"),
     ("linh.demo@demo.neu.edu.vn", "linh_demo"),
     ("minh.demo@neu.edu.vn", "minh_demo"),
+    ("mai.demo@students.neu.edu.vn", "mai_demo"),
+    ("nam.demo@neu.edu.vn", "nam_demo"),
+    ("thao.demo@demo.neu.edu.vn", "thao_demo"),
 )
 
 DEMO_PASSWORD_HASH = (
@@ -236,6 +239,10 @@ def initialize_sample_data(conn):
             cursor.execute(
                 seed_sql["conversation"],
                 (min(alex, linh), max(alex, linh), sample_match_id),
+            )
+            cursor.execute(
+                seed_sql["sample_posts"],
+                tuple(sample_user_ids[name] for name in ("alex_demo", "mai_demo", "nam_demo")),
             )
         conn.commit()
     except Exception:
